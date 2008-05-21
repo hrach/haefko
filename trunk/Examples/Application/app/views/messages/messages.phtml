@@ -1,0 +1,25 @@
+<?php $messages = $controller->model->getMessages() ?>
+<h1>Zprávy ze skupiny: <?=$messages['name']?></h1>
+
+<?=$this->link('/groups', 'Zpět')?>
+<br />
+<?=$this->link('/create', 'Nová zpráva')?>
+<br />
+<br />
+
+<table class="list">
+<tr>
+	<th>Autor</th>
+	<th>Obsah</th>
+	<th>Datum</th>
+	<th>Upravit</th>
+</tr>
+<?php foreach ((array) $messages['message_id'] as $message) { ?>
+<tr>
+	<td><?= $message['author'] ?></td>
+	<td><?= $message['text'] ?></td>
+	<td><?= $message['date'] ?></td>
+	<td><?= $this->link("/edit/message:$message[message_id]", 'Editovat') ?></td>
+</tr>
+<?php } ?>
+</table>
