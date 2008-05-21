@@ -3,7 +3,7 @@
 $startTime = microtime(true);
 
 
-require_once 'hf/HF/Application/Router.php';
+require_once '../Haefko/Application/Router.php';
 
 echo Http::getRequestUrl() . '<br>';
 

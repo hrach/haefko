@@ -2,12 +2,12 @@
 
 
 
-require_once 'hf/HF/Forms/Form.php';
-require_once 'hf/HF/Debug.php';
+require_once '../../Haefko/Forms/Form.php';
+require_once '../../Haefko/Debug.php';
 
 
 
-$form = new Form('form.php');
+$form = new Form('form.php', false);
 $form->addText('url')
 	 ->addPassword('pass')
 	 ->addSelect('city', array('Praha', 'Brno'))
