@@ -1,0 +1,207 @@
+<?php
+
+/**
+ * Haefko - your php5 framework
+ *
+ * @author      Jan Skrasek <skrasek.jan@gmail.com>
+ * @copyright   Copyright (c) 2008, Jan Skrasek
+ * @link        http://hf.programujte.com
+ * @version     0.6 alfa
+ * @package     HF
+ */
+
+
+
+require_once dirname(__FILE__) . '/IView.php';
+require_once dirname(__FILE__) . '/CustomView.php';
+
+
+
+/**
+ * Trida RssView obstarava nacitani view a jeho vypln rss obsahem
+ */
+class RssView extends CustomView implements IView
+{
+
+
+
+    public $title;
+    public $link;
+    public $description;
+    public $lang;
+    public $copyright;
+    public $image = array();
+
+    protected $ext = '.rss.php';
+
+    private $items = array();
+
+
+
+    /**
+     * Konstruktor
+     * @param   CustomController    controller
+     * @return  void
+     */
+    public function __construct(CustomController & $controller)
+    {
+        parent::__construct($controller);
+
+        if (Config::read('Core.debug', 0) == 2) {
+            Config::write('Core.debug', 1);
+        }
+    }
+
+
+
+
+    /**
+     * Vrati instanci - polozku feedu
+     * @return  RssViewItem
+     */
+    public function item()
+    {
+        $this->items[] = $item = new RssViewItem($this);
+        return $item;
+    }
+
+
+
+    /**
+     * Render sablony
+     * @return  string
+     */
+    public function render()
+    {
+        Http::mimeType('application/rss+xml');
+
+        extract($this->vars);
+        $controller = $this->controller;
+        $base = $this->base;
+
+        include parent::pathFactory();
+        $this->createFeed();
+        return ob_get_clean();
+    }
+
+
+
+    /**
+     * Vygeneruje xml rss kanalu
+     * @return  void
+     */
+    public function createFeed()
+    {
+        echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
+        echo "<rss version=\"2.0\">\n"; 
+        echo "<channel>\n";
+
+            echo "\t<title>", htmlspecialchars($this->title), "</title>\n";
+            echo "\t<description>", htmlspecialchars($this->description), "</description>\n";
+            echo "\t<link>", $this->controller->url($this->link, true), "</link>\n";
+            echo "\t<docs>http://blogs.law.harvard.edu/tech/rss</docs>\n";
+            echo "\t<lastBuildDate>", $this->date(), "</lastBuildDate>\n";
+            echo "\t<generator>Haefko - php5 framework</generator>\n";
+
+            if (isset($this->image['title']) && isset($this->image['url']) && isset($this->image['link'])) {
+                echo "\t<image>\n";
+                    echo "\t\t<title>", $this->image['title'], "</title>\n";
+                    echo "\t\t<url>", $this->image['url'], "</url>\n";
+                    echo "\t\t<link>", $this->image['link'], "</link>\n";
+                echo "\t</image>\n";
+            }
+
+            foreach ($this->items as $item) {
+                $item->render();
+            }
+
+        echo "</chanel>\n";
+        echo "</rss>\n";
+    }
+
+
+
+    /**
+     * Vrati datum ve formatu RFC822 pro RSS
+     * @param   int     timestamp
+     * @return  string
+     */
+    public function date($time = false)
+    {
+        if (!$time) {
+            $time = time();
+        }
+
+        return gmdate(DATE_RFC822, $time);
+    }
+
+
+
+}
+
+
+
+class RssViewItem
+{
+
+
+
+    public $title;
+    public $link;
+    public $description;
+    public $author;
+    public $category;
+    public $comments;
+    public $guid;
+    public $date;
+    public $source;
+
+    private $view;
+
+
+
+    public function __construct(& $view)
+    {
+        $this->view = $view;
+    }
+
+
+
+    public function render()
+    {
+        echo "\t<item>\n";
+        if (!empty($this->title))
+            echo "\t\t<title>", htmlspecialchars(strip_tags($this->title)), "</title>\n";
+
+        if (!empty($this->link))
+            echo "\t\t<link>", $this->view->controller->url($this->link, true), "</link>\n";
+
+        if (!empty($this->guid))
+            echo "\t\t<guid>", $this->view->controller->url($this->guid, true), "</guid>\n";
+        elseif (!empty($this->link))
+            echo "\t\t<guid>", $this->view->controller->url($this->link, true), "</guid>\n";
+
+        if (!empty($this->description))
+            echo "\t\t<description><![CDATA[", $this->description, "]]></description>\n";
+
+        if (!empty($this->author))
+            echo "\t\t<author>", htmlspecialchars($this->author), "</author>\n";
+
+        if (!empty($this->category))
+            echo "\t\t<category>", htmlspecialchars($this->category), "</category>\n";
+
+        if (!empty($this->comments))
+            echo "\t\t<comments>", $this->view->controller->url($this->comments, true), "</comments>\n";
+
+        if (!empty($this->date))
+            echo "\t\t<pubDate>", $this->view->date(strtotime($this->date)), "</pubDate>\n";
+
+        if (!empty($this->source))
+            echo "\t\t<source>", $this->source, "</source>\n";
+
+        echo "\t</item>\n";
+    }
+
+
+
+}
