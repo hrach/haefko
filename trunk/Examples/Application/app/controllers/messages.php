@@ -7,7 +7,6 @@ class MessagesController extends CustomController
 
 	function init()
 	{
-		Db::connect();
 		$this->view->title = 'Systém pro kontrolu zpráv';
 	}
 
@@ -90,7 +89,7 @@ class MessagesController extends CustomController
 	{
 		$groups = dibi::query('SELECT * FROM [demo_groups] ORDER BY [name]')->fetchPairs();
 
-		$form = new Form($this->url($url));
+		$form = new Form($url);
 		$form->addSelect('group_id', $groups)
 			 ->addText('author')
 			 ->addText('text', true)

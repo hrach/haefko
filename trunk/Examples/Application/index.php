@@ -1,6 +1,6 @@
 <?php
 
-require_once 'hf/HF/Application/Application.php';
+require_once '../../Haefko/Application/Application.php';
 
 $app = Application::getInstance();
 $app->loadCore('Autoload')

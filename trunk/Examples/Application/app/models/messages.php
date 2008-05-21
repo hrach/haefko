@@ -1,6 +1,6 @@
 <?php
 
-class MessagesModel
+class MessagesModel extends CustomModel
 {
 
 	public function getMessages()

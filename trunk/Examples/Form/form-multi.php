@@ -2,12 +2,12 @@
 
 
 
-require_once 'hf/HF/Forms/Form.php';
-require_once 'hf/HF/Debug.php';
+require_once '../../Haefko/Forms/Form.php';
+require_once '../../Haefko/Debug.php';
 
 
 
-$form = new Form('form-multi.php');
+$form = new Form('form-multi.php', false);
 $form->addMultiCheckbox('spotrebice', array('pc' => 'PC', 'dvd' => 'DVD', 'bluray' => 'Blu-Ray'))
 	 ->addMultiSelect('spotrebice2', array('pc' => 'PC', 'dvd' => 'DVD', 'bluray' => 'Blu-Ray'))
 	 ->addRadio('spotrebic', array('lednice' => 'Lednice', 'mycka' => 'Myčka', 'pracka' => 'Pračka'))
