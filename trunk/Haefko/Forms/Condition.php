@@ -5,14 +5,16 @@
  *
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
- * @link        http://hf.programujte.com
- * @version     0.6 alfa
- * @package     HF
+ * @link        http://haefko.programujte.com
+ * @version     0.6
+ * @package     Haefko
  */
 
 
 
-
+/**
+ * Trida pro podminkovani validace a samotnou validaci
+ */
 class FormCondition
 {
 

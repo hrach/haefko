@@ -5,9 +5,9 @@
  *
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
- * @link        http://hf.programujte.com
- * @version     0.6 alfa
- * @package     HF
+ * @link        http://haefko.programujte.com
+ * @version     0.6
+ * @package     Haefko
  */
 
 
@@ -120,18 +120,22 @@ class CustomController
      * Vrati hodnotu jmenneho argumentu
      * @param   string  jmeno argumentu
      * @param   mixed   defaultni hodnota
-     * @param   bool    jedna se o jmenny argument
+     * @param   mixed   bool/string - jedna se o jemnny argument/odstranic dany prefix
      * @return  mixed
      */
     public function getArg($name, $default = false, $named = true)
     {
         if (isset(Router::$args[$name])) {
-            if ($named) {
+            if ($named === true) {
                 $var = Router::$args[$name];
                 Strings::ltrim($var, "$name:");
                 return $var;
-            } else {
+            } elseif ($named === false) {
                 return Router::$args[$name];
+            } else {
+                $var = Router::$args[$name];
+                Strings::ltrim($var, "$named:");
+                return $var;
             }
         } else {
             return $default;

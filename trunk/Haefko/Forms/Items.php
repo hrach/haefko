@@ -5,13 +5,16 @@
  *
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
- * @link        http://hf.programujte.com
- * @version     0.6 alfa
- * @package     HF
+ * @link        http://haefko.programujte.com
+ * @version     0.6
+ * @package     Haefko
  */
 
 
 
+/**
+ * Abstraktni trida pro formularove vstupni pole
+ */
 abstract class FormItem
 {
 
@@ -109,7 +112,7 @@ abstract class FormItem
      * @param   mixed           argument
      * @return  FormCondition
      */
-    public function addCondition($rule, $arg)
+    public function addCondition($rule, $arg = null)
     {
         return $this->conditions[] = new FormCondition($this, $rule, $arg);
     }
@@ -160,6 +163,9 @@ abstract class FormItem
 
 
 
+/**
+ * Formularove odesilaci tlacitko
+ */
 class FormSubmitItem extends FormTextItem
 {
 
@@ -203,6 +209,9 @@ class FormSubmitItem extends FormTextItem
 
 
 
+/**
+ * Formularove textove pole
+ */
 class FormTextItem extends FormItem
 {
 
@@ -236,6 +245,9 @@ class FormTextItem extends FormItem
 
 
 
+/**
+ * Formularove textove pole s heslem
+ */
 class FormTextPasswordItem extends FormItem
 {
 
@@ -264,6 +276,9 @@ class FormTextPasswordItem extends FormItem
 
 
 
+/**
+ * Formularove skryte pole
+ */
 class FormTextHiddenItem extends FormItem
 {
 
@@ -293,6 +308,9 @@ class FormTextHiddenItem extends FormItem
 
 
 
+/**
+ * Formularove pole pro upload souboru
+ */
 class FormFileItem extends FormItem
 {
 
@@ -326,6 +344,9 @@ class FormFileItem extends FormItem
 
 
 
+/**
+ * Formularove viceradkove textove pole
+ */
 class FormTextareaItem extends FormItem
 {
 
@@ -354,6 +375,9 @@ class FormTextareaItem extends FormItem
 
 
 
+/**
+ * Formularove vyberove pole
+ */
 class FormSelectItem extends FormItem
 {
 
@@ -450,6 +474,9 @@ class FormSelectItem extends FormItem
 
 
 
+/**
+ * Formularove zaskrtavaci pole
+ */
 class FormCheckBoxItem extends FormItem
 {
 

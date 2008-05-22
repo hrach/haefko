@@ -5,9 +5,9 @@
  *
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
- * @link        http://hf.programujte.com
- * @version     0.6 alfa
- * @package     HF
+ * @link        http://haefko.programujte.com
+ * @version     0.6
+ * @package     Haefko
  */
 
 
@@ -26,7 +26,7 @@ class Application
 
 
 
-    public static $frameworkVersion = '0.6 alpha';
+    public static $frameworkVersion = '0.6';
     private static $app = false;
 
 

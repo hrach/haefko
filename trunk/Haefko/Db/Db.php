@@ -5,9 +5,9 @@
  *
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
- * @link        http://hf.programujte.com
- * @version     0.6 alfa
- * @package     HF
+ * @link        http://haefko.programujte.com
+ * @version     0.6
+ * @package     Haefko
  */
 
 
@@ -32,8 +32,8 @@ class Db
 
     /**
      * Pripoji se k databazi
-     * Pokud neni predan jako parametr pole pripojeni, je nacteno z konfiguracni direktivi 'Db.connection'
-     * Priklad pro rozdilnou serverovou konfiguraci naleznete na adrese http://hf.programujte.com/manual/...
+     * Pokud neni predan jako parametr pole pripojeni, je nacteno z konfiguracni direktivy 'Db.connection'
+     * Priklad pro rozdilnou serverovou konfiguraci naleznete v manualu
      * @param   array   nastaveni pripojeni
      * @return  void
      */
