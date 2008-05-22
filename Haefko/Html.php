@@ -5,9 +5,9 @@
  *
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
- * @link        http://hf.programujte.com
- * @version     0.6 alfa
- * @package     HF
+ * @link        http://haefko.programujte.com
+ * @version     0.6
+ * @package     Haefko
  */
 
 
@@ -17,7 +17,8 @@ class Html implements ArrayAccess
 
 
 
-    public static $emptyElements = array('img', 'meta', 'input', 'meta', 'area', 'base', 'col', 'link', 'param', 'frame', 'embed');
+    public static $emptyElements = array('img', 'meta', 'input', 'meta', 'area',
+                                         'base', 'col', 'link', 'param', 'frame', 'embed');
 
     private static $conditions = array();
 
@@ -72,6 +73,13 @@ class Html implements ArrayAccess
         } else {
              return;
         }
+    }
+
+
+
+    public static function isActive($name)
+    {
+        return isset(self::$conditions[$name]);
     }
 
 
@@ -296,7 +304,7 @@ class Html implements ArrayAccess
     public function renderEnd()
     {
         if (!$this->empty) {
-            return "</{$this->name}>\n";
+            return "</{$this->name}>" . ($this->name == 'a' ? '' : "\n");
         }
     }
 

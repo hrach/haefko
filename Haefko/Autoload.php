@@ -5,9 +5,9 @@
  *
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
- * @link        http://hf.programujte.com
- * @version     0.6 alfa
- * @package     HF
+ * @link        http://haefko.programujte.com
+ * @version     0.6
+ * @package     Haefko
  */
 
 
@@ -112,7 +112,7 @@ class Autoload
     private function createClassList()
     {
         if (class_exists('Config', false)) {
-            $this->cacheFile = Config::read('Autoload.cache-file', Application::getInstance()->getPath(). 'temp/autoload-cache.dat');
+            $this->cacheFile = Config::read('Autoload.cache-file', Application::getInstance()->getPath(). 'temp/autoload.cache.dat');
         }
 
         if (file_exists($this->cacheFile)) {

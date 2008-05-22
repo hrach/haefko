@@ -5,13 +5,16 @@
  *
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
- * @link        http://hf.programujte.com
- * @version     0.6 alfa
- * @package     HF
+ * @link        http://haefko.programujte.com
+ * @version     0.6
+ * @package     Haefko
  */
 
 
 
+/**
+ * Formularove vicevyberove zaskrtavaci pole
+ */
 class FormMultiCheckboxItem extends FormItem
 {
 
@@ -84,6 +87,9 @@ class FormMultiCheckboxItem extends FormItem
 
 
 
+/**
+ * Formularove vicevyberove pole
+ */
 class FormMultiSelectItem extends FormSelectItem
 {
 
@@ -157,6 +163,9 @@ class FormMultiSelectItem extends FormSelectItem
 
 
 
+/**
+ * Formularove vicevyberove pole
+ */
 class FormRadioItem extends FormItem
 {
 

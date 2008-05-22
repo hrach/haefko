@@ -5,13 +5,16 @@
  *
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
- * @link        http://hf.programujte.com
- * @version     0.6 alfa
- * @package     HF
+ * @link        http://haefko.programujte.com
+ * @version     0.6
+ * @package     Haefko
  */
 
 
 
+/**
+ * Abstraktní tøída pro model pro zapouzdtøedí bidi knihovny
+ */
 abstract class CustomModel extends DibiTable
 {
 
@@ -22,7 +25,12 @@ abstract class CustomModel extends DibiTable
 
 
 
-    public function __construct(& $controller)
+    /**
+     * Konstruktor
+     * @param   CustomController    controller
+     * @return  void
+     */
+    public function __construct(CustomController & $controller)
     {
         Db::connect();
 

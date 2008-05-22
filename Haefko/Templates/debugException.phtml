@@ -5,9 +5,9 @@
  *
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
- * @link        http://hf.programujte.com
- * @version     0.6 alfa
- * @package     HF
+ * @link        http://haefko.programujte.com
+ * @version     0.6
+ * @package     Haefko
  */
 
 ?>
@@ -16,8 +16,8 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="robots" content="noindex,noarchive" />
-    <meta name="generator" content="HF - php5 framework" />
-    <title>HF: Neodchycená výjimka</title>
+    <meta name="generator" content="Háefko - your php5 framework" />
+    <title>Háefko: Neodchycená výjimka</title>
     <style type="text/css" media="screen">
     body {
         background: #f8f4ed;
@@ -58,7 +58,7 @@
     </style>
 </head>
 <body>
-<h1>HF: Neodchycená výjimka</h1>
+<h1>Háefko: Neodchycená výjimka</h1>
 <div style="padding: 10px 20px;">
     <h3 style="color: #75011b;"><?= $exception->getMessage(); ?></h3>
     řádek <code><?= $exception->getLine(); ?></code> - <code><?= $exception->getFile(); ?></code>
@@ -69,7 +69,7 @@
 
     <p>
         Vygenerováno v <?php echo date('h:i - d.m.Y') ?><br />
-        <a href="http://hf.programujte.com">HF powered</a> - version <?= Application::$frameworkVersion ?><br />
+        Powered by<a href="http://hf.programujte.com">Háefko</a> (<?= Application::$frameworkVersion ?>)<br />
     </p>
 </div>
 </body>
