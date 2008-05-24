@@ -115,12 +115,18 @@ class Html implements ArrayAccess
 
 
 
-    public static function rss($name, $title = 'RSS')
+    /**
+     * Vytvori tag odkazujici na rss kanal
+     * @param   string  retezec pro CustomController::url()
+     * @param   string  titulek
+     * @return  string
+     */
+    public static function rss($url, $title = 'RSS')
     {
         $el = Html::element('link');
         $el['rel'] = 'alternate';
         $el['type'] = 'application/rss+xml';
-        $el['href'] = $name;
+        $el['href'] = Application::getInstance()->controller->url($url);
         $el['title'] = $title;
 
         return $el->render();

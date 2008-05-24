@@ -35,12 +35,11 @@ abstract class CustomView
 
     /**
      * Konstruktor
-     * @param   CustomConstroller   controler
      * @return  void
      */
-    public function __construct(& $controller)
+    public function __construct()
     {
-        $this->controller = $controller;
+        $this->controller = & Application::getInstance()->controller;
         $this->base = Http::getInternalUrl();
 
         $this->vars['escape'] = 'htmlSpecialChars';
@@ -177,11 +176,10 @@ abstract class CustomView
             return $app->getCorePath() . $view;
         } else {
             if ($app->error && $this->viewName == 'view') {
-                throw new Exception('View: Soubory HF poskozeny. Chybi: ' . $view);
+                throw new Exception('View: Soubory Haefka poskozeny - chybi: ' . $view);
             } else {
-                $this->missingView = $view;
-                $app->error('view', true);
-                return $this->pathFactory('view');
+                $app->loadCore('Application/Exceptions');
+                throw new HFException($view, 4);
             }
         }
     }

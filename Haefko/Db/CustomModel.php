@@ -35,8 +35,8 @@ abstract class CustomModel extends DibiTable
         Db::connect();
 
         $this->controller = $controller;
-        if (!empty(self::$table)) {
-            $this->name = self::$table;
+        if (!empty($this->table)) {
+            $this->name = $this->table;
         }
 
         parent::__construct();

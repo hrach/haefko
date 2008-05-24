@@ -27,6 +27,7 @@ class Application
 
 
     public static $frameworkVersion = '0.6';
+
     private static $app = false;
 
 
@@ -36,6 +37,8 @@ class Application
         if (self::$app === false) {
             self::$app = new Application();
             self::$app->setPath('/app/');
+
+            set_exception_handler(array(self::$app, 'exceptionHandler'));
         }
 
         return self::$app;
@@ -58,14 +61,16 @@ class Application
     public function loadCore($class)
     {
         $classes = func_get_args();
+
         foreach ($classes as $class) {
             $classFile = dirname(__FILE__) . '/../' . $class . '.php';
             if (file_exists($classFile)) {
                 require_once $classFile;
             } else {
-                throw new Exception('Knihovna jadra nebyla nalezena!');
+                throw new Exception('Knihovna jadra frameworku nebyla nalezena: ' . $classFile);
             }
         }
+
         return $this;
     }
 
@@ -80,6 +85,8 @@ class Application
     {
         if (file_exists($this->getPath() . $file)) {
             Config::load($this->getPath() . $file);
+        } else {
+            throw new Exception('Konfiguracni soubor neexistuje: ' . $file);
         }
 
         if (Config::read('Core.debug', 0) > 0) {
@@ -147,34 +154,12 @@ class Application
 
 
     /**
-     * Zobrazi chybovou chybovou zpravu.
-     * Pokud je ladici rezim vypnut, zobrazi se chyba 404.
-     * @param   string  jmeno view
-     * @param   bool    nahradit v non-debug 404
-     * @return  void
-     */
-    public function error($view = '404', $debug = false)
-    {
-        $this->error = true;
-
-        if ($debug === true && Config::read('Core.debug', 0) === 0) {
-            Http::error('404');
-            $this->controller->view->view('404');
-        } else {
-            $this->controller->view->view($view);
-        }
-    }
-
-
-
-    /**
      * Zapne zobrazeni chyb a odchyceni vyjimky pro vyvojare
      * @return  void
      */
     public function debugMode()
     {
         $this->loadCore('Debug');
-        set_exception_handler(array('Debug', 'exceptionHandler'));
         ini_set('show_errors', true);
         ini_set('error_reporting', E_ALL);
     }
@@ -187,7 +172,6 @@ class Application
      */
     public function nonDebugMode()
     {
-        set_exception_handler(array($this, 'exceptionHandler'));
         ini_set('display_errors', false);
         ini_set('error_reporting', E_ERROR | E_PARSE);
         ini_set('log_errors', true);
@@ -203,11 +187,47 @@ class Application
      */
     public function exceptionHandler(Exception $exception)
     {
-        error_log($exception->getMessage());
-        $this->controller = new CustomController;
-        $this->error('500');
-        Http::error('500');
-        $this->controller->view->render();
+        if ($exception instanceof HFException) {
+
+            static $codeToViewName = array(
+                1 => 'controller',
+                2 => 'method',
+                3 => 'routing',
+                4 => 'view'
+            );
+
+            $this->loadCore('Application/CustomController');
+            $this->controller = new CustomController;
+
+            if ($this->controller->view instanceof RssView) {
+                $this->controller->view = new View();
+            }
+
+            $this->controller->view->message = $exception->getMessage();
+            if (isset($codeToViewName[$exception->getCode()])) {
+                $this->controller->error($codeToViewName[$exception->getCode()]);
+            } else {
+                throw new Exception('Nepodporovany kod HFException: ' . $exception->getCode());
+            }
+
+            $this->controller->view->render();
+
+        } elseif (Config::read('Code.debug', 0) === 0) {
+
+            error_log($exception->getMessage());
+
+            $this->loadCore('Application/CustomController');
+            $this->controller = new CustomController;
+
+            $this->controller->error('500');
+            $this->controller->view->render();
+
+        } else {
+
+            $this->loadCore('Debug');
+            Debug::exceptionHandler($exception);
+
+        }
     }
 
 
@@ -223,14 +243,11 @@ class Application
         $class = Strings::camelize($namespace) . Strings::camelize($controller) . 'Controller';
 
         if ($class == 'Controller') {
-            require_once dirname(__FILE__) . '/CustomController.php';
-            $this->controller = new CustomController;
-            $this->error('routing', true);
+            $this->loadCore('Application/Exceptions');
+            throw new HFException(null, 3);
         } elseif (!class_exists($class)) {
-            require_once dirname(__FILE__) . '/CustomController.php';
-            $this->controller = new CustomController;
-            $this->error('controller', true);
-            $this->controller->view->missingController = $class;
+            $this->loadCore('Application/Exceptions');
+            throw new HFException($class ,1);
         } else {
             $this->controller = new $class;
         }
