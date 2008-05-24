@@ -33,9 +33,9 @@ class View extends CustomView implements IView
     /**
      * Konstruktor
      */
-    public function __construct(& $controller)
+    public function __construct()
     {
-        parent::__construct($controller);
+        parent::__construct();
     }
 
 

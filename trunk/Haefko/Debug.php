@@ -72,7 +72,7 @@ class Debug
 
 
     /**
-     * Kompatibility for Dibi
+     * Compatibility for Dibi
      */
     public static function addColophon()
     {}

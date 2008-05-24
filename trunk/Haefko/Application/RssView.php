@@ -40,12 +40,10 @@ class RssView extends CustomView implements IView
 
     /**
      * Konstruktor
-     * @param   CustomController    controller
-     * @return  void
      */
-    public function __construct(CustomController & $controller)
+    public function __construct()
     {
-        parent::__construct($controller);
+        parent::__construct();
 
         if (Config::read('Core.debug', 0) == 2) {
             Config::write('Core.debug', 1);
@@ -73,14 +71,16 @@ class RssView extends CustomView implements IView
      */
     public function render()
     {
-        Http::mimeType('application/rss+xml');
-
         extract($this->vars);
         $controller = $this->controller;
         $base = $this->base;
 
-        include parent::pathFactory();
+        include $this->pathFactory();
         $this->createFeed();
+
+        if (!$this->controller->app->error) {
+            Http::mimeType('application/rss+xml');
+        }
         return ob_get_clean();
     }
 

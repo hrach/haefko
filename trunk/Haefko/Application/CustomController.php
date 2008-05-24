@@ -42,7 +42,7 @@ class CustomController
     {
         $this->app  = Application::getInstance();
 
-        if (!empty(Router::$service) && isset($this->services[Router::$service])) {
+        if (!$this->app->error && !empty(Router::$service) && isset($this->services[Router::$service])) {
             $this->app->loadCore('Application/' . $this->services[Router::$service]);
             $this->view = new $this->services[Router::$service]($this);
         } else {
@@ -56,6 +56,27 @@ class CustomController
         if ($modelClass !== 'CustomModel' && class_exists($modelClass)) {
             $this->app->loadCore('Db/Db');
             $this->model = new $modelClass($this);
+        }
+    }
+
+
+
+    /**
+     * Zobrazi chybovou chybovou zpravu.
+     * Pokud je ladici rezim vypnut, zobrazi se chyba 404.
+     * @param   string  jmeno view
+     * @param   bool    nahradit v non-debug 404
+     * @return  void
+     */
+    public function error($view = '404', $debug = false)
+    {
+        $this->app->error = true;
+
+        if ($debug === true && Config::read('Core.debug', 0) === 0) {
+            Http::error('404');
+            $this->view->view('404');
+        } else {
+            $this->view->view($view);
         }
     }
 
@@ -161,9 +182,7 @@ class CustomController
             if (!$methodExists) {
                 $app = Application::getInstance();
                 if (!$app->error) {
-                    $app->error('method', true);
-                    $app->controller->view->missingMethod = $methodName;
-                    $methodName = false;
+                    throw new HFException($methodName, 2);
                 }
             } else {
                 $this->view->view(Router::$action);
@@ -173,7 +192,7 @@ class CustomController
                 call_user_func(array($this, 'init'));
             }
 
-            if ($methodName !== false && $methodExists) {
+            if ($methodExists) {
                 call_user_func_array(array($this, $methodName), Router::$args);
             }
 
