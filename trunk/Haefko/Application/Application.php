@@ -37,7 +37,6 @@ class Application
         if (self::$app === false) {
             self::$app = new Application();
             self::$app->setPath('/app/');
-
             set_exception_handler(array(self::$app, 'exceptionHandler'));
         }
 
@@ -67,7 +66,7 @@ class Application
             if (file_exists($classFile)) {
                 require_once $classFile;
             } else {
-                throw new Exception('Knihovna jadra frameworku nebyla nalezena: ' . $classFile);
+                throw new Exception('Knihovna Haefka nenalezena: ' . $classFile);
             }
         }
 
@@ -187,14 +186,7 @@ class Application
      */
     public function exceptionHandler(Exception $exception)
     {
-        if ($exception instanceof HFException) {
-
-            static $codeToViewName = array(
-                1 => 'controller',
-                2 => 'method',
-                3 => 'routing',
-                4 => 'view'
-            );
+        if ($exception instanceof ApplicationException) {
 
             $this->loadCore('Application/CustomController');
             $this->controller = new CustomController;
@@ -203,16 +195,11 @@ class Application
                 $this->controller->view = new View();
             }
 
+            $this->controller->error($exception->error);
             $this->controller->view->message = $exception->getMessage();
-            if (isset($codeToViewName[$exception->getCode()])) {
-                $this->controller->error($codeToViewName[$exception->getCode()]);
-            } else {
-                throw new Exception('Nepodporovany kod HFException: ' . $exception->getCode());
-            }
-
             $this->controller->view->render();
 
-        } elseif (Config::read('Code.debug', 0) === 0) {
+        } elseif (Config::read('Core.debug', 0) === 0) {
 
             error_log($exception->getMessage());
 
@@ -244,10 +231,10 @@ class Application
 
         if ($class == 'Controller') {
             $this->loadCore('Application/Exceptions');
-            throw new HFException(null, 3);
+            throw new ApplicationException('routing');
         } elseif (!class_exists($class)) {
             $this->loadCore('Application/Exceptions');
-            throw new HFException($class ,1);
+            throw new ApplicationException('controller', $class);
         } else {
             $this->controller = new $class;
         }

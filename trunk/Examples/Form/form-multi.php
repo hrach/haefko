@@ -38,6 +38,8 @@ if ($form->isSubmit()) {
 
 ?>
 
+<!--
+
 <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
 <fieldset>
 <legend>Ukázkový formlulář</legend>
@@ -64,3 +66,7 @@ if ($form->isSubmit()) {
 
 	<?= $form->end() ?>
 </fieldset>
+
+-->
+
+<?= $form ?>
