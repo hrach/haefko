@@ -101,6 +101,16 @@ class Router
 
         $rule = Strings::urlToArray($route);
 
+        if ($rule[count($rule) - 1] == '*') {
+            array_pop($rule);
+            $i = 1;
+
+            while (count($rule) < count(self::$url)) {
+                $rule[] = ":arg$i";
+                $i++;
+            }
+        }
+
         if (count($rule) < count(self::$url)) {
             return false;
         }

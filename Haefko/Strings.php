@@ -27,7 +27,7 @@ class Strings
      */
     public static function camelize($word)
     {
-        $camelWord = str_replace(' ', '', ucwords(str_replace('_', ' ', $word)));
+        $camelWord = str_replace(' ', '', ucwords(str_replace(array('_', '-'), array(' ', ' '), $word)));
         return $camelWord;
     }
 
@@ -40,7 +40,7 @@ class Strings
      */
     public static function underscore($word)
     {
-        $underscoreWord = strtolower(preg_replace('/(?<=\\w)([A-Z])/', '_\\1', $word));
+        $underscoreWord = strtolower(preg_replace('/(?<=\\w)([A-Z])/', '-\\1', $word));
         return $underscoreWord;
     }
 

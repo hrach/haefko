@@ -24,17 +24,25 @@ class Session
 
 
 
+    private static $started = false;
+
+
+
     public static function start()
     {
         self::checkHeaders();
-        self::init();
         session_start();
+        self::$started = true;
     }
 
 
 
     public static function read($var)
     {
+        if (!self::$started) {
+            self::start();
+        }
+
         if (isset($_SESSION[$var])) {
             return $_SESSION[$var];
         } else {
@@ -44,8 +52,23 @@ class Session
 
 
 
+    public static function safeRead($var)
+    {
+        if (isset($_COOKIE[ini_get('session.name')])) {
+            return self::read($var);
+        }
+
+        return false;
+    }
+
+
+
     public static function exists($var)
     {
+        if (!self::$started) {
+            self::start();
+        }
+
         return isset($_SESSION[$var]);
     }
 
@@ -53,6 +76,10 @@ class Session
 
     public static function write($var, $val)
     {
+        if (!self::$started) {
+            self::start();
+        }
+
         $_SESSION[$var] = $val;
     }
 
@@ -60,6 +87,10 @@ class Session
 
     public static function delete($var)
     {
+        if (!self::$started) {
+            self::start();
+        }
+
         unset($_SESSION[$var]);
     }
 
@@ -72,34 +103,34 @@ class Session
 
 
 
-    private static function init()
+    public static function init()
     {
         if (function_exists('ini_set')) {
             ini_set('session.use_cookies', 1);
 
-            $sname    = 'hf-session';
-            $sexpires = 3600;
-            $spath    = Http::getInternalUrl();
-            $sdomain  = Http::getDomain();
+            $name    = 'hf-session';
+            $expires = 3600;
+            $path    = Http::getInternalUrl();
+            $domain  = Http::getDomain();
 
             if (class_exists('Config', false)) {
                 ini_set('session.save_path', Config::read('Session.temp', Application::getInstance()->getPath() . 'temp'));
-                $sname    = Config::read('Session.name', $sname);
-                $sexpires = Config::read('Session.expires', $sexpires);
-                $spath    = config::read('Session.path', $spath);
-                $sdomain  = config::read('Session.domain', $sdomain);
+                $name    = Config::read('Session.name', $name);
+                $expires = Config::read('Session.expires', $expires);
+                $path    = config::read('Session.path', $path);
+                $domain  = config::read('Session.domain', $domain);
             }
 
-            if (substr_count ($sdomain, ".") == 1) {
-                $sdomain = '.' . $sdomain;
+            if (substr_count ($domain, ".") == 1) {
+                $domain = '.' . $domain;
             } else {
-                $sdomain = preg_replace ('/^([^.])*/i', null, $sdomain);
+                $domain = preg_replace ('/^([^.])*/i', null, $domain);
             }
 
-            ini_set('session.name', $sname);
-            ini_set('session.cookie_lifetime', $sexpires);
-            ini_set('session.cookie_path', $spath);
-            ini_set('session.cookie_domain', $sdomain);
+            ini_set('session.name', $name);
+            ini_set('session.cookie_lifetime', $expires);
+            ini_set('session.cookie_path', $path);
+            ini_set('session.cookie_domain', $domain);
         }
     }
 
@@ -118,4 +149,4 @@ class Session
 
 
 
-Session::start();
+Session::init();

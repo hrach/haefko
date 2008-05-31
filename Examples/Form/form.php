@@ -79,3 +79,7 @@ if ($form->isSubmit()) {
 	<?= $form->end() ?>
 
 </fieldset>
+
+
+<hr />
+<?= $form ?>

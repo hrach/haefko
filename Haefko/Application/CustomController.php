@@ -26,7 +26,6 @@ class CustomController
 
 
     public $services = array('rss' => 'RssView', 'atom' => 'RssView');
-
     public $app;
     public $view;
     public $model;
@@ -180,9 +179,8 @@ class CustomController
             $methodExists = method_exists(get_class($this), $methodName);
 
             if (!$methodExists) {
-                $app = Application::getInstance();
-                if (!$app->error) {
-                    throw new HFException($methodName, 2);
+                if (!$this->app->error) {
+                    throw new ApplicationException('method', $methodName);
                 }
             } else {
                 $this->view->view(Router::$action);

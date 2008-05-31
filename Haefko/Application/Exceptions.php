@@ -12,5 +12,26 @@
 
 
 
-class HFException extends Exception
-{}
+class ApplicationException extends Exception
+{
+
+
+
+    public $error;
+
+
+
+    public function __construct($error, $message = null)
+    {
+        static $errors = array('controller', 'method', 'routing', 'view');
+
+        if (!in_array($error, $errors))
+            throw new Exception('Nepodporovany kod ApplicationException: ' . $error);
+
+        $this->error = $error;
+        parent::__construct($message);
+    }
+
+
+
+}

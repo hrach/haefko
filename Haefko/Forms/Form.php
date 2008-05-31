@@ -35,7 +35,9 @@ class Form implements ArrayAccess
         NUMERIC = 5,
         LENGTH = 6,
         MINLENGTH = 7,
-        MAXLENGTH = 8;
+        MAXLENGTH = 8,
+        INARRAY = 9,
+        NOTINARRAY = 10;
 
 
 
@@ -392,6 +394,39 @@ class Form implements ArrayAccess
 
 
     /**
+     * Vyrenderuje zakladni jednoduchou kostru formulare
+     * @return  string
+     */
+    public function renderForm()
+    {
+        $form = $this->start()
+              . '<table>';
+
+        foreach ($this->form['elements'] as $name => $el) {
+            if ($el instanceof FormTextHiddenItem) continue;
+
+            $form .= '<tr><td>';
+
+            if ($el instanceof FormSubmitItem) {
+                $form .= '</td><td>' . $el->element(ucfirst($name));
+            } elseif ($el instanceof FormCheckboxItem) {
+                $form .= '</td><td>' . $el->element() . ' ' . $el->label(ucfirst($name));
+            } elseif ($el instanceof FormMultiCheckboxItem || $el instanceof FormRadioItem) {
+                $form .= '</td><td>' . $el->render();
+            } else {
+                $form .= $el->label(ucfirst($name)) . '</td><td>' . $el->element();
+            }
+
+            $form .= '</td></tr>';
+        }
+
+        $form .= '</table>' . $this->end();
+        return $form;
+    }
+
+
+
+    /**
      * Array-access pro ulozeni objektu vstupniho pole
      * Nevolejte primo!
      * @return  void
@@ -439,6 +474,17 @@ class Form implements ArrayAccess
     public function offsetExists($key)
     {
         return isset($this->form['elements'][$key]);
+    }
+
+
+
+    /**
+     * Automaticky render pri pokusu vypsat objekt
+     * @return  string
+     */
+    public function __toString()
+    {
+        return $this->renderForm();
     }
 
 

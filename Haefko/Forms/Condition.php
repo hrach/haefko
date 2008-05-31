@@ -111,15 +111,17 @@ class FormCondition
     private function valid($rule, $value, $arg)
     {
         switch ($rule) {
-            case Form::EQUAL:      return $value == $arg;
-            case Form::FILLED:     return ($value === '0') ? true : !empty($value);
-            case Form::EMAIL:      return preg_match('/^[^@]+@[^@]+\.[a-z]{2,6}$/i', $value);
-            case Form::URL:        return preg_match('/^.+\.[a-z]{2,6}(\\/.*)?$/i', $value);
-            case Form::NUMERIC:    return is_numeric($value);
-            case Form::MINLENGTH:  return strlen($value) >= $arg;
-            case Form::MAXLENGTH:  return strlen($value) <= $arg;
-            case Form::LENGTH:     return strlen($value) == $arg;
-            default:               return preg_match($rule, $value);
+            case Form::EQUAL:       return $value == $arg;
+            case Form::FILLED:      return ($value === '0') ? true : !empty($value);
+            case Form::EMAIL:       return preg_match('/^[^@]+@[^@]+\.[a-z]{2,6}$/i', $value);
+            case Form::URL:         return preg_match('/^.+\.[a-z]{2,6}(\\/.*)?$/i', $value);
+            case Form::NUMERIC:     return is_numeric($value);
+            case Form::MINLENGTH:   return strlen($value) >= $arg;
+            case Form::MAXLENGTH:   return strlen($value) <= $arg;
+            case Form::LENGTH:      return strlen($value) == $arg;
+            case Form::INARRAY:     return in_array($value, (array) $arg);
+            case Form::NOTINARRAY:  return !in_array($value, (array) $arg);
+            default:                return preg_match($rule, $value);
         }
     }
 

@@ -179,7 +179,7 @@ abstract class CustomView
                 throw new Exception('View: Soubory Haefka poskozeny - chybi: ' . $view);
             } else {
                 $app->loadCore('Application/Exceptions');
-                throw new HFException($view, 4);
+                throw new ApplicationException('view', $view);
             }
         }
     }
