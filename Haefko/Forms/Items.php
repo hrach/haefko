@@ -26,9 +26,9 @@ abstract class FormItem
     public $conditions = array();
 
     protected $sanitize = false;
+    protected $required = false;
 
     private $empty;
-
 
 
     /**
@@ -132,6 +132,10 @@ abstract class FormItem
         $cond->addRule($rule, $message, $arg);
         $this->conditions[] = $cond;
 
+        if ($rule == Form::FILLED) {
+            $this->required = true;
+        }
+
         return $this;
     }
 
@@ -150,6 +154,10 @@ abstract class FormItem
         $el = Html::element('label');
         $el['for'] = $id;
         $el['id'] = $id . '-label';
+
+        if ($this->required) {
+            $el['class'] .= ' required';
+        }
 
         $el->setContent($label);
         $el->setAttributes($attrs);

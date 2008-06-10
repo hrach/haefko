@@ -101,7 +101,7 @@ class RssView extends CustomView implements IView
             echo "\t<link>", $this->controller->url($this->link, true), "</link>\n";
             echo "\t<docs>http://blogs.law.harvard.edu/tech/rss</docs>\n";
             echo "\t<lastBuildDate>", $this->date(), "</lastBuildDate>\n";
-            echo "\t<generator>Haefko - php5 framework</generator>\n";
+            echo "\t<generator>Haefko - your php5 framework</generator>\n";
 
             if (isset($this->image['title']) && isset($this->image['url']) && isset($this->image['link'])) {
                 echo "\t<image>\n";
@@ -115,7 +115,7 @@ class RssView extends CustomView implements IView
                 $item->render();
             }
 
-        echo "</chanel>\n";
+        echo "</channel>\n";
         echo "</rss>\n";
     }
 
@@ -128,11 +128,7 @@ class RssView extends CustomView implements IView
      */
     public function date($time = false)
     {
-        if (!$time) {
-            $time = time();
-        }
-
-        return gmdate(DATE_RFC822, $time);
+        return gmdate(DATE_RFC822, !$time ? time() : $time);
     }
 
 

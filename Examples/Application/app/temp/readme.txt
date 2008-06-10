@@ -1,0 +1,1 @@
+Adresari app/temp nastavte prava na 0777.
