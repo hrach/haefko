@@ -66,7 +66,7 @@ class FormMultiCheckboxItem extends FormItem
             $el['id'] = $iname;
             $el['name'] = "{$this->form->name}[{$this->name}][]";
             $el['value'] = $name;
-            if (in_array($name, $this->value)) {
+            if (is_array($this->value) && in_array($name, $this->value)) {
                 $el['checked'] = 'checked';
             }
 
