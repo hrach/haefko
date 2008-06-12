@@ -266,8 +266,13 @@ class Form implements ArrayAccess
             if ($item instanceof FormFileItem && isset($_FILES[$this->name]['name'][$name]) && $_FILES[$this->name]['error'][$name] != 4) {
                 $this->data[$name] = $this->getFileData($name);
                 $this->value = & $this->data[$name]['name'];
-            } elseif (isset($_POST[$this->name][$name])) {
-                $this->data[$name] = $_POST[$this->name][$name];
+            } elseif(isset($_POST[$this->name][$name])) {
+                $value = $_POST[$this->name][$name];
+                if ($item->getEmptyValue() == $value) {
+                    $value = '';
+                }
+
+                $this->data[$name] = $value;
                 $item->value = & $this->data[$name];
             }
         }

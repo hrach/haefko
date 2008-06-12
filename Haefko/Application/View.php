@@ -114,6 +114,23 @@ class View extends CustomView implements IView
 
 
     /**
+     * Vytvori tlacitko v zavislosti na systemovem routingu s moznosti js potvrzeni
+     * @param   string  url
+     * @param   string  text odkazu
+     * @param   bool    js potvrzeni
+     * @return  string
+     */
+    public function button($url, $title, $confirm = false)
+    {
+        $app = Application::getInstance();
+        $url = call_user_func_array(array($app->controller, 'url'), (array) $url);
+
+        return Html::button($url, $title, $confirm);
+    }
+
+
+
+    /**
      * Vyrenderuje stranku z view a layoutu
      * @return  void
      */
@@ -158,18 +175,18 @@ class View extends CustomView implements IView
             break;
             case 'layout':
                 $namespace = Router::$namespace;
-                if (!empty($namespace)) $namespace .= '_';
+                if (!empty($namespace)) $namespace .= '-';
 
                 $x = -1;
                 $layouts = array(
-                    $app->getPath() . 'views/' . $theme . $namespace . $this->layoutName . $this->ext,
+                    $app->getPath() . 'views/' . $theme . Strings::underscore($namespace . $this->layoutName) . $this->ext,
                     $app->getCorePath() . 'views/' . Strings::underscore($this->layoutName) . '.phtml',
                     $app->getPath() . 'views/layout' . $this->ext
                 );
 
-                foreach ($layouts as $x => $layout) {
+                foreach ($layouts as $layout) {
                     if (file_exists($layout)) {
-                        return $layouts[$x];
+                        return $layout;
                     }
                 }
 
