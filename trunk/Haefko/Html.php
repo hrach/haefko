@@ -66,6 +66,35 @@ class Html implements ArrayAccess
 
 
 
+    /**
+     * Vytvori HTML odkaz
+     * Pokud neuvedete title, pouzije se jako text samotne URL
+     * @param   string  url
+     * @param   string  text odkazu
+     * @param   bool    js potvrzeni
+     * @return  string
+     */
+    public static function button($url, $title = null, $confirm = false)
+    {
+        $el = self::element('button');
+
+        $el['onclick'] = "document.location.href='$url'";
+
+        if ($confirm !== false) {
+            $el['onclick'] = "if (confirm('$confirm')) {" . $el['onclick'] . "}";
+        }
+
+        if (is_null($title)) {
+            $el->setContent($url);
+        } else {
+            $el->setContent($title);
+        }
+
+        return $el->render();
+    }
+
+
+
     public static function condition($name, $content)
     {
         if (isset(self::$conditions[$name])) {

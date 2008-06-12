@@ -17,7 +17,7 @@ $form->addText('url')
 	 ->addSubmit();
 
 $form['url']->setEmptyValue('http://');
-$form['url']->addRule(Form::FILLED, 'Vyplň url')->addRule(Form::URL, 'Zadejte validní URL');
+$form['url']->addCondition(Form::FILLED)->addRule(Form::URL, 'Zadejte validní URL');
 $form['pass']->addRule(Form::MINLENGTH, 'Prilis krastké heslo', 4);
 $form['agree']->addRule(Form::EQUAL, 'Musíte souhlasit!', true);
 $form['city']->addRule(Form::FILLED, 'Vyplň město');
@@ -80,6 +80,8 @@ if ($form->isSubmit()) {
 
 </fieldset>
 
-
+<!--
 <hr />
 <?= $form ?>
+
+-->

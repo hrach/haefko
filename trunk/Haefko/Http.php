@@ -50,7 +50,7 @@ class Http
 
 
     /**
-     * Je stranka volana ajaxem?
+     * Je stranka volana ajaxem
      * @return  bool
      */
     public static function isAjax()
@@ -139,7 +139,7 @@ class Http
     {
         static $supportCode = array(300, 301, 302, 303, 304, 307);
 
-        self::checkHeaders();
+        self::checkHeaders('Redirect ' . $absoluteUrl);
 
         if (!in_array($code, $supportCode)) {
             throw new Exception("Nepodporovany typ presmerovani.");
@@ -157,7 +157,7 @@ class Http
      */
     public static function mimeType($mime)
     {
-        self::checkHeaders();
+        self::checkHeaders('Mime ' . $mime);
         header("Content-type: $mime");
     }
 
@@ -170,7 +170,7 @@ class Http
      */
     public static function error($code = 404)
     {
-        self::checkHeaders();
+        self::checkHeaders('Error code ' . $code);
         switch ($code) {
             case 401:
                 header('HTTP/1.1 401 Unauthorized');
@@ -234,10 +234,10 @@ class Http
      * V pripade ze ano, script ukonci a vypise chybovou hlasku
      * @return  void
      */
-    private static function checkHeaders()
+    private static function checkHeaders($data = null)
     {
         if (headers_sent()) {
-            throw new Exception("Presmerovani nelze provest, hlavicky byly jiz odeslany.");
+            throw new Exception("Nelze zaslat hlavicku, hlavicky byly jiz odeslany. Data: " . $data);
         }
     }
 
