@@ -71,6 +71,7 @@ class RssView extends CustomView implements IView
      */
     public function render()
     {
+        ob_start();
         extract($this->vars);
         $controller = $this->controller;
         $base = $this->base;
@@ -81,7 +82,8 @@ class RssView extends CustomView implements IView
         if (!$this->controller->app->error) {
             Http::mimeType('application/rss+xml');
         }
-        return ob_get_clean();
+
+        echo ob_get_clean();
     }
 
 

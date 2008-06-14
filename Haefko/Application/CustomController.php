@@ -180,6 +180,7 @@ class CustomController
 
             if (!$methodExists) {
                 if (!$this->app->error) {
+                    $this->app->loadCore('Application/Exceptions');
                     throw new ApplicationException('method', $methodName);
                 }
             } else {

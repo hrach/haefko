@@ -139,12 +139,12 @@ class View extends CustomView implements IView
         ob_start();
 
         $this->viewPath = $this->pathFactory('view');
+        $this->layoutPath = $this->pathFactory('layout');
         $this->vars['content'] = $this->parse($this->viewPath, $this->vars);
 
         if ($this->layoutName === false) {
             echo $this->vars['content'];
         } else {
-            $this->layoutPath = $this->pathFactory('layout');
             echo $this->parse($this->layoutPath, $this->vars);
         }
     }
@@ -190,7 +190,11 @@ class View extends CustomView implements IView
                     }
                 }
 
-                return false;
+                if ($app->error) {
+                    return $app->getCorePath() . 'views/layout.phtml';
+                } else {
+                    $this->layoutName = false;
+                }
             break;
         }
     }
