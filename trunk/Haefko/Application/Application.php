@@ -66,7 +66,7 @@ class Application
             if (file_exists($classFile)) {
                 require_once $classFile;
             } else {
-                throw new Exception('Knihovna Haefka nenalezena: ' . $classFile);
+                die('Knihovna Haefka nenalezena: ' . $classFile);
             }
         }
 
@@ -85,7 +85,7 @@ class Application
         if (file_exists($this->getPath() . $file)) {
             Config::load($this->getPath() . $file);
         } else {
-            throw new Exception('Konfiguracni soubor neexistuje: ' . $file);
+            die('Konfiguracni soubor neexistuje: ' . $file);
         }
 
         if (Config::read('Core.debug', 0) > 0) {
@@ -194,8 +194,7 @@ class Application
             if ($this->controller->view instanceof RssView) {
                 $this->controller->view = new View();
             }
-
-            $this->controller->error($exception->error);
+            $this->controller->error($exception->error, true);
             $this->controller->view->message = $exception->getMessage();
             $this->controller->view->render();
 
