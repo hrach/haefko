@@ -13,7 +13,7 @@
  * @author     David Grudl
  * @copyright  Copyright (c) 2005, 2008 David Grudl
  * @license    http://dibiphp.com/license  dibi license
- * @version    0.9 (Revision: 125, Date: 2008/05/21 13:20:46)
+ * @version    0.9 (Revision: 128, Date: 2008/06/10 03:09:23)
  * @link       http://dibiphp.com/
  * @package    dibi
  */
@@ -114,7 +114,8 @@ insertId($sequence);function
 begin();function
 commit();function
 rollback();function
-format($value,$type);function
+escape($value,$type);function
+unescape($value,$type);function
 applyLimit(&$sql,$limit,$offset);function
 rowCount();function
 seek($row);function
@@ -195,8 +196,8 @@ test($args){$args=func_get_args();$this->connect();$trans=new
 DibiTranslator($this->driver);$ok=$trans->translate($args);dibi::dump($trans->sql);return$ok;}final
 public
 function
-nativeQuery($sql){$this->connect();dibi::$numOfQueries++;dibi::$sql=$sql;dibi::$elapsedTime=FALSE;$time=-microtime(TRUE);dibi::notify($this,'beforeQuery',$sql);$res=$this->driver->query($sql)?new
-DibiResult(clone$this->driver,$this->config):NULL;$time+=microtime(TRUE);dibi::$elapsedTime=$time;dibi::$totalTime+=$time;dibi::notify($this,'afterQuery',$res);return$res;}public
+nativeQuery($sql){$this->connect();dibi::$numOfQueries++;dibi::$sql=$sql;dibi::$elapsedTime=FALSE;$time=-microtime(TRUE);dibi::notify($this,'beforeQuery',$sql);if($res=$this->driver->query($sql)){$res=new
+DibiResult($res,$this->config);}$time+=microtime(TRUE);dibi::$elapsedTime=$time;dibi::$totalTime+=$time;dibi::notify($this,'afterQuery',$res);return$res;}public
 function
 affectedRows(){$rows=$this->driver->affectedRows();if(!is_int($rows)||$rows<0)throw
 new
@@ -218,9 +219,11 @@ rollback(){if(!$this->inTxn){throw
 new
 DibiException('There is no active transaction.');}$this->driver->rollback();$this->inTxn=FALSE;dibi::notify($this,'rollback');}public
 function
-escape($value){$this->connect();return$this->driver->format($value,dibi::FIELD_TEXT);}public
+escape($value,$type=dibi::FIELD_TEXT){$this->connect();return$this->driver->escape($value,$type);}public
 function
-delimite($value){return$this->driver->format($value,dibi::IDENTIFIER);}public
+unescape($value,$type=dibi::FIELD_BINARY){return$this->driver->unescape($value,$type);}public
+function
+delimite($value){return$this->driver->escape($value,dibi::IDENTIFIER);}public
 function
 applyLimit(&$sql,$limit,$offset){$this->driver->applyLimit($sql,$limit,$offset);}public
 function
@@ -243,8 +246,7 @@ DibiResult
 extends
 Object
 implements
-IDataSource{private$driver;private$xlat;private$metaCache;private$fetched=FALSE;private$withTables=FALSE;private$objects=FALSE;private
-static$types=array(dibi::FIELD_TEXT=>'string',dibi::FIELD_BINARY=>'string',dibi::FIELD_INTEGER=>'int',dibi::FIELD_FLOAT=>'float',dibi::FIELD_COUNTER=>'int');public
+IDataSource{private$driver;private$xlat;private$metaCache;private$fetched=FALSE;private$withTables=FALSE;private$objects=FALSE;public
 function
 __construct($driver,$config){$this->driver=$driver;if(!empty($config['result:withtables'])){$this->setWithTables(TRUE);}if(isset($config['result:objects'])){$this->setObjects($config['result:objects']);}}public
 function
@@ -314,7 +316,14 @@ getType($col){return
 isset($this->xlat[$col])?$this->xlat[$col]:NULL;}final
 public
 function
-convert($value,$type,$format=NULL){if($value===NULL||$value===FALSE){return$value;}if(isset(self::$types[$type])){settype($value,self::$types[$type]);return$value;}if($type===dibi::FIELD_DATE||$type===dibi::FIELD_DATETIME){return$format===NULL?strtotime($value):date($format,strtotime($value));}if($type===dibi::FIELD_BOOL){return((bool)$value)&&$value!=='f'&&$value!=='F';}return$value;}final
+convert($value,$type,$format=NULL){if($value===NULL||$value===FALSE){return$value;}switch($type){case
+dibi::FIELD_TEXT:return(string)$value;case
+dibi::FIELD_BINARY:return$this->getDriver()->unescape($value,$type);case
+dibi::FIELD_INTEGER:return(int)$value;case
+dibi::FIELD_FLOAT:return(float)$value;case
+dibi::FIELD_DATE:case
+dibi::FIELD_DATETIME:$value=strtotime($value);return$format===NULL?$value:date($format,$value);case
+dibi::FIELD_BOOL:return((bool)$value)&&$value!=='f'&&$value!=='F';default:return$value;}}final
 public
 function
 getColumnsMeta(){if($this->metaCache===NULL){$this->metaCache=$this->getDriver()->getColumnsMeta();}$cols=array();foreach($this->metaCache
@@ -358,14 +367,14 @@ as$k=>$v){$pair=explode('%',$k,2);$kx[]=$this->delimite($pair[0]);$vx[]=$this->f
 as$v){$vx[]=$this->formatValue($v,$modifier);}return
 implode(', ',$vx);}}if($modifier){if($value===NULL){return'NULL';}if($value
 instanceof
-IDibiVariable){return$value->toSql($this,$modifier);}if(!is_scalar($value)){$this->hasError=TRUE;return'**Unexpected type '.gettype($value).'**';}switch($modifier){case's':return$this->driver->format($value,dibi::FIELD_TEXT);case'sn':return$value==''?'NULL':$this->driver->format($value,dibi::FIELD_TEXT);case'b':return$this->driver->format($value,dibi::FIELD_BOOL);case'i':case'u':if(is_string($value)&&preg_match('#[+-]?\d+(e\d+)?$#A',$value)){return$value;}return(string)(int)($value+0);case'f':if(is_numeric($value)&&(!is_string($value)||strpos($value,'x')===FALSE)){return$value;}return(string)($value+0);case'd':return$this->driver->format(is_string($value)?strtotime($value):$value,dibi::FIELD_DATE);case't':return$this->driver->format(is_string($value)?strtotime($value):$value,dibi::FIELD_DATETIME);case'n':return$this->delimite($value);case'sql':$value=(string)$value;$toSkip=strcspn($value,'`[\'"');if(strlen($value)===$toSkip){return$value;}else{return
-substr($value,0,$toSkip).preg_replace_callback('/(?=`|\[|\'|")(?:`(.+?)`|\[(.+?)\]|(\')((?:\'\'|[^\'])*)\'|(")((?:""|[^"])*)"(\'|"))/s',array($this,'cb'),substr($value,$toSkip));}case'a':case'v':$this->hasError=TRUE;return'**Unexpected type '.gettype($value).'**';default:$this->hasError=TRUE;return"**Unknown or invalid modifier %$modifier**";}}if(is_string($value))return$this->driver->format($value,dibi::FIELD_TEXT);if(is_int($value)||is_float($value))return(string)$value;if(is_bool($value))return$this->driver->format($value,dibi::FIELD_BOOL);if($value===NULL)return'NULL';if($value
+IDibiVariable){return$value->toSql($this,$modifier);}if(!is_scalar($value)){$this->hasError=TRUE;return'**Unexpected type '.gettype($value).'**';}switch($modifier){case's':case'bin':case'b':return$this->driver->escape($value,$modifier);case'sn':return$value==''?'NULL':$this->driver->escape($value,dibi::FIELD_TEXT);case'i':case'u':if(is_string($value)&&preg_match('#[+-]?\d+(e\d+)?$#A',$value)){return$value;}return(string)(int)($value+0);case'f':if(is_numeric($value)&&(!is_string($value)||strpos($value,'x')===FALSE)){return$value;}return(string)($value+0);case'd':case't':return$this->driver->escape(is_string($value)?strtotime($value):$value,$modifier);case'n':return$this->delimite($value);case'sql':$value=(string)$value;$toSkip=strcspn($value,'`[\'"');if(strlen($value)===$toSkip){return$value;}else{return
+substr($value,0,$toSkip).preg_replace_callback('/(?=`|\[|\'|")(?:`(.+?)`|\[(.+?)\]|(\')((?:\'\'|[^\'])*)\'|(")((?:""|[^"])*)"(\'|"))/s',array($this,'cb'),substr($value,$toSkip));}case'and':case'or':case'a':case'l':case'v':$this->hasError=TRUE;return'**Unexpected type '.gettype($value).'**';default:$this->hasError=TRUE;return"**Unknown or invalid modifier %$modifier**";}}if(is_string($value))return$this->driver->escape($value,dibi::FIELD_TEXT);if(is_int($value)||is_float($value))return(string)$value;if(is_bool($value))return$this->driver->escape($value,dibi::FIELD_BOOL);if($value===NULL)return'NULL';if($value
 instanceof
 IDibiVariable)return$value->toSql($this,NULL);$this->hasError=TRUE;return'**Unexpected '.gettype($value).'**';}private
 function
-cb($matches){if(!empty($matches[8])){$mod=$matches[8];$cursor=&$this->cursor;if($cursor>=count($this->args)&&$mod!=='else'&&$mod!=='end'){$this->hasError=TRUE;return"**Extra modifier %$mod**";}if($mod==='if'){$this->ifLevel++;$cursor++;if(!$this->comment&&!$this->args[$cursor-1]){$this->ifLevelStart=$this->ifLevel;$this->comment=TRUE;return"/*";}return'';}elseif($mod==='else'){if($this->ifLevelStart===$this->ifLevel){$this->ifLevelStart=0;$this->comment=FALSE;return"*/";}elseif(!$this->comment){$this->ifLevelStart=$this->ifLevel;$this->comment=TRUE;return"/*";}}elseif($mod==='end'){$this->ifLevel--;if($this->ifLevelStart===$this->ifLevel+1){$this->ifLevelStart=0;$this->comment=FALSE;return"*/";}return'';}elseif($mod==='ex'){array_splice($this->args,$cursor,1,$this->args[$cursor]);return'';}elseif($mod==='lmt'){if($this->args[$cursor]!==NULL)$this->limit=(int)$this->args[$cursor];$cursor++;return'';}elseif($mod==='ofs'){if($this->args[$cursor]!==NULL)$this->offset=(int)$this->args[$cursor];$cursor++;return'';}else{$cursor++;return$this->formatValue($this->args[$cursor-1],$mod);}}if($this->comment)return'...';if($matches[1])return$this->delimite($matches[1]);if($matches[2])return$this->delimite($matches[2]);if($matches[3])return$this->driver->format(str_replace("''","'",$matches[4]),dibi::FIELD_TEXT);if($matches[5])return$this->driver->format(str_replace('""','"',$matches[6]),dibi::FIELD_TEXT);if($matches[7]){$this->hasError=TRUE;return'**Alone quote**';}die('this should be never executed');}private
+cb($matches){if(!empty($matches[8])){$mod=$matches[8];$cursor=&$this->cursor;if($cursor>=count($this->args)&&$mod!=='else'&&$mod!=='end'){$this->hasError=TRUE;return"**Extra modifier %$mod**";}if($mod==='if'){$this->ifLevel++;$cursor++;if(!$this->comment&&!$this->args[$cursor-1]){$this->ifLevelStart=$this->ifLevel;$this->comment=TRUE;return"/*";}return'';}elseif($mod==='else'){if($this->ifLevelStart===$this->ifLevel){$this->ifLevelStart=0;$this->comment=FALSE;return"*/";}elseif(!$this->comment){$this->ifLevelStart=$this->ifLevel;$this->comment=TRUE;return"/*";}}elseif($mod==='end'){$this->ifLevel--;if($this->ifLevelStart===$this->ifLevel+1){$this->ifLevelStart=0;$this->comment=FALSE;return"*/";}return'';}elseif($mod==='ex'){array_splice($this->args,$cursor,1,$this->args[$cursor]);return'';}elseif($mod==='lmt'){if($this->args[$cursor]!==NULL)$this->limit=(int)$this->args[$cursor];$cursor++;return'';}elseif($mod==='ofs'){if($this->args[$cursor]!==NULL)$this->offset=(int)$this->args[$cursor];$cursor++;return'';}else{$cursor++;return$this->formatValue($this->args[$cursor-1],$mod);}}if($this->comment)return'...';if($matches[1])return$this->delimite($matches[1]);if($matches[2])return$this->delimite($matches[2]);if($matches[3])return$this->driver->escape(str_replace("''","'",$matches[4]),dibi::FIELD_TEXT);if($matches[5])return$this->driver->escape(str_replace('""','"',$matches[6]),dibi::FIELD_TEXT);if($matches[7]){$this->hasError=TRUE;return'**Alone quote**';}die('this should be never executed');}private
 function
-delimite($value){if(strpos($value,':')!==FALSE){$value=strtr($value,dibi::getSubst());}return$this->driver->format($value,dibi::IDENTIFIER);}}class
+delimite($value){return$this->driver->escape(dibi::substitute($value),dibi::IDENTIFIER);}}class
 DibiVariable
 extends
 Object
@@ -380,9 +389,9 @@ DibiTable
 extends
 Object{public
 static$primaryMask='id';public
-static$lowerCase=TRUE;private$connection;private$options;protected$name;protected$primary;protected$primaryModifier='%i';protected$blankRow=array();public
+static$lowerCase=TRUE;private$connection;protected$name;protected$primary;protected$primaryModifier='%i';protected$blankRow=array();public
 function
-__construct(array$options=array()){$this->options=$options;$this->setup();if($this->connection===NULL){$this->connection=dibi::getConnection();}}public
+__construct(DibiConnection$connection=NULL){$this->connection=$connection===NULL?dibi::getConnection():$connection;$this->setup();}public
 function
 getName(){return$this->name;}public
 function
@@ -425,8 +434,7 @@ getIterator($offset=NULL,$limit=NULL,$cols=NULL){return$this->connection->query(
 			%ofs %lmt',$offset,$limit);}public
 function
 count(){if($this->count===NULL){$this->count=$this->connection->query('
-				SELECT COUNT(*) FROM',$this->sql)->fetchSingle();}return$this->count;}}final
-class
+				SELECT COUNT(*) FROM',$this->sql)->fetchSingle();}return$this->count;}}class
 DibiFluent
 extends
 Object{public
@@ -450,6 +458,8 @@ getCommand(){return$this->command;}public
 function
 execute(){return$this->connection->query($this->_export());}public
 function
+fetch(){if($this->command==='SELECT'){$this->clauses['LIMIT']=array(1);}return$this->connection->query($this->_export())->fetch();}public
+function
 test($clause=NULL){return$this->connection->test($this->_export($clause));}protected
 function
 _export($clause=NULL){if($clause===NULL){$data=$this->clauses;}else{$clause=self::_clause($clause);if(array_key_exists($clause,$this->clauses)){$data=array($clause=>$this->clauses[$clause]);}else{return
@@ -466,11 +476,12 @@ ob_get_clean();}}if(!function_exists('array_fill_keys')){function
 array_fill_keys($keys,$value){return
 array_combine($keys,array_fill(0,count($keys),$value));}}class
 dibi{const
-FIELD_TEXT='s',FIELD_BINARY='S',FIELD_BOOL='b',FIELD_INTEGER='i',FIELD_FLOAT='f',FIELD_DATE='d',FIELD_DATETIME='t',FIELD_UNKNOWN='?',FIELD_COUNTER='C',IDENTIFIER='n';const
-VERSION='0.9 (Revision: 125, Date: 2008/05/21 13:20:46)';private
+FIELD_TEXT='s',FIELD_BINARY='bin',FIELD_BOOL='b',FIELD_INTEGER='i',FIELD_FLOAT='f',FIELD_DATE='d',FIELD_DATETIME='t',IDENTIFIER='n';const
+VERSION='0.9 (Revision: 128, Date: 2008/06/10 03:09:23)';private
 static$registry=array();private
 static$connection;private
 static$substs=array();private
+static$substFallBack;private
 static$handlers=array();public
 static$sql;public
 static$elapsedTime;public
@@ -585,14 +596,24 @@ function
 date($date=NULL){$var=self::datetime($date);$var->modifier=dibi::FIELD_DATE;return$var;}public
 static
 function
-addSubst($expr,$subst){self::$substs[':'.$expr.':']=$subst;}public
+addSubst($expr,$subst){self::$substs[$expr]=$subst;}public
+static
+function
+setSubstFallback($callback){if(!is_callable($callback)){throw
+new
+InvalidArgumentException("Invalid callback.");}self::$substFallBack=$callback;}public
 static
 function
 removeSubst($expr){if($expr===TRUE){self::$substs=array();}else{unset(self::$substs[':'.$expr.':']);}}public
 static
 function
-getSubst(){return
-self::$substs;}public
+substitute($value){if(strpos($value,':')===FALSE){return$value;}else{return
+preg_replace_callback('#:(.*):#U',array('dibi','subCb'),$value);}}private
+static
+function
+subCb($m){$m=$m[1];if(isset(self::$substs[$m])){return
+self::$substs[$m];}elseif(self::$substFallBack){return
+self::$substs[$m]=call_user_func(self::$substFallBack,$m);}else{return$m;}}public
 static
 function
 addHandler($callback){if(!is_callable($callback)){throw
@@ -652,7 +673,7 @@ function
 query($sql){$this->resultset=@mssql_query($sql,$this->connection);if($this->resultset===FALSE){throw
 new
 DibiDriverException('Query error',0,$sql);}return
-is_resource($this->resultset);}public
+is_resource($this->resultset)?clone$this:NULL;}public
 function
 affectedRows(){return
 mssql_rows_affected($this->connection);}public
@@ -667,11 +688,21 @@ commit(){$this->query('COMMIT');}public
 function
 rollback(){$this->query('ROLLBACK');}public
 function
-format($value,$type){if($type===dibi::FIELD_TEXT)return"'".str_replace("'","''",$value)."'";if($type===dibi::IDENTIFIER)return'['.str_replace('.','].[',$value).']';if($type===dibi::FIELD_BOOL)return$value?-1:0;if($type===dibi::FIELD_DATE)return
-date("'Y-m-d'",$value);if($type===dibi::FIELD_DATETIME)return
-date("'Y-m-d H:i:s'",$value);throw
+escape($value,$type){switch($type){case
+dibi::FIELD_TEXT:case
+dibi::FIELD_BINARY:return"'".str_replace("'","''",$value)."'";case
+dibi::IDENTIFIER:return'['.str_replace('.','].[',$value).']';case
+dibi::FIELD_BOOL:return$value?-1:0;case
+dibi::FIELD_DATE:return
+date("'Y-m-d'",$value);case
+dibi::FIELD_DATETIME:return
+date("'Y-m-d H:i:s'",$value);default:throw
 new
-InvalidArgumentException('Unsupported formatting type.');}public
+InvalidArgumentException('Unsupported type.');}}public
+function
+unescape($value,$type){throw
+new
+InvalidArgumentException('Unsupported type.');}public
 function
 applyLimit(&$sql,$limit,$offset){if($limit>=0){$sql='SELECT TOP '.(int)$limit.' * FROM ('.$sql.')';}if($offset){throw
 new
@@ -711,7 +742,7 @@ function
 disconnect(){mysql_close($this->connection);}public
 function
 query($sql){if($this->buffered){$this->resultset=@mysql_query($sql,$this->connection);}else{$this->resultset=@mysql_unbuffered_query($sql,$this->connection);}if(mysql_errno($this->connection)){$this->throwException($sql);}return
-is_resource($this->resultset);}public
+is_resource($this->resultset)?clone$this:NULL;}public
 function
 affectedRows(){return
 mysql_affected_rows($this->connection);}public
@@ -725,11 +756,21 @@ commit(){$this->query('COMMIT');}public
 function
 rollback(){$this->query('ROLLBACK');}public
 function
-format($value,$type){if($type===dibi::FIELD_TEXT)return"'".mysql_real_escape_string($value,$this->connection)."'";if($type===dibi::IDENTIFIER)return'`'.str_replace('.','`.`',$value).'`';if($type===dibi::FIELD_BOOL)return$value?1:0;if($type===dibi::FIELD_DATE)return
-date("'Y-m-d'",$value);if($type===dibi::FIELD_DATETIME)return
-date("'Y-m-d H:i:s'",$value);throw
+escape($value,$type){switch($type){case
+dibi::FIELD_TEXT:case
+dibi::FIELD_BINARY:return"'".mysql_real_escape_string($value,$this->connection)."'";case
+dibi::IDENTIFIER:return'`'.str_replace('.','`.`',$value).'`';case
+dibi::FIELD_BOOL:return$value?1:0;case
+dibi::FIELD_DATE:return
+date("'Y-m-d'",$value);case
+dibi::FIELD_DATETIME:return
+date("'Y-m-d H:i:s'",$value);default:throw
 new
-InvalidArgumentException('Unsupported formatting type.');}public
+InvalidArgumentException('Unsupported type.');}}public
+function
+unescape($value,$type){throw
+new
+InvalidArgumentException('Unsupported type.');}public
 function
 applyLimit(&$sql,$limit,$offset){if($limit<0&&$offset<1)return;$sql.=' LIMIT '.($limit<0?'18446744073709551615':(int)$limit).($offset>0?' OFFSET '.(int)$offset:'');}public
 function
@@ -775,7 +816,7 @@ function
 disconnect(){mysqli_close($this->connection);}public
 function
 query($sql){$this->resultset=@mysqli_query($this->connection,$sql,$this->buffered?MYSQLI_STORE_RESULT:MYSQLI_USE_RESULT);if(mysqli_errno($this->connection)){$this->throwException($sql);}return
-is_object($this->resultset);}public
+is_object($this->resultset)?clone$this:NULL;}public
 function
 affectedRows(){return
 mysqli_affected_rows($this->connection);}public
@@ -789,11 +830,21 @@ commit(){$this->query('COMMIT');}public
 function
 rollback(){$this->query('ROLLBACK');}public
 function
-format($value,$type){if($type===dibi::FIELD_TEXT)return"'".mysqli_real_escape_string($this->connection,$value)."'";if($type===dibi::IDENTIFIER)return'`'.str_replace('.','`.`',$value).'`';if($type===dibi::FIELD_BOOL)return$value?1:0;if($type===dibi::FIELD_DATE)return
-date("'Y-m-d'",$value);if($type===dibi::FIELD_DATETIME)return
-date("'Y-m-d H:i:s'",$value);throw
+escape($value,$type){switch($type){case
+dibi::FIELD_TEXT:case
+dibi::FIELD_BINARY:return"'".mysqli_real_escape_string($this->connection,$value)."'";case
+dibi::IDENTIFIER:return'`'.str_replace('.','`.`',$value).'`';case
+dibi::FIELD_BOOL:return$value?1:0;case
+dibi::FIELD_DATE:return
+date("'Y-m-d'",$value);case
+dibi::FIELD_DATETIME:return
+date("'Y-m-d H:i:s'",$value);default:throw
 new
-InvalidArgumentException('Unsupported formatting type.');}public
+InvalidArgumentException('Unsupported type.');}}public
+function
+unescape($value,$type){throw
+new
+InvalidArgumentException('Unsupported type.');}public
 function
 applyLimit(&$sql,$limit,$offset){if($limit<0&&$offset<1)return;$sql.=' LIMIT '.($limit<0?'18446744073709551615':(int)$limit).($offset>0?' OFFSET '.(int)$offset:'');}public
 function
@@ -839,7 +890,7 @@ function
 disconnect(){odbc_close($this->connection);}public
 function
 query($sql){$this->resultset=@odbc_exec($this->connection,$sql);if($this->resultset===FALSE){$this->throwException($sql);}return
-is_resource($this->resultset);}public
+is_resource($this->resultset)?clone$this:NULL;}public
 function
 affectedRows(){return
 odbc_num_rows($this->resultset);}public
@@ -854,11 +905,21 @@ commit(){if(!odbc_commit($this->connection)){$this->throwException();}odbc_autoc
 function
 rollback(){if(!odbc_rollback($this->connection)){$this->throwException();}odbc_autocommit($this->connection,TRUE);}public
 function
-format($value,$type){if($type===dibi::FIELD_TEXT)return"'".str_replace("'","''",$value)."'";if($type===dibi::IDENTIFIER)return'['.str_replace('.','].[',$value).']';if($type===dibi::FIELD_BOOL)return$value?-1:0;if($type===dibi::FIELD_DATE)return
-date("#m/d/Y#",$value);if($type===dibi::FIELD_DATETIME)return
-date("#m/d/Y H:i:s#",$value);throw
+escape($value,$type){switch($type){case
+dibi::FIELD_TEXT:case
+dibi::FIELD_BINARY:return"'".str_replace("'","''",$value)."'";case
+dibi::IDENTIFIER:return'['.str_replace('.','].[',$value).']';case
+dibi::FIELD_BOOL:return$value?-1:0;case
+dibi::FIELD_DATE:return
+date("#m/d/Y#",$value);case
+dibi::FIELD_DATETIME:return
+date("#m/d/Y H:i:s#",$value);default:throw
 new
-InvalidArgumentException('Unsupported formatting type.');}public
+InvalidArgumentException('Unsupported type.');}}public
+function
+unescape($value,$type){throw
+new
+InvalidArgumentException('Unsupported type.');}public
 function
 applyLimit(&$sql,$limit,$offset){if($limit>=0){$sql='SELECT TOP '.(int)$limit.' * FROM ('.$sql.')';}if($offset)throw
 new
@@ -905,7 +966,7 @@ function
 query($sql){$this->resultset=oci_parse($this->connection,$sql);if($this->resultset){oci_execute($this->resultset,$this->autocommit?OCI_COMMIT_ON_SUCCESS:OCI_DEFAULT);$err=oci_error($this->resultset);if($err){throw
 new
 DibiDriverException($err['message'],$err['code'],$sql);}}else{$this->throwException($sql);}return
-is_resource($this->resultset);}public
+is_resource($this->resultset)?clone$this:NULL;}public
 function
 affectedRows(){throw
 new
@@ -921,11 +982,21 @@ commit(){if(!oci_commit($this->connection)){$this->throwException();}$this->auto
 function
 rollback(){if(!oci_rollback($this->connection)){$this->throwException();}$this->autocommit=TRUE;}public
 function
-format($value,$type){if($type===dibi::FIELD_TEXT)return"'".str_replace("'","''",$value)."'";if($type===dibi::IDENTIFIER)return'['.str_replace('.','].[',$value).']';if($type===dibi::FIELD_BOOL)return$value?1:0;if($type===dibi::FIELD_DATE)return
-date("U",$value);if($type===dibi::FIELD_DATETIME)return
-date("U",$value);throw
+escape($value,$type){switch($type){case
+dibi::FIELD_TEXT:case
+dibi::FIELD_BINARY:return"'".str_replace("'","''",$value)."'";case
+dibi::IDENTIFIER:return'['.str_replace('.','].[',$value).']';case
+dibi::FIELD_BOOL:return$value?1:0;case
+dibi::FIELD_DATE:return
+date("U",$value);case
+dibi::FIELD_DATETIME:return
+date("U",$value);default:throw
 new
-InvalidArgumentException('Unsupported formatting type.');}public
+InvalidArgumentException('Unsupported type.');}}public
+function
+unescape($value,$type){throw
+new
+InvalidArgumentException('Unsupported type.');}public
 function
 applyLimit(&$sql,$limit,$offset){if($limit<0&&$offset<1)return;$sql.=' LIMIT '.$limit.($offset>0?' OFFSET '.(int)$offset:'');}public
 function
@@ -973,8 +1044,8 @@ function
 disconnect(){$this->connection=NULL;}public
 function
 query($sql){$cmd=strtoupper(substr(ltrim($sql),0,6));$list=array('UPDATE'=>1,'DELETE'=>1,'INSERT'=>1,'REPLAC'=>1);if(isset($list[$cmd])){$this->resultset=NULL;$this->affectedRows=$this->connection->exec($sql);if($this->affectedRows===FALSE){$this->throwException($sql);}return
-FALSE;}else{$this->resultset=$this->connection->query($sql);$this->affectedRows=FALSE;if($this->resultset===FALSE){$this->throwException($sql);}return
-TRUE;}}public
+NULL;}else{$this->resultset=$this->connection->query($sql);$this->affectedRows=FALSE;if($this->resultset===FALSE){$this->throwException($sql);}return
+clone$this;}}public
 function
 affectedRows(){return$this->affectedRows;}public
 function
@@ -986,11 +1057,21 @@ commit(){if(!$this->connection->commit()){$this->throwException();}}public
 function
 rollback(){if(!$this->connection->rollBack()){$this->throwException();}}public
 function
-format($value,$type){if($type===dibi::FIELD_TEXT)return$this->connection->quote($value);if($type===dibi::IDENTIFIER)return$value;if($type===dibi::FIELD_BOOL)return$value?1:0;if($type===dibi::FIELD_DATE)return
-date("'Y-m-d'",$value);if($type===dibi::FIELD_DATETIME)return
-date("'Y-m-d H:i:s'",$value);throw
+escape($value,$type){switch($type){case
+dibi::FIELD_TEXT:return$this->connection->quote($value,PDO::PARAM_STR);case
+dibi::FIELD_BINARY:return$this->connection->quote($value,PDO::PARAM_LOB);case
+dibi::IDENTIFIER:return$value;case
+dibi::FIELD_BOOL:return$this->connection->quote($value,PDO::PARAM_BOOL);case
+dibi::FIELD_DATE:return
+date("'Y-m-d'",$value);case
+dibi::FIELD_DATETIME:return
+date("'Y-m-d H:i:s'",$value);default:throw
 new
-InvalidArgumentException('Unsupported formatting type.');}public
+InvalidArgumentException('Unsupported type.');}}public
+function
+unescape($value,$type){throw
+new
+InvalidArgumentException('Unsupported type.');}public
 function
 applyLimit(&$sql,$limit,$offset){throw
 new
@@ -1043,7 +1124,7 @@ function
 query($sql){$this->resultset=@pg_query($this->connection,$sql);if($this->resultset===FALSE){throw
 new
 DibiDriverException(pg_last_error($this->connection),0,$sql);}return
-is_resource($this->resultset)&&pg_num_fields($this->resultset);}public
+is_resource($this->resultset)&&pg_num_fields($this->resultset)?clone$this:NULL;}public
 function
 affectedRows(){return
 pg_affected_rows($this->resultset);}public
@@ -1058,12 +1139,24 @@ commit(){$this->query('COMMIT');}public
 function
 rollback(){$this->query('ROLLBACK');}public
 function
-format($value,$type){if($type===dibi::FIELD_TEXT){if($this->escMethod)return"'".pg_escape_string($this->connection,$value)."'";return"'".pg_escape_string($value)."'";}if($type===dibi::IDENTIFIER){$a=strrpos($value,'.');if($a===FALSE)return'"'.str_replace('"','""',$value).'"';return
-substr($value,0,$a).'."'.str_replace('"','""',substr($value,$a+1)).'"';}if($type===dibi::FIELD_BOOL)return$value?'TRUE':'FALSE';if($type===dibi::FIELD_DATE)return
-date("'Y-m-d'",$value);if($type===dibi::FIELD_DATETIME)return
-date("'Y-m-d H:i:s'",$value);throw
+escape($value,$type){switch($type){case
+dibi::FIELD_TEXT:if($this->escMethod){return"'".pg_escape_string($this->connection,$value)."'";}else{return"'".pg_escape_string($value)."'";}case
+dibi::FIELD_BINARY:if($this->escMethod){return"'".pg_escape_bytea($this->connection,$value)."'";}else{return"'".pg_escape_bytea($value)."'";}case
+dibi::IDENTIFIER:$a=strrpos($value,'.');if($a===FALSE)return'"'.str_replace('"','""',$value).'"';return
+substr($value,0,$a).'."'.str_replace('"','""',substr($value,$a+1)).'"';case
+dibi::FIELD_BOOL:return$value?'TRUE':'FALSE';case
+dibi::FIELD_DATE:return
+date("'Y-m-d'",$value);case
+dibi::FIELD_DATETIME:return
+date("'Y-m-d H:i:s'",$value);default:throw
 new
-InvalidArgumentException('Unsupported formatting type.');}public
+InvalidArgumentException('Unsupported type.');}}public
+function
+unescape($value,$type){switch($type){case
+dibi::FIELD_BINARY:return
+pg_unescape_bytea($value);default:throw
+new
+InvalidArgumentException('Unsupported type.');}}public
 function
 applyLimit(&$sql,$limit,$offset){if($limit>=0)$sql.=' LIMIT '.(int)$limit;if($offset>0)$sql.=' OFFSET '.(int)$offset;}public
 function
@@ -1103,7 +1196,7 @@ function
 query($sql){DibiDriverException::tryError();if($this->buffered){$this->resultset=sqlite_query($this->connection,$sql);}else{$this->resultset=sqlite_unbuffered_query($this->connection,$sql);}if(DibiDriverException::catchError($msg)){throw
 new
 DibiDriverException($msg,sqlite_last_error($this->connection),$sql);}return
-is_resource($this->resultset);}public
+is_resource($this->resultset)?clone$this:NULL;}public
 function
 affectedRows(){return
 sqlite_changes($this->connection);}public
@@ -1117,11 +1210,21 @@ commit(){$this->query('COMMIT');}public
 function
 rollback(){$this->query('ROLLBACK');}public
 function
-format($value,$type){if($type===dibi::FIELD_TEXT)return"'".sqlite_escape_string($value)."'";if($type===dibi::IDENTIFIER)return'['.str_replace('.','].[',$value).']';if($type===dibi::FIELD_BOOL)return$value?1:0;if($type===dibi::FIELD_DATE)return
-date($this->fmtDate,$value);if($type===dibi::FIELD_DATETIME)return
-date($this->fmtDateTime,$value);throw
+escape($value,$type){switch($type){case
+dibi::FIELD_TEXT:case
+dibi::FIELD_BINARY:return"'".sqlite_escape_string($value)."'";case
+dibi::IDENTIFIER:return'['.str_replace('.','].[',$value).']';case
+dibi::FIELD_BOOL:return$value?1:0;case
+dibi::FIELD_DATE:return
+date($this->fmtDate,$value);case
+dibi::FIELD_DATETIME:return
+date($this->fmtDateTime,$value);default:throw
 new
-InvalidArgumentException('Unsupported formatting type.');}public
+InvalidArgumentException('Unsupported type.');}}public
+function
+unescape($value,$type){throw
+new
+InvalidArgumentException('Unsupported type.');}public
 function
 applyLimit(&$sql,$limit,$offset){if($limit<0&&$offset<1)return;$sql.=' LIMIT '.$limit.($offset>0?' OFFSET '.(int)$offset:'');}public
 function
