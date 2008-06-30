@@ -68,14 +68,14 @@ class Router
      */
     public static function addService($name)
     {
-        $i = count(self::$url);
-        if (!empty($name) && empty(self::$service) && $i > 0) {
-            if (self::$url[$i - 1] == $name) {
-                self::$service = $name;
-                array_pop(self::$url);
-                return true;
-            }
+        $i = count(self::$url) - 1;
+
+        if (isset(self::$url[$i]) && self::$url[$i] == $name) {
+            self::$service = strtolower($name);
+            array_pop(self::$url);
+            return true;
         }
+
         return false;
     }
 
@@ -159,9 +159,9 @@ class Router
             $router['action'] = 'index';
         }
 
-        self::$namespace = Strings::camelize($router['namespace']);
-        self::$controller = Strings::camelize($router['controller']);
-        self::$action = Strings::lcfirst(Strings::camelize($router['action']));
+        self::$namespace = strtolower($router['namespace']);
+        self::$controller = strtolower($router['controller']);
+        self::$action = strtolower($router['action']);
 
         unset($router['namespace'], $router['controller'], $router['action']);
 

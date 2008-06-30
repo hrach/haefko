@@ -12,9 +12,12 @@
 
 
 
-require_once dirname(__FILE__) . '/../Http.php';
-require_once dirname(__FILE__) . '/../Strings.php';
 require_once dirname(__FILE__) . '/../Config.php';
+require_once dirname(__FILE__) . '/Exceptions.php';
+require_once dirname(__FILE__) . '/Inflector.php';
+require_once dirname(__FILE__) . '/Router.php';
+require_once dirname(__FILE__) . '/CustomController.php';
+require_once dirname(__FILE__) . '/View.php';
 
 
 
@@ -26,18 +29,28 @@ class Application
 
 
 
-    public static $frameworkVersion = '0.6';
-
-    private static $app = false;
-
+    public static $version = '0.7.0.10';
+    private static $app;
 
 
-    public static function getInstance()
+
+    /**
+     * Vytvori instanci objektu aplikace
+     * @param   string  cesta k adresari aplikace
+     * @param   mixed   jmeno konfiguracniho souboru aplikace
+     * @return  Application
+     */
+    public static function create($path = '/app/', $config = 'config.yaml')
     {
-        if (self::$app === false) {
-            self::$app = new Application();
-            self::$app->setPath('/app/');
-            set_exception_handler(array(self::$app, 'exceptionHandler'));
+        if (self::$app instanceof Application) {
+            die('Haefko: aplikace je jiz vytvorena!');
+        }
+
+        self::$app = new Application();
+        self::$app->path = $path;
+
+        if ($config !== false) {
+            self::$app->loadConfig($config);
         }
 
         return self::$app;
@@ -45,32 +58,90 @@ class Application
 
 
 
-    public $controller;
-    public $error = false;
+    /**
+     * Vrati instanci obejktu aplikace
+     * @return  Application
+     */
+    public static function getInstance()
+    {
+        return self::$app;
+    }
 
-    private $appPath;
+
+
+    public static function load($class, $type, array $args)
+    {
+        static $types = array('controller', 'model', 'view', 'helper');
+        if (!in_array($type, $types))
+            throw new Exception("Nepodporovany typ Application::load $type!");
+
+
+        $app = self::getInstance();
+
+        if ($app->autoload) {
+            if (!class_exists($class) && $type != 'model') {
+                throw new ApplicationException($type, $class);
+            }
+        } else {
+            $file = $app->getPath() . call_user_func_array(array('Inflector', $type . 'File'), $args);
+
+            if (file_exists($file)) {
+                require_once $file;
+            } elseif ($type != 'model') {
+                throw new ApplicationException($type, $class);
+            }
+        }
+    }
+
+
+
+    /**
+     * Nahraje pozadovany soubor aplikace
+     * @param   string  cesta k souboru
+     * @return  void
+     */
+    public static function loadApp($file)
+    {
+        $app = self::getInstance();
+        $file = $app->getPath() . $file;
+
+        if (file_exists($file)) {
+            require_once $file;
+        } else {
+            die("Haefko: nenalezen soubor $file!");
+        }
+    }
 
 
 
     /**
      * Nacte knihovnu jadra frameworku
      * @param   string      jmeno knihovny
-     * @return  Application
+     * @return  void
      */
-    public function loadCore($class)
+    public static function loadCore($file)
     {
-        $classes = func_get_args();
+        $file = dirname(__FILE__) . "/../$file.php";
 
-        foreach ($classes as $class) {
-            $classFile = dirname(__FILE__) . '/../' . $class . '.php';
-            if (file_exists($classFile)) {
-                require_once $classFile;
-            } else {
-                die('Knihovna Haefka nenalezena: ' . $classFile);
-            }
+        if (file_exists($file)) {
+            require_once $file;
+        } else {
+            die("Haefko: nenalezen soubor $file!");
         }
+    }
 
-        return $this;
+
+
+    public $path;
+    public $controller;
+    public $error = false;
+    public $autoload = false;
+
+
+
+    public function __construct()
+    {
+        set_exception_handler(array($this, 'exceptionHandler'));
     }
 
 
@@ -80,12 +151,14 @@ class Application
      * @param   string      jmeno souboru
      * @return  Application
      */
-    public function loadConfig($file = 'config.yaml')
+    public function loadConfig($file)
     {
-        if (file_exists($this->getPath() . $file)) {
-            Config::load($this->getPath() . $file);
+        $file = $this->getPath() . $file;
+
+        if (file_exists($file)) {
+            Config::load($file);
         } else {
-            die('Konfiguracni soubor neexistuje: ' . $file);
+            die("Haefko: nenalezen konfiguracni soubor $file!");
         }
 
         if (Config::read('Core.debug', 0) > 0) {
@@ -106,26 +179,29 @@ class Application
      */
     public function run()
     {
-        $this->createController(Router::$controller, Router::$namespace);
+        $this->autoload = class_exists('Autoload', false);
+
+        $class = Inflector::controllerClass(Router::$controller, Router::$namespace);
+
+        if (file_exists($this->getPath() . 'controller.php')) {
+            Application::loadApp('controller.php');
+        } else {
+            eval ('class Controller extends CustomController {}');
+        }
+
+        if ($class == 'Controller') {
+            throw new ApplicationException('routing');
+        } else {
+            Application::load($class, 'controller', array(Router::$controller, Router::$namespace));
+        }
+
+        $this->controller = new $class;
         $this->controller->render();
+
 
         if (Config::read('Core.debug', 0) > 1) {
             Debug::debugRibbon();
         }
-    }
-
-
-
-
-    /**
-     * Nastavi cestu k souborum aplikace
-     * @param   string      cesta
-     * @return  Application
-     */
-    public function setPath($path)
-    {
-        $this->appPath = $path;
-        return $this;
     }
 
 
@@ -136,7 +212,7 @@ class Application
      */
     public function getPath()
     {
-        return dirname($_SERVER['SCRIPT_FILENAME']) . $this->appPath;
+        return dirname($_SERVER['SCRIPT_FILENAME']) . $this->path;
     }
 
 
@@ -147,7 +223,7 @@ class Application
      */
     public function getCorePath()
     {
-        return dirname(__FILE__) . '/../';
+        return dirname(__FILE__) . '/';
     }
 
 
@@ -159,7 +235,7 @@ class Application
     public function debugMode()
     {
         $this->loadCore('Debug');
-        ini_set('show_errors', true);
+        ini_set('display_errors', true);
         ini_set('error_reporting', E_ALL);
     }
 
@@ -172,7 +248,7 @@ class Application
     public function nonDebugMode()
     {
         ini_set('display_errors', false);
-        ini_set('error_reporting', E_ERROR | E_PARSE);
+        ini_set('error_reporting', E_ERROR | E_WARNING | E_PARSE);
         ini_set('log_errors', true);
         ini_set('error_log', Config::read('Core.debug-file', $this->getPath() . 'temp/errors.log.dat'));
     }
@@ -186,56 +262,30 @@ class Application
      */
     public function exceptionHandler(Exception $exception)
     {
+        Router::$service = null;
+
         if ($exception instanceof ApplicationException) {
 
-            $this->loadCore('Application/CustomController');
-            $this->controller = new CustomController;
-
-            if ($this->controller->view instanceof RssView) {
-                $this->controller->view = new View();
-            }
+            $this->controller = new Controller();
             $this->controller->error($exception->error, true);
             $this->controller->view->message = $exception->getMessage();
-            $this->controller->view->render();
+            $this->controller->view->init();
+            echo $this->controller->view->render();
 
         } elseif (Config::read('Core.debug', 0) === 0) {
 
             error_log($exception->getMessage());
 
-            $this->loadCore('Application/CustomController');
-            $this->controller = new CustomController;
-
+            $this->controller = new Controller();
             $this->controller->error('500');
-            $this->controller->view->render();
+            $this->controller->view->init();
+            echo $this->controller->view->render();
 
         } else {
 
             $this->loadCore('Debug');
             Debug::exceptionHandler($exception);
 
-        }
-    }
-
-
-
-    /**
-     * Vytvori controller, pripadne zavola prislusne chybove metody
-     * @param   string  jmeno controlleru
-     * @param   string  namespace contrlleru
-     * @return  void
-     */
-    private function createController($controller, $namespace)
-    {
-        $class = Strings::camelize($namespace) . Strings::camelize($controller) . 'Controller';
-
-        if ($class == 'Controller') {
-            $this->loadCore('Application/Exceptions');
-            throw new ApplicationException('routing');
-        } elseif (!class_exists($class)) {
-            $this->loadCore('Application/Exceptions');
-            throw new ApplicationException('controller', $class);
-        } else {
-            $this->controller = new $class;
         }
     }
 

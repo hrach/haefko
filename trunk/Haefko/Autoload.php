@@ -20,7 +20,8 @@ class Autoload
 
 
 
-    public $skipDirs = array('.svn', '.cvs', 'views');
+    public $skipDirs = array('.svn', '.cvs');
+    public $skipFiles = array('\.phtml$', '\.html$');
     public $cacheFile = './autoload.cache.dat';
 
     protected $list = false;
@@ -165,7 +166,7 @@ class Autoload
                 continue;
             }
 
-            if ($rdi->isFile()) {
+            if ($rdi->isFile() && !in_array(substr(strrchr($rdi->getFilename(), '.'), 1), $this->skipFiles)) {
                 $files[] = $rdi->getPathname();
             } elseif($rdi->isDir() && !in_array($rdi->getFilename(), $this->skipDirs) && $rdi->hasChildren()) {
                 $this->getFiles($rdi->getChildren(), $files);

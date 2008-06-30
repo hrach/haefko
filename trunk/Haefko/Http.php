@@ -24,6 +24,11 @@ class Http
 
 
 
+    public static $serverUri = '';
+    public static $baseUri = '';
+
+
+
     /**
      * Pokud je treba, odstrani automaticky magic quotes z $_GET, $_POST, $_COOKIE a $_REQUEST
      * @return  void
@@ -86,45 +91,12 @@ class Http
 
 
     /**
-     * Vrati zakladni url pro tvorbu internich odkazu
-     * Priklady:    aplikace bezi na                url
-     *              ----------------------------------------
-     *              example.com                     /
-     *              test.example.com                /
-     *              example.com/test                /test/
-     * @return  string
-     */
-    public static function getInternalUrl()
-    {
-        $base = Strings::sanitizeUrl(dirname($_SERVER['SCRIPT_NAME']));
-
-        if (empty($base)) {
-            return '/';
-        } else {
-            return '/' . $base . '/';
-        }
-    }
-
-
-
-    /**
      * Vrati domenove jmeno / jmeno serveru
      * @return  string
      */
     public static function getDomain()
     {
         return $_SERVER['SERVER_NAME'];
-    }
-
-
-
-    /**
-     * Vrati absolutni base url
-     * @return  string
-     */
-    public static function getServerUrl()
-    {
-        return 'http:' . (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] ? 's' : '') . '//' . self::getDomain();
     }
 
 
@@ -221,10 +193,48 @@ class Http
     public static function getRequestUrl()
     {
         $url = $_SERVER['REQUEST_URI'];
-        Strings::ltrim($url, dirname($_SERVER['SCRIPT_NAME']));
-        Strings::ltrim($url, '/' . basename($_SERVER['SCRIPT_NAME']));
+        $url = Strings::ltrim($url, dirname($_SERVER['SCRIPT_NAME']));
+        $url = Strings::ltrim($url, '/' . basename($_SERVER['SCRIPT_NAME']));
 
         return Strings::sanitizeUrl($url);
+    }
+
+
+
+    public static function initialize()
+    {
+        self::sanitizeData();
+        self::$baseUri = self::getBaseUri();
+        self::$serverUri = self::getServerUri();
+    }
+
+
+
+    /**
+     * Vrati zakladni uri webove aplikace
+     * Nezavisle na subdomene
+     * @return  string
+     */
+    private static function getBaseUri()
+    {
+        $base = Strings::sanitizeUrl(dirname($_SERVER['SCRIPT_NAME']));
+
+        if (empty($base)) {
+            return '/';
+        } else {
+            return '/' . $base . '/';
+        }
+    }
+
+
+
+    /**
+     * Vrati absolutni base url
+     * @return  string
+     */
+    private static function getServerUri()
+    {
+        return 'http' . (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] ? 's' : '') . '://' . self::getDomain();
     }
 
 
@@ -247,4 +257,4 @@ class Http
 
 
 
-Http::sanitizeData();
+Http::initialize();

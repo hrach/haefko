@@ -13,189 +13,293 @@
 
 
 require_once dirname(__FILE__) . '/IView.php';
-require_once dirname(__FILE__) . '/CustomView.php';
+require_once dirname(__FILE__) . '/../Html.php';
 
 
 
 /**
- * Trida View obstarava nacitani view a layoutu
+ * Zakladni konstra pro View sablony
  */
-class View extends CustomView implements IView
+class View implements IView
 {
 
 
 
-    private $layoutPath;
-    private $layoutName = 'layout';
+    public $controller;
+    public $base;
+
+    protected $ext = 'phtml';
+    protected $vars = array();
+    protected $protected = array();
+
+    protected $viewPath;
+    protected $viewName;
+    protected $themeName;
+    protected $absoluteView = false;
 
 
 
     /**
      * Konstruktor
+     * @return  void
      */
     public function __construct()
     {
-        parent::__construct();
+        $this->controller = & Application::getInstance()->controller;
+        $this->base = Http::$baseUri;
+
+        $this->set('escape', 'htmlSpecialChars', false);
+        $this->set('title', 'Yout title', false);
     }
 
 
 
+    public function init()
+    {}
+
+
+
     /**
-     * Nastavi jmeno layout sablony
-     * Pokud zadate false, nepouzije se zadna sablona
-     * @param   string  jemeno sablony
+     * NastavÃ­ view sablonu
+     * @param   string jmeno sablony
+     * @param   bool   nedoplnit adresarovou strukturu?
      * @return  void
      */
-    public function layout($layoutName)
+    public function view($viewName, $absoluteView = false)
     {
-        $this->layoutName = $layoutName;
+        $this->viewName = $viewName;
+        $this->absoluteView = $absoluteView;
     }
 
 
 
     /**
-     * Vrati jmeno layout sablony, bez pripony
+     * Vrati jmeno view sablony, bez pripony
      * @return  string
      */
-    public function getLayout()
+    public function getView()
     {
-        return $this->layoutName;
+        return $this->viewName;
     }
 
 
 
     /**
-     * Vrati cestu k view layoutu
+     * Vrati cestu k view sablone
      * @return  string
      */
-    public function getLayoutPath()
+    public function getViewPath()
     {
-        return $this->layoutPath;
+        return $this->viewPath;
     }
 
 
 
     /**
-     * Naètení externího kodu
-     * @param   string  jmeno souboru bez pripony
+     * Nastavi view tema
+     * Temata vypnete pomoci false
+     * @param   string  jmeno tematu
      * @return  void
      */
-    public function renderElement($name)
+    public function theme($themeName)
     {
-        extract($this->vars);
+        $this->themeName = $themeName;
+    }
 
-        $fileName   = $this->pathFactory('element', $name);
-        $base       = $this->base;
-        $controller = $this->controller;
 
-        if (file_exists($fileName)) {
-            include $fileName;
+
+    /**
+     * Vrati jmeno tematu
+     * @return  mixed
+     */
+    public function getTheme()
+    {
+        return $this->themeName;
+    }
+
+
+
+    /**
+     * Nacte helper
+     * @param   string  jmeno helperu
+     * @param   string  jmeno promenne, ve ktere bude pristupny ve view
+     */
+    public function helper($name, $var = null)
+    {
+        $class = Inflector::helperClass($name);
+
+        if ($this->controller->app->autoload && !class_exists($class)) {
+            throw new Exception("Haefko: nenalezen helper $class!");
+        } else {
+            $file = Inflector::helperFile($name);
+
+            if (file_exists($this->controller->app->getPath() . $file)) {
+                require_once $this->controller->app->getPath() . $file;
+            } elseif (file_exists($this->controller->app->getCorePath() . $file)) {
+                require_once $this->controller->app->getCorePath() . $file;
+            } else {
+                throw new Exception("Haefko: nenalezen helper $class!");
+            }
+        }
+
+        if (is_null($var)) {
+            $var = $name;
+        }
+
+        if (!isset($this->$var)) {
+            $this->set($var, new $class);
+        }
+
+        return $this->$var;
+    }
+
+
+
+    /**
+     * Ulozi do seznamu promennych pro sablonu
+     * Probiha s kontrolou ochrany promenne
+     * @param   string  jmeno promenne
+     * @param   mixed   hodnota promenne
+     * @param   bool    bude promenna chranena
+     * @return  void
+     */
+    public function set($name, $value, $protected = true)
+    {
+        if (empty($name))
+            throw new Exception('Nelze nastavit hodnotu nejmenne promenne!');
+
+        if (isset($this->protected[$name]))
+            throw new Exception("Nelze nastavit novou hodnotu chranene promenne \$$name!");
+
+        if ($protected === true) {
+            $this->protected[$name] = true;
+        }
+
+        $this->vars[$name] = $value;
+    }
+
+
+
+    /**
+     * Ulozi do seznamu promennych pro sablonu
+     * Probiha bez kontroly ochrany
+     * @param   string  jmeno promenne
+     * @param   mixed   hodnota promenne
+     * @param   bool    bude promenna chranena
+     * @return  void
+     */
+    public function reset($name, $value, $protected = true)
+    {
+        if (empty($name))
+            throw Exception('Nelze nastavit hodnotu nejmenne promenne!');
+
+        if ($protected === true) {
+            $this->protected[$name] = true;
+        } else {
+            unset($this->protected[$name]);
+        }
+
+        $this->vars[$name] = $value;
+    }
+
+
+
+    /**
+     * Je nastavena promenna
+     * @param   string  jmenno promenne
+     * @return  boll
+     */
+    public function __isset($name)
+    {
+        return isset($this->vars[$name]);
+    }
+
+
+
+    /**
+     * Smaze promennou
+     * @param   string  jmeno promenne
+     * @return  void
+     */
+    public function __unset($name)
+    {
+        if (isset($this->protected[$name]))
+            throw new Exception("Nelze smazat hodnotu chranene promenne \$$name!");
+
+        unset($this->vars[$name]);
+    }
+
+
+
+    /**
+     * Ulozi do seznamu promennych pro sablonu
+     * @param   string  jmeno promenne
+     * @param   mixed   hodnota promenne
+     * @return  void
+     */
+    public function __set($name, $value)
+    {
+        $this->set($name, $value, false);
+    }
+
+
+
+    /**
+     * Vrati hodnotu z promennych pro sablonu
+     * @param   string  jmeno promenne
+     * @return  mixed
+     */
+    public function __get($name)
+    {
+        if (isset($this->vars[$name])) {
+            return $this->vars[$name];
+        } else {
+            throw new Exception("Neexistujici promenna \$$name!");
         }
     }
 
 
 
     /**
-     * Vytvori odkaz v zavislosti na systemovem routingu
-     * @param   string  url
-     * @param   string  text odkazu
-     * @param   array   pole s atributy
-     * @param   bool    je text odkazu html
-     * @return  string
-     */
-    public function link($url, $title, array $attrs = array(), $html = false)
-    {
-        $app = Application::getInstance();
-        $url = call_user_func_array(array($app->controller, 'url'), (array) $url);
-
-        return Html::link($url, $title, $attrs, $html);
-    }
-
-
-
-    /**
-     * Vytvori tlacitko v zavislosti na systemovem routingu s moznosti js potvrzeni
-     * @param   string  url
-     * @param   string  text odkazu
-     * @param   bool    js potvrzeni
-     * @return  string
-     */
-    public function button($url, $title, $confirm = false)
-    {
-        $app = Application::getInstance();
-        $url = call_user_func_array(array($app->controller, 'url'), (array) $url);
-
-        return Html::button($url, $title, $confirm);
-    }
-
-
-
-    /**
-     * Vyrenderuje stranku z view a layoutu
+     * Vyrenderuje view sablonu
      * @return  void
      */
     public function render()
     {
         ob_start();
-
-        $this->viewPath = $this->pathFactory('view');
-        $this->layoutPath = $this->pathFactory('layout');
-        $this->vars['content'] = $this->parse($this->viewPath, $this->vars);
-
-        if ($this->layoutName === false) {
-            echo $this->vars['content'];
-        } else {
-            echo $this->parse($this->layoutPath, $this->vars);
-        }
+        $this->viewPath = $this->viewPathFactory();
+        return $this->parse($this->viewPath, $this->vars);
     }
 
 
 
     /**
      * Vytvori cestu k view sablone
-     * V pripade chyby vola prislusnou chybovou zpravu
-     * @return  void
+     * @return  string
      */
-    protected function pathFactory($type, $name = null)
+    protected function viewPathFactory()
     {
         $app = Application::getInstance();
 
-        if (empty($this->themeName)) {
-            $theme = '';
+        if (!$app->error) {
+            $view = Inflector::viewFile($this->ext, $this->viewName, Router::$namespace, $this->themeName, Router::$controller, !empty(Router::$service));
+
+            if (file_exists($app->getPath() . $view)) {
+                return $app->getPath() . $view;
+            } else {
+                throw new ApplicationException('view', $view);
+            }
         } else {
-            $theme = $this->themeName . '/';
-        }
+            $appView = $app->getPath() . Inflector::errorViewFile($this->ext, $this->viewName);
+            $coreView = $app->getCorePath() . Inflector::errorViewFile('phtml', $this->viewName);
 
-        switch ($type) {
-            case 'element':
-                return $app->getPath() . "views/" . $theme . $name . $this->ext;
-            break;
-            case 'view':
-                return parent::pathFactory();
-            break;
-            case 'layout':
-                $namespace = Router::$namespace;
-                if (!empty($namespace)) $namespace .= '-';
-
-                $x = -1;
-                $layouts = array(
-                    $app->getPath() . 'views/' . $theme . Strings::underscore($namespace . $this->layoutName) . $this->ext,
-                    $app->getCorePath() . 'views/' . Strings::underscore($this->layoutName) . '.phtml',
-                    $app->getPath() . 'views/layout' . $this->ext
-                );
-
-                foreach ($layouts as $layout) {
-                    if (file_exists($layout)) {
-                        return $layout;
-                    }
-                }
-
-                if ($app->error) {
-                    return $app->getCorePath() . 'views/layout.phtml';
-                } else {
-                    $this->layoutName = false;
-                }
-            break;
+            if (file_exists($appView)) {
+                return $appView;
+            } elseif (file_exists($coreView)) {
+                return $coreView;
+            } else {
+                die("Haefko: chyby systemovy soubor $coreView!");
+            }
         }
     }
 
@@ -203,15 +307,15 @@ class View extends CustomView implements IView
 
     /**
      * Parsuje sablonu
-     * @param   string  cesta k souboru
-     * @param   array   pole s promennymi
+     * @param   string  cesta k sablone
+     * @param   array   promenne
      * @return  string
      */
-    private function parse($parsedFile, $parsedVars)
+    protected function parse($parsedFile, $parsedVars)
     {
         extract($parsedVars);
         $controller = $this->controller;
-        $base       = $this->base;
+        $base = $this->base;
 
         include $parsedFile;
         return ob_get_clean();

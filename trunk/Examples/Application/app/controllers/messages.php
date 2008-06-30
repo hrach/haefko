@@ -3,7 +3,7 @@
 class MessagesController extends CustomController
 {
 
-
+	public $load = array('Form');
 
 	function init()
 	{

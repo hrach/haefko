@@ -2,15 +2,15 @@
 
 require_once '../../Haefko/Application/Application.php';
 
-$app = Application::getInstance();
-$app->loadCore('Autoload')
-    ->loadConfig();
+$app = Application::create();
 
+/*
+Application::loadCore('Autoload');
 $autoload = Autoload::getInstance();
 $autoload->addFramework()
          ->addDir($app->getPath())
          ->register();
-
+*/
 
 Router::addService('rss');
 Router::connect('/:action{groups|create|}', array('controller' => 'messages', 'action' => 'groups'));

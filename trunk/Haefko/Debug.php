@@ -40,7 +40,7 @@ class Debug
 
         $time = round((microtime(true) - self::$startTime) * 1000, 2);
 
-        require_once $app->getCorePath() . 'Templates/debugRibbon.phtml';
+        require_once $app->getCorePath() . '../Templates/debugRibbon.phtml';
     }
 
 
@@ -66,7 +66,7 @@ class Debug
     {
         $trace = preg_replace('#(\[password\]\s=&gt;\s).+#mi', '$1*CHRANENO*', print_r($exception->getTrace(), true));
         $app = Application::getInstance();
-        require_once $app->getCorePath() . 'Templates/debugException.phtml';
+        require_once $app->getCorePath() . '../Templates/debugException.phtml';
     }
 
 
@@ -76,6 +76,33 @@ class Debug
      */
     public static function addColophon()
     {}
+
+
+
+    /**
+     * Prevede pole do html reprezentace
+     * @param   array   pole pro prevod
+     * @return  string
+     */
+    public static function readableArray($array, $skip = array('password'))
+    {
+        $ret = "<ul>";
+        foreach ($array as $key => $val) {
+            if (in_array($key, $skip)) {
+                continue;
+            }
+
+            $ret .= "<li>$key: ";
+            if (is_array($val)) {
+                $ret .= self::readableArray($val);
+            } else {
+                $ret .= $val;
+            }
+            $ret .= "</li>";
+        }
+        $ret .= "</ul>";
+        return $ret;
+    }
 
 
 
