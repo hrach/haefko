@@ -53,8 +53,8 @@ class Config
     {
         $serverName = $_SERVER['SERVER_NAME'];
 
-        if (self::read('Config.trim-www', false)) {
-            Strings::ltrim($serverName, 'www.');
+        if (self::read('Config.trim-www', true)) {
+            $serverName = Strings::ltrim($serverName, 'www.');
         }
 
         if (isset($configure[$serverName]) && is_array($configure[$serverName])) {

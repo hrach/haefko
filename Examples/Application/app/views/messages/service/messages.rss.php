@@ -15,5 +15,4 @@ foreach ($data['message_id'] as $message) {
 	$item->author = $message['author'];
 	$item->date = $message['date'];
 	$item->category = $data['name'];
-
 }

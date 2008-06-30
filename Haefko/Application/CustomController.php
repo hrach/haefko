@@ -20,12 +20,15 @@ require_once dirname(__FILE__) . '/../Strings.php';
 /**
  * Zakladní trida CustomController, od ni musi byt odvozeny vsechny controllery
  */
-class CustomController
+abstract class CustomController
 {
 
 
+    public $load = array();
+    public $services = array(
+        'rss' => 'RssView'
+    );
 
-    public $services = array('rss' => 'RssView', 'atom' => 'RssView');
     public $app;
     public $view;
     public $model;
@@ -37,26 +40,46 @@ class CustomController
      * @param   string  jmeno view tridy
      * @return  void
      */
-    public function __construct($viewClass = 'View')
+    public function __construct($viewClass = 'LayoutView')
     {
         $this->app  = Application::getInstance();
 
-        if (!$this->app->error && !empty(Router::$service) && isset($this->services[Router::$service])) {
-            $this->app->loadCore('Application/' . $this->services[Router::$service]);
-            $this->view = new $this->services[Router::$service]($this);
-        } else {
-            $this->app->loadCore('Application/View');
-            $this->view = new $viewClass($this);
+        foreach ($this->load as $file) {
+            Application::loadCore($file);
         }
 
-        $modelClass = get_class($this);
-        Strings::rtrim($modelClass, 'Controller');
-        $modelClass .= 'Model';
-        if ($modelClass !== 'CustomModel' && class_exists($modelClass)) {
-            $this->app->loadCore('Db/Db');
-            $this->model = new $modelClass($this);
+        if (isset($this->services[Router::$service])) {
+            $viewClass = $this->services[Router::$service];
+        }
+
+        Application::loadCore("Application/$viewClass");
+        $this->view = new $viewClass($this);
+
+
+        $class = Inflector::modelClass(Router::$controller, Router::$namespace);
+        Application::loadCore('Application/Db');
+        Application::load($class, 'model', array(Router::$controller, Router::$namespace));
+
+        if (class_exists($class)) {
+            $this->model = new $class($this);
         }
     }
+
+
+
+    /**
+     * Metoda init je zavolana vzdy po vytvoreni controlleru, jeste pred zavolanim action
+     */
+    public function init()
+    {}
+
+
+
+    /**
+     * Metoda renderInit je zavolana vzdy pred vyrenderovanim sablony, po zavolani action
+     */
+    public function renderInit()
+    {}
 
 
 
@@ -128,9 +151,9 @@ class CustomController
         }
 
         if ($absolute) {
-            return Http::getServerUrl() . Http::getInternalUrl() . implode('/', $newUrl);
+            return Http::$serverUri . Http::$baseUri . implode('/', $newUrl);
         } else {
-            return Http::getInternalUrl() . implode('/', $newUrl);
+            return Http::$baseUri . implode('/', $newUrl);
         }
     }
 
@@ -147,15 +170,11 @@ class CustomController
     {
         if (isset(Router::$args[$name])) {
             if ($named === true) {
-                $var = Router::$args[$name];
-                Strings::ltrim($var, "$name:");
-                return $var;
+                return Strings::ltrim(Router::$args[$name], "$name:");
             } elseif ($named === false) {
                 return Router::$args[$name];
             } else {
-                $var = Router::$args[$name];
-                Strings::ltrim($var, "$named:");
-                return $var;
+                return Strings::ltrim(Router::$args[$name], "$named:");
             }
         } else {
             return $default;
@@ -170,37 +189,27 @@ class CustomController
      */
     public function render()
     {
-        static $run = false;
+        $method = Inflector::actionName(Router::$action);
+        $exists = method_exists(get_class($this), $method);
 
-        if ($run === false) {
-            $run = true;
 
-            $methodName = Router::$action . 'Action';
-            $methodExists = method_exists(get_class($this), $methodName);
-
-            if (!$methodExists) {
-                if (!$this->app->error) {
-                    $this->app->loadCore('Application/Exceptions');
-                    throw new ApplicationException('method', $methodName);
-                }
-            } else {
-                $this->view->view(Router::$action);
-            }
-
-            if (method_exists($this, 'init')) {
-                call_user_func(array($this, 'init'));
-            }
-
-            if ($methodExists) {
-                call_user_func_array(array($this, $methodName), Router::$args);
-            }
-
-            if (method_exists($this, 'renderInit')) {
-                call_user_func(array($this, 'renderInit'));
-            }
-
-            $this->view->render();
+        if ($exists) {
+            $this->view->view(Router::$action);
+        } elseif(!$this->app->error) {
+            throw new ApplicationException('method', $method);
         }
+
+
+        call_user_func(array($this, 'init'));
+        call_user_func(array($this->view, 'init'));
+
+        if ($exists) {
+            call_user_func_array(array($this, $method), Router::$args);
+        }
+
+        call_user_func(array($this, 'renderInit'));
+
+        echo $this->view->render();
     }
 
 

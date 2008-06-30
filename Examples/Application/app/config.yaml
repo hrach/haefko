@@ -8,3 +8,12 @@ multi:
             database: konference
             charset: utf8
             lazy: true
+    haefko:
+        Core.debug: 2
+        Db.connection:
+            driver: mysqli
+            host: localhost
+            username: root
+            database: konference
+            charset: utf8
+            lazy: true

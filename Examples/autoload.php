@@ -1,6 +1,6 @@
 <?php
 
-require '../Haefko/autoload.php';
+require '../Haefko/Autoload.php';
 
 $autoload = Autoload::getInstance();
 $autoload->addFramework();

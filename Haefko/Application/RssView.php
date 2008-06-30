@@ -12,15 +12,14 @@
 
 
 
-require_once dirname(__FILE__) . '/IView.php';
-require_once dirname(__FILE__) . '/CustomView.php';
+require_once dirname(__FILE__) . '/View.php';
 
 
 
 /**
  * Trida RssView obstarava nacitani view a jeho vypln rss obsahem
  */
-class RssView extends CustomView implements IView
+class RssView extends View implements IView
 {
 
 
@@ -32,7 +31,7 @@ class RssView extends CustomView implements IView
     public $copyright;
     public $image = array();
 
-    protected $ext = '.rss.php';
+    protected $ext = 'rss.php';
 
     private $items = array();
 
@@ -59,7 +58,7 @@ class RssView extends CustomView implements IView
      */
     public function item()
     {
-        $this->items[] = $item = new RssViewItem($this);
+        $this->items[] = $item = new RssViewItem($this->controller);
         return $item;
     }
 
@@ -71,19 +70,15 @@ class RssView extends CustomView implements IView
      */
     public function render()
     {
-        ob_start();
-        extract($this->vars);
-        $controller = $this->controller;
-        $base = $this->base;
+        parent::render();
 
-        include $this->pathFactory();
         $this->createFeed();
 
         if (!$this->controller->app->error) {
             Http::mimeType('application/rss+xml');
         }
 
-        echo ob_get_clean();
+        return ob_get_clean();
     }
 
 
@@ -154,13 +149,13 @@ class RssViewItem
     public $date;
     public $source;
 
-    private $view;
+    private $controller;
 
 
 
-    public function __construct(& $view)
+    public function __construct($controller)
     {
-        $this->view = $view;
+        $this->controller = $controller;
     }
 
 
@@ -172,12 +167,12 @@ class RssViewItem
             echo "\t\t<title>", htmlspecialchars(strip_tags($this->title)), "</title>\n";
 
         if (!empty($this->link))
-            echo "\t\t<link>", $this->view->controller->url($this->link, true), "</link>\n";
+            echo "\t\t<link>", $this->controller->url($this->link, true), "</link>\n";
 
         if (!empty($this->guid))
-            echo "\t\t<guid>", $this->view->controller->url($this->guid, true), "</guid>\n";
+            echo "\t\t<guid>", $this->controller->url($this->guid, true), "</guid>\n";
         elseif (!empty($this->link))
-            echo "\t\t<guid>", $this->view->controller->url($this->link, true), "</guid>\n";
+            echo "\t\t<guid>", $this->controller->url($this->link, true), "</guid>\n";
 
         if (!empty($this->description))
             echo "\t\t<description><![CDATA[", $this->description, "]]></description>\n";
@@ -189,10 +184,10 @@ class RssViewItem
             echo "\t\t<category>", htmlspecialchars($this->category), "</category>\n";
 
         if (!empty($this->comments))
-            echo "\t\t<comments>", $this->view->controller->url($this->comments, true), "</comments>\n";
+            echo "\t\t<comments>", $this->controller->url($this->comments, true), "</comments>\n";
 
         if (!empty($this->date))
-            echo "\t\t<pubDate>", $this->view->date(strtotime($this->date)), "</pubDate>\n";
+            echo "\t\t<pubDate>", $this->controller->view->date(strtotime($this->date)), "</pubDate>\n";
 
         if (!empty($this->source))
             echo "\t\t<source>", $this->source, "</source>\n";

@@ -1,7 +1,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-	<?= Html::encoding() ?>
+	<?= $html->encoding() ?>
+	<?= $html->title() ?>
 	<style type="text/css" media="screen">
 		a {
 			color: #1c1a8f;
@@ -15,7 +16,6 @@
 			padding: 3px;
 		}
 	</style>
-	<title><?= $escape($title) ?></title>
 </head>
 <body style="font-family: sans-serif;">
 <?= $content ?>

@@ -12,19 +12,26 @@
 
 
 
-interface IView
+/**
+ * Zakladni trida pro view helpery
+ */
+class CustomHelper
 {
 
-    function render();
 
-    function set($name, $value);
 
-    function __set($name, $value);
+    protected $controller;
 
-    function __get($name);
 
-    function __isset($name);
 
-    function __unset($name);
+    /**
+     * Konstruktor
+     */
+    public function __construct()
+    {
+        $this->controller = Application::getInstance()->controller;
+    }
+
+
 
 }

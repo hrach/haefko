@@ -80,7 +80,7 @@ function hf_ribbon_toogler(id) {
 </script>
 <div id="hf-debug-ribbon">
     <div id="hf-debug-ribbon-toolbar">
-        Háefko <span style="font-size: 12px">(<?= Application::$frameworkVersion ?>)</span> |
+        Háefko <span style="font-size: 12px">(<?= Application::$version ?>)</span> |
         <?= $time ?> ms |
         <a href="javascript:hf_ribbon_toogler('hf-debug-ribbon-config')">config</a>
         <?php if (!is_null($sql)) { ?> | <a href="javascript:hf_ribbon_toogler('hf-debug-ribbon-sql')">sql</a><?php } ?>
@@ -96,6 +96,6 @@ function hf_ribbon_toogler(id) {
     <?php } ?>
 
     <div style="display: none;" id="hf-debug-ribbon-config">
-        <?= Strings::readableArray(Config::getConfig()) ?>
+        <?= Debug::readableArray(Config::getConfig()) ?>
     </div>
 </div>

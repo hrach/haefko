@@ -27,8 +27,7 @@ class Strings
      */
     public static function camelize($word)
     {
-        $camelWord = str_replace(' ', '', ucwords(str_replace(array('_', '-'), array(' ', ' '), $word)));
-        return $camelWord;
+        return str_replace(' ', '', ucwords(str_replace(array('_', '-'), array(' ', ' '), $word)));
     }
 
 
@@ -38,10 +37,9 @@ class Strings
      * @param   string  retezec, ktery chcete prevest
      * @return  string
      */
-    public static function underscore($word)
+    public static function dash($word)
     {
-        $underscoreWord = strtolower(preg_replace('/(?<=\\w)([A-Z])/', '-\\1', $word));
-        return $underscoreWord;
+        return strtolower(preg_replace('/(?<=\\w)([A-Z])/', '-\\1', $word));
     }
 
 
@@ -54,8 +52,10 @@ class Strings
     public static function toAscii($string)
     {
         if (defined('ICONV_IMPL') && ICONV_IMPL != 'libiconv') {
-            // author David GRUDL
-            // site http://davidgrudl.cz/
+            /**
+             * @author David GRUDL
+             * @link   http://davidgrudl.cz
+             */
             static $tbl = array("\xc3\xa1"=>"a","\xc3\xa4"=>"a","\xc4\x8d"=>"c","\xc4\x8f"=>"d","\xc3\xa9"=>"e",
                                 "\xc4\x9b"=>"e","\xc3\xad"=>"i","\xc4\xbe"=>"l","\xc4\xba"=>"l","\xc5\x88"=>"n",
                                 "\xc3\xb3"=>"o","\xc3\xb6"=>"o","\xc5\x91"=>"o","\xc3\xb4"=>"o","\xc5\x99"=>"r",
@@ -101,7 +101,8 @@ class Strings
      */
     public static function sanitizeUrl($url)
     {
-        return trim($url, '/');
+        $url = trim($url, '/');
+        return preg_replace('#\/+#', '/', $url);
     }
 
 
@@ -127,16 +128,15 @@ class Strings
      * Odstrani ze zacatku retezce pozadovany subretezec
      * @param   string  retezec
      * @param   string  retezec ktery chtete odstranit
-     * @return  bool
+     * @return  string
      */
-     public static function ltrim(& $string, $substring)
+     public static function ltrim($string, $substring)
      {
-        $i = strlen($substring);
-        if (substr($string, 0, $i) == $substring) {
-            $string = substr($string, $i);
-            return true;
+        if (strpos($string, $substring) === 0) {
+            return substr($string, strlen($substring));
         }
-        return false;
+
+        return $string;
      }
 
 
@@ -145,58 +145,36 @@ class Strings
      * Odstrani z konce retezce pozadovany subretezec
      * @param   string  retezec
      * @param   string  retezec ktery chtete odstranit
-     * @return  bool
+     * @return  string
      */
-     public static function rtrim(& $string, $substring)
+     public static function rtrim($string, $substring)
      {
         $i = strlen($substring);
         if (substr($string, -$i) == $substring) {
-            $string = substr($string, 0, -$i);
-            return true;
+            return substr($string, 0, -$i);
         }
-        return false;
+
+        return $string;
      }
 
 
+
+}
+
+
+
+
+if (!function_exists('lcfirst')) {
 
     /**
      * Prevede prvni pismeno retezce na male
      * @param   string  retezec
      * @return  string
      */
-    function lcfirst($str)
+    function lcfirst($string)
     {
-        $str[0] = strtolower($str[0]);
-        return (string) $str;
+        $string[0] = strtolower($string[0]);
+        return (string) $string;
     }
-
-
-
-    /**
-     * Prevede pole do html reprezentace
-     * @param   array   pole pro prevod
-     * @return  string
-     */
-    public static function readableArray($array, $skip = array('password'))
-    {
-        $ret = "<ul>";
-        foreach ($array as $key => $val) {
-            if (in_array($key, $skip)) {
-                continue;
-            }
-
-            $ret .= "<li>$key: ";
-            if (is_array($val)) {
-                $ret .= self::readableArray($val);
-            } else {
-                $ret .= $val;
-            }
-            $ret .= "</li>";
-        }
-        $ret .= "</ul>";
-        return $ret;
-    }
-
-
 
 }

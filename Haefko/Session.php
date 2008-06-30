@@ -110,7 +110,7 @@ class Session
 
             $name    = 'hf-session';
             $expires = 3600;
-            $path    = Http::getInternalUrl();
+            $path    = Http::$baseUri;
             $domain  = Http::getDomain();
 
             if (class_exists('Config', false)) {

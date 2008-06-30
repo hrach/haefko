@@ -2,8 +2,6 @@
 <hr />
 
 <ol>
-<? Router::$args['id'] = 'AAA'; ?>
-<? Router::$args['group'] = 'BBB'; ?>
 <?php foreach ($groups as $group) { ?>
 	<li><?= $this->link("/messages/group:$group[group_id]", $group['name']) ?></li>
 <?php } ?>

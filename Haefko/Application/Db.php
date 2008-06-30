@@ -12,9 +12,9 @@
 
 
 
+require_once dirname(__FILE__) . '/../Components/dibi.compact.php';
 require_once dirname(__FILE__) . '/CustomModel.php';
 require_once dirname(__FILE__) . '/../Config.php';
-require_once dirname(__FILE__) . '/../Components/dibi.compact.php';
 
 
 

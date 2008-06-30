@@ -12,10 +12,10 @@
 
 
 
-require_once dirname(__FILE__) . '/Items.php';
-require_once dirname(__FILE__) . '/MultiItems.php';
-require_once dirname(__FILE__) . '/Condition.php';
-require_once dirname(__FILE__) . '/../Html.php';
+require_once dirname(__FILE__) . '/Form/Items.php';
+require_once dirname(__FILE__) . '/Form/MultiItems.php';
+require_once dirname(__FILE__) . '/Form/Condition.php';
+require_once dirname(__FILE__) . '/Html.php';
 
 
 
@@ -273,7 +273,7 @@ class Form implements ArrayAccess
                 }
 
                 $this->data[$name] = $value;
-                $item->value = & $this->data[$name];
+                $item->setValue($this->data[$name]);
             }
         }
 
@@ -327,7 +327,7 @@ class Form implements ArrayAccess
     {
         foreach ($defaults as $name => $value) {
             if (isset($this->form['elements'][$name])) {
-                $this->form['elements'][$name]->value = $value;
+                $this->form['elements'][$name]->setValue($value);
             }
         }
     }
