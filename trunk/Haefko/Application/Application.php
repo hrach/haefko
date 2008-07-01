@@ -69,7 +69,7 @@ class Application
 
 
 
-    public static function load($class, $type, array $args)
+    public static function load($class, $type, array $args, $return = false)
     {
         static $types = array('controller', 'model', 'view', 'helper');
         if (!in_array($type, $types))
@@ -77,20 +77,19 @@ class Application
 
 
         $app = self::getInstance();
+        $file = $app->getPath() . call_user_func_array(array('Inflector', $type . 'File'), $args);
 
-        if ($app->autoload) {
-            if (!class_exists($class) && $type != 'model') {
+        if (!class_exists($class) && !file_exists($file)) {
+            if (!$return) {
                 throw new ApplicationException($type, $class);
+            } else {
+                return false;
             }
-        } else {
-            $file = $app->getPath() . call_user_func_array(array('Inflector', $type . 'File'), $args);
-
-            if (file_exists($file)) {
-                require_once $file;
-            } elseif ($type != 'model') {
-                throw new ApplicationException($type, $class);
-            }
+        } elseif (file_exists($file)) {
+            require_once $file;
         }
+
+        return true;
     }
 
 
@@ -179,13 +178,9 @@ class Application
      */
     public function run()
     {
-        $this->autoload = class_exists('Autoload', false);
-
         $class = Inflector::controllerClass(Router::$controller, Router::$namespace);
 
-        if (file_exists($this->getPath() . 'controller.php')) {
-            Application::loadApp('controller.php');
-        } else {
+        if (!Application::load('Controller', 'controller', array('controller', ''), true)) {
             eval ('class Controller extends CustomController {}');
         }
 
@@ -269,7 +264,8 @@ class Application
             $this->controller = new Controller();
             $this->controller->error($exception->error, true);
             $this->controller->view->message = $exception->getMessage();
-            $this->controller->view->init();
+            $this->controller->view->loadHelpers();
+            $this->controller->init();
             echo $this->controller->view->render();
 
         } elseif (Config::read('Core.debug', 0) === 0) {
@@ -278,7 +274,8 @@ class Application
 
             $this->controller = new Controller();
             $this->controller->error('500');
-            $this->controller->view->init();
+            $this->controller->view->loadHelpers();
+            $this->controller->init();
             echo $this->controller->view->render();
 
         } else {

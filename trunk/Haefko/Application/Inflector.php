@@ -112,4 +112,10 @@ class Inflector
 
 
 
+    public static function elementFile($ext, $path)
+    {
+        return 'views/' . Strings::sanitizeUrl($path) . ".$ext";
+    }
+
+
 }

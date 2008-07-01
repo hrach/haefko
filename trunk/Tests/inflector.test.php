@@ -157,6 +157,15 @@ class InflectorTest extends UnitTestCase
 		$this->assertEqual($name, 'views/errors/e404.phtml');
 	}
 
+	function testElementFile()
+	{
+		$name = Inflector::elementFile('phtml', 'rating');
+		$this->assertEqual($name, 'views/rating.phtml');
+
+		$name = Inflector::elementFile('phtml', '/_elements//rating');
+		$this->assertEqual($name, 'views/_elements/rating.phtml');
+	}
+
 }
 
 $test = new InflectorTest();

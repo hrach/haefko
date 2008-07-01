@@ -12,7 +12,7 @@
 
 
 
-require_once dirname(__FILE__) . '/CustomView.php';
+require_once dirname(__FILE__) . '/View.php';
 
 
 
@@ -37,13 +37,6 @@ class LayoutView extends View
         parent::__construct();
     }
 
-
-
-    public function init()
-    {
-        parent::init();
-        $this->helper('html');
-    }
 
 
     /**
@@ -88,13 +81,15 @@ class LayoutView extends View
      */
     public function renderElement($name)
     {
-        $file = Inflector::elementFile($this->ext, $name);
+        $file = $this->controller->app->getPath() . Inflector::elementFile($this->ext, $name);
 
         if (file_exists($file)) {
             extract($this->vars);
             $base = $this->base;
             $controller = $this->controller;
             include $file;
+        } else {
+            die("Haefko: nenalezena sablona elementu $file!");
         }
     }
 

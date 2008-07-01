@@ -81,7 +81,7 @@ class JsHelper extends CustomHelper
 
     public function toJsArray(array $array)
     {
-        array_walk($array, 'htmlentities', ENT_QUOTES);
+        array_walk($array, 'htmlentities');
         return "['" . join("', '", $array) . "']";
     }
 
@@ -91,38 +91,53 @@ class JsHelper extends CustomHelper
 
 
 
-    public function datepicker($name, $options = null)
+    public function datepicker($name = null, $options = null)
     {
         $this->js('jquery.datepicker.js');
         $this->js('date.js');
         $this->css('jquery.datepicker.css');
-        $this->raw("$('$name').datePicker($options);");
+        if (!empty($name))
+            $this->raw("$('$name').datePicker($options);");
     }
 
 
 
-    public function fancybox($name, $options = null)
+    public function fancybox($name = null, $options = null)
     {
         $this->js('jquery.fancybox.js');
         $this->css('jquery.fancybox.css');
-        $this->raw("$('$name').fancybox($options);");
+        if (!empty($name))
+            $this->raw("$('$name').fancybox($options);");
     }
 
 
 
-    public function corner($name, $options = null)
+    public function corner($name = null, $options = null)
     {
         $this->js('jquery.corner.js');
-        $this->raw("$('$name').corner($options);");
+        if (!empty($name))
+            $this->raw("$('$name').corner($options);");
     }
 
 
 
-    public function resizer($name)
+    public function resizer($name = null)
     {
         $this->js('jquery.textarearesizer.js');
         $this->css('jquery.textarearesizer.css');
-        $this->raw("$('$name').TextAreaResizer();");
+        if (!empty($name))
+            $this->raw("$('$name').TextAreaResizer();");
+    }
+
+
+
+    public function autocomplete($name = null, $options = array())
+    {
+        $options = $this->toJsArray($options);
+        $this->js('jquery.autocomplete.js');
+        $this->css('jquery.autocomplete.css');
+        if (!empty($name))
+            $this->raw("$('$name').autocomplete($options);");
     }
 
 
