@@ -54,11 +54,6 @@ class View implements IView
 
 
 
-    public function init()
-    {}
-
-
-
     /**
      * Nastaví view sablonu
      * @param   string jmeno sablony
@@ -129,21 +124,24 @@ class View implements IView
         $class = Inflector::helperClass($name);
 
         if ($this->controller->app->autoload && !class_exists($class)) {
-            throw new Exception("Haefko: nenalezen helper $class!");
+            die("Haefko: nenalezen helper $class!");
         } else {
             $file = Inflector::helperFile($name);
 
-            if (file_exists($this->controller->app->getPath() . $file)) {
-                require_once $this->controller->app->getPath() . $file;
-            } elseif (file_exists($this->controller->app->getCorePath() . $file)) {
-                require_once $this->controller->app->getCorePath() . $file;
+            $appFile = $this->controller->app->getPath() . $file;
+            $coreFile = $this->controller->app->getCorePath() . $file;
+
+            if (file_exists($appFile)) {
+                require_once $appFile;
+            } elseif (file_exists($coreFile)) {
+                require_once $coreFile;
             } else {
-                throw new Exception("Haefko: nenalezen helper $class!");
+                die("Haefko: nenalezen helper $class!");
             }
         }
 
         if (is_null($var)) {
-            $var = $name;
+            $var = strtolower($name);
         }
 
         if (!isset($this->$var)) {
@@ -153,6 +151,19 @@ class View implements IView
         return $this->$var;
     }
 
+
+
+    /**
+     * Nacte helpery definovane v controller
+     * @return  void
+     */
+    public function loadHelpers()
+    {
+        $this->helper('html');
+        foreach ($this->controller->helpers as $helper) {
+            $this->helper($helper);
+        }
+    }
 
 
     /**

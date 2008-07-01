@@ -75,6 +75,7 @@ class HtmlHelper extends CustomHelper
         $el->setAttributes($attrs);
         $el->setContent($title, $escape);
 
+        $el['type'] = 'button';
         $el['onclick'] = "document.location.href='$url'";
 
         if ($confirm !== false && !empty($confirm)) {

@@ -25,9 +25,8 @@ abstract class CustomController
 
 
     public $load = array();
-    public $services = array(
-        'rss' => 'RssView'
-    );
+    public $helpers = array();
+    public $services = array('rss' => 'RssView');
 
     public $app;
     public $view;
@@ -42,7 +41,7 @@ abstract class CustomController
      */
     public function __construct($viewClass = 'LayoutView')
     {
-        $this->app  = Application::getInstance();
+        $this->app = Application::getInstance();
 
         foreach ($this->load as $file) {
             Application::loadCore($file);
@@ -56,9 +55,14 @@ abstract class CustomController
         $this->view = new $viewClass($this);
 
 
-        $class = Inflector::modelClass(Router::$controller, Router::$namespace);
         Application::loadCore('Application/Db');
-        Application::load($class, 'model', array(Router::$controller, Router::$namespace));
+
+        if (!Application::load('Model', 'model', array('model', ''), true)) {
+            eval ('class Model extends CustomModel {}');
+        }
+
+        $class = Inflector::modelClass(Router::$controller, Router::$namespace);
+        Application::load($class, 'model', array(Router::$controller, Router::$namespace), true);
 
         if (class_exists($class)) {
             $this->model = new $class($this);
@@ -199,9 +203,9 @@ abstract class CustomController
             throw new ApplicationException('method', $method);
         }
 
+        $this->view->loadHelpers();
 
         call_user_func(array($this, 'init'));
-        call_user_func(array($this->view, 'init'));
 
         if ($exists) {
             call_user_func_array(array($this, $method), Router::$args);

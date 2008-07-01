@@ -70,6 +70,21 @@ class Autoload
 
 
     /**
+     * Prida adresar aplikace pro zaindexovani
+     * @return  Autoload
+     */
+    public function addApplication()
+    {
+        if (class_exists('Application', false)) {
+            $this->addDir(Application::getInstance()->getPath());
+        }
+
+        return $this;
+    }
+
+
+
+    /**
      * Prida predany adresar pro zaindexovani
      * @param   string  cesta k adresari
      * @return  Autoload
