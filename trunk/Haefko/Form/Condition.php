@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.6
+ * @version     0.7
  * @package     Haefko
  */
 
@@ -71,7 +71,7 @@ class FormCondition
             }
 
             if (!$this->valid($rule['rule'], $value, $arg)) {
-                $this->field->form->addError($rule['message']);
+                $this->field->addError($rule['message']);
                 $valid = false;
             }
         }
@@ -95,8 +95,66 @@ class FormCondition
             'message' => $message,
             'arg'     => $arg,
         );
-        
+
         return $this;
+    }
+
+
+
+    /**
+     * Vrati javascriptovou validaci pro aktualni podminku
+     * @return  string
+     */
+    public function js()
+    {
+        if (empty($this->rules)) return;
+
+        $js = null;
+        $id = $this->field->el['id'];
+        $value = ($this->field instanceof FormCheckBoxItem) ? "$('#$id').attr('checked')" : "$('#$id').val()";
+
+
+        foreach ($this->rules as $item) {
+            if ($this->field instanceof FormPasswordItem && $item['rule'] == 'equal' && is_string($item['arg']))
+                continue;
+
+            $rule = ($this->field instanceof FormCheckBoxItem) ? 'expression' : $item['rule'];
+            $arg = $this->jsFieldArg($item['rule'], $item['arg']);
+            $js .= "if (!HFisValid('$rule', $value, $arg)) { valid = false; HFcreateErrorLabel('$id', '$item[message]'); }\n";
+        }
+
+
+        if (!is_null($this->rule)) {
+            $rule = ($this->field instanceof FormCheckBoxItem) ? 'expression' : $this->rule;
+            $arg = $this->jsFieldArg($this->rule, $this->arg);
+            $js = "if (HFisValid('$rule', $value, $arg)) { $js }\n";
+        }
+
+
+        return $js;
+    }
+
+
+
+    /**
+     * Vrati js vyraz pro argument v zavislosti na podmince a typu predaneho argumentu
+     * @param   string  podminka
+     * @param   mixed   argument
+     * @return  string
+     */
+    private function jsFieldArg($rule, $arg)
+    {
+        if (in_array($rule, array('filled', 'notfilled'))) {
+            return "'{$this->field->getEmptyValue()}'";
+        } else {
+            if ($arg instanceof FormItem) {
+                return "$('#{$arg->el['id']}').val()";
+            } elseif (is_array($arg)) {
+                return toJsArray($arg);
+            } else {
+                return "'$arg'";
+            }
+        }
     }
 
 
@@ -111,17 +169,18 @@ class FormCondition
     private function valid($rule, $value, $arg)
     {
         switch ($rule) {
-            case Form::EQUAL:       return $value == $arg;
-            case Form::FILLED:      return ($value === '0') ? true : !empty($value);
-            case Form::EMAIL:       return preg_match('/^[^@]+@[^@]+\.[a-z]{2,6}$/i', $value);
-            case Form::URL:         return preg_match('/^.+\.[a-z]{2,6}(\\/.*)?$/i', $value);
-            case Form::NUMERIC:     return is_numeric($value);
-            case Form::MINLENGTH:   return strlen($value) >= $arg;
-            case Form::MAXLENGTH:   return strlen($value) <= $arg;
-            case Form::LENGTH:      return strlen($value) == $arg;
-            case Form::INARRAY:     return in_array($value, (array) $arg);
-            case Form::NOTINARRAY:  return !in_array($value, (array) $arg);
-            default:                return preg_match($rule, $value);
+            case Form::EQUAL:      return $value == $arg;
+            case Form::FILLED:     return ($value === '0') ? true : !empty($value);
+            case Form::NOTFILLED:  return ($value === '0') ? false : empty($value);
+            case Form::EMAIL:      return preg_match('/^[^@]+@[^@]+\.[a-z]{2,6}$/i', $value);
+            case Form::URL:        return preg_match('/^.+\.[a-z]{2,6}(\\/.*)?$/i', $value);
+            case Form::NUMERIC:    return is_numeric($value);
+            case Form::MINLENGTH:  return strlen($value) >= $arg;
+            case Form::MAXLENGTH:  return strlen($value) <= $arg;
+            case Form::LENGTH:     return strlen($value) == $arg;
+            case Form::INARRAY:    return in_array($value, (array) $arg);
+            case Form::NOTINARRAY: return !in_array($value, (array) $arg);
+            default:               return preg_match($rule, $value);
         }
     }
 

@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.6
+ * @version     0.7
  * @package     Haefko
  */
 
@@ -105,9 +105,13 @@ class Inflector
 
 
 
-    public static function errorViewFile($ext, $name)
+    public static function errorViewFile($ext, $name, $theme)
     {
-        return "views/errors/$name.$ext";
+        $path  = "views/";
+        $path .= ($theme) ? "$theme/" : '';
+        $path .= "errors/$name.$ext";
+
+        return $path;
     }
 
 

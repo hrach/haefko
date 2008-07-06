@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.6
+ * @version     0.7
  * @package     Haefko
  */
 
@@ -37,6 +37,8 @@ abstract class CustomModel extends DibiTable
         $this->controller = $controller;
         if (!empty($this->table)) {
             $this->name = $this->table;
+        } else {
+            $this->name = strtolower(Strings::rtrim(get_class($this), 'Model'));
         }
 
         parent::__construct();

@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.6
+ * @version     0.7
  * @package     Haefko
  */
 
@@ -49,7 +49,7 @@ class View implements IView
         $this->base = Http::$baseUri;
 
         $this->set('escape', 'htmlSpecialChars', false);
-        $this->set('title', 'Yout title', false);
+        $this->set('title', 'Your title', false);
     }
 
 
@@ -301,8 +301,8 @@ class View implements IView
                 throw new ApplicationException('view', $view);
             }
         } else {
-            $appView = $app->getPath() . Inflector::errorViewFile($this->ext, $this->viewName);
-            $coreView = $app->getCorePath() . Inflector::errorViewFile('phtml', $this->viewName);
+            $appView = $app->getPath() . Inflector::errorViewFile($this->ext, $this->viewName, '');
+            $coreView = $app->getCorePath() . Inflector::errorViewFile('phtml', $this->viewName, '');
 
             if (file_exists($appView)) {
                 return $appView;

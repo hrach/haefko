@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.6
+ * @version     0.7
  * @package     Haefko
  */
 
@@ -23,7 +23,7 @@ class Config
 {
 
 
-
+    public static $spaces = "    ";
     private static $config = array();
 
 
@@ -73,9 +73,11 @@ class Config
      */
     public static function load($fileName)
     {
-        require_once dirname(__FILE__) . '/Components/spyc.php';
+        //require_once dirname(__FILE__) . '/Components/spyc.php';
 
-        $data = Spyc::YAMLLoad($fileName);
+        //$data = Spyc::YAMLLoad($fileName);
+        $data = self::parseFile($fileName);
+
         foreach ($data as $key => $val) {
             if ($key == 'multi' && is_array($val)) {
                 self::multiWrite($val);
@@ -112,6 +114,50 @@ class Config
     public static function getConfig()
     {
         return self::$config;
+    }
+
+
+
+    public static function parseFile($file)
+    {
+        $data = trim(file_get_contents($file));
+        $data = preg_replace("#\t#", self::$spaces, $data);
+        $data = explode("\n", $data);
+        return self::parseNode($data);
+    }
+
+
+
+    protected static function parseNode($data)
+    {
+        $array = array();
+        $skip = array();
+
+        foreach ($data as $line => $node) {
+            if (in_array($line, $skip)) continue;
+
+            if (preg_match('#^(.+):\s*$#', $node, $match)) {
+                $node = array();
+                $i = $line + 1;
+
+                while (isset($data[$i]) && substr($data[$i], 0, 4) == self::$spaces) {
+                    $node[] = substr($data[$i], 4);
+                    $skip[] = $i;
+                    $i++;
+                }
+
+                $array[$match[1]] = self::parseNode($node);
+
+            } elseif (preg_match('#^(.+):\s(.+)$#', $node, $match)) {
+                $array[$match[1]] = $match[2];
+
+            } else {
+                die ('Haefko: spatny format konfigurace');
+
+            }
+        }
+
+        return $array;
     }
 
 

@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.6
+ * @version     0.7
  * @package     Haefko
  */
 
@@ -29,7 +29,7 @@ class Application
 
 
 
-    public static $version = '0.7.0.10';
+    public static $version = '0.7.0.20';
     private static $app;
 
 
@@ -181,7 +181,7 @@ class Application
         $class = Inflector::controllerClass(Router::$controller, Router::$namespace);
 
         if (!Application::load('Controller', 'controller', array('controller', ''), true)) {
-            eval ('class Controller extends CustomController {}');
+            eval('class Controller extends CustomController {}');
         }
 
         if ($class == 'Controller') {
@@ -268,7 +268,7 @@ class Application
             $this->controller->init();
             echo $this->controller->view->render();
 
-        } elseif (Config::read('Core.debug', 0) === 0) {
+        } elseif (Config::read('Core.debug') == 0) {
 
             error_log($exception->getMessage());
 

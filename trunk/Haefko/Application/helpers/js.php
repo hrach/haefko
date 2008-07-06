@@ -28,9 +28,44 @@ class JsHelper extends CustomHelper
     public $pathJs = 'js/';
     public $pathCss = 'css/';
 
+    protected $defitions = array();
     protected $filesCss = array();
     protected $filesJs = array('jquery.js');
     protected $inline = array();
+
+
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->definitions = array(
+            'jquery' => array('jquery.js'),
+            'fancy' => array('jquery.fancybox.js', 'jquery.fancybox.css'),
+            'corner' => array('jquery.corner.js'),
+            'calendar' => array('jquery.datepicker.js', 'date.js', 'jquery.datepicker.css'),
+            'resizer' => array('jquery.textarearesizer.js', 'jquery.textarearesizer.css'),
+            'autocomplete' => array('jquery.autocomplete.js', 'jquery.autocomplete.css'),
+            'validate' => array('jquery.validate.js'),
+        );
+    }
+
+
+
+    public function need($name)
+    {
+        if (!isset($this->definitions[$name])) {
+            die("Haefko: nepodporany script JsHelperu $name!");
+        }
+
+        foreach ($this->definitions[$name] as $item) {
+            if (strpos($item, '.js') !== false) {
+                $this->js($item);
+            } else {
+                $this->css($item);
+            }
+        }
+    }
 
 
 
@@ -69,7 +104,7 @@ class JsHelper extends CustomHelper
 
         if (!empty($this->inline))
         $ret .= "\t<script type=\"text/javascript\">\n\t//<![CDATA[\n"
-             .  "\t\t$(document).ready(function() {\n\t\t"
+             .  "\t$(document).ready(function() {\n\t\t"
              .  implode("\n\t\t", $this->inline)
              .  "\n\t});\n"
              .  "\t//]]>\n\t</script>";
@@ -79,65 +114,47 @@ class JsHelper extends CustomHelper
 
 
 
-    public function toJsArray(array $array)
+    /* ================== jQuery plug-in's methods ================== */
+
+
+
+    public function calendar($name, $options = null)
     {
-        array_walk($array, 'htmlentities');
-        return "['" . join("', '", $array) . "']";
+        $this->need('calendar');
+        $this->raw("$('$name').datePicker($options);");
     }
 
 
 
-    /* ================== jQuery methods ================== */
-
-
-
-    public function datepicker($name = null, $options = null)
+    public function fancy($name, $options = null)
     {
-        $this->js('jquery.datepicker.js');
-        $this->js('date.js');
-        $this->css('jquery.datepicker.css');
-        if (!empty($name))
-            $this->raw("$('$name').datePicker($options);");
+        $this->need('fancy');
+        $this->raw("$('$name').fancybox($options);");
     }
 
 
 
-    public function fancybox($name = null, $options = null)
+    public function corner($name, $options = null)
     {
-        $this->js('jquery.fancybox.js');
-        $this->css('jquery.fancybox.css');
-        if (!empty($name))
-            $this->raw("$('$name').fancybox($options);");
+        $this->need('corner');
+        $this->raw("$('$name').corner($options);");
     }
 
 
 
-    public function corner($name = null, $options = null)
+    public function resizer($name)
     {
-        $this->js('jquery.corner.js');
-        if (!empty($name))
-            $this->raw("$('$name').corner($options);");
+        $this->need('resizer');
+        $this->raw("$('$name').TextAreaResizer();");
     }
 
 
 
-    public function resizer($name = null)
+    public function autocomplete($name, array $options)
     {
-        $this->js('jquery.textarearesizer.js');
-        $this->css('jquery.textarearesizer.css');
-        if (!empty($name))
-            $this->raw("$('$name').TextAreaResizer();");
-    }
-
-
-
-    public function autocomplete($name = null, $options = array())
-    {
-        $options = $this->toJsArray($options);
-        $this->js('jquery.autocomplete.js');
-        $this->css('jquery.autocomplete.css');
-        if (!empty($name))
-            $this->raw("$('$name').autocomplete($options);");
+        $this->need('autocomplete');
+        $options = toJsArray($options);
+        $this->raw("$('$name').autocomplete($options);");
     }
 
 

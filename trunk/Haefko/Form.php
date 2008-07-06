@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.6
+ * @version     0.7
  * @package     Haefko
  */
 
@@ -27,27 +27,29 @@ class Form implements ArrayAccess
 
 
 
+    public static $counter = 0;
+
     const
-        EQUAL = 1,
-        FILLED = 2,
-        URL = 3,
-        EMAIL = 4,
-        NUMERIC = 5,
-        LENGTH = 6,
-        MINLENGTH = 7,
-        MAXLENGTH = 8,
-        INARRAY = 9,
-        NOTINARRAY = 10;
+        EQUAL      = 'equal',
+        FILLED     = 'filled',
+        NOTFILLED  = 'notfilled',
+        URL        = 'url',
+        EMAIL      = 'email',
+        NUMERIC    = 'numeric',
+        LENGTH     = 'length',
+        MINLENGTH  = 'minlength',
+        MAXLENGTH  = 'maxlength',
+        INARRAY    = 'inarray',
+        NOTINARRAY = 'notinarray';
 
-
-
+    public $js = true;
     public $data;
     public $name;
-    public static $counter = 0;
 
     private $el;
     private $form;
     private $errors = array();
+    private $rawValidation;
 
 
 
@@ -82,11 +84,11 @@ class Form implements ArrayAccess
      */
     public function addText($name, $multiLine = false)
     {
-        if ($multiLine) {
+        if ($multiLine)
             $this->form['elements'][$name] = new FormTextareaItem($this, $name);
-        } else {
+        else
             $this->form['elements'][$name] = new FormTextItem($this, $name);
-        }
+
         return $this;
     }
 
@@ -100,6 +102,7 @@ class Form implements ArrayAccess
     public function addPassword($name)
     {
         $this->form['elements'][$name] = new FormTextPasswordItem($this, $name);
+
         return $this;
     }
 
@@ -114,6 +117,7 @@ class Form implements ArrayAccess
     {
         $this->form['enctype'] = 'multipart/form-data'; 
         $this->form['elements'][$name] = new FormFileItem($this, $name);
+
         return $this;
     }
 
@@ -127,6 +131,7 @@ class Form implements ArrayAccess
     public function addHidden($name)
     {
         $this->form['elements'][$name] = new FormTextHiddenItem($this, $name);
+
         return $this;
     }
 
@@ -141,6 +146,7 @@ class Form implements ArrayAccess
     public function addSelect($name, array $options)
     {
         $this->form['elements'][$name] = new FormSelectItem($this, $name, $options);
+
         return $this;
     }
 
@@ -155,6 +161,7 @@ class Form implements ArrayAccess
     public function addMultiSelect($name, array $options)
     {
         $this->form['elements'][$name] = new FormMultiSelectItem($this, $name, $options);
+
         return $this;
     }
 
@@ -168,6 +175,7 @@ class Form implements ArrayAccess
     public function addCheckbox($name)
     {
         $this->form['elements'][$name] = new FormCheckboxItem($this, $name);
+
         return $this;
     }
 
@@ -182,6 +190,7 @@ class Form implements ArrayAccess
     public function addMultiCheckbox($name, array $options)
     {
         $this->form['elements'][$name] = new FormMultiCheckboxItem($this, $name, $options);
+
         return $this;
     }
 
@@ -196,6 +205,7 @@ class Form implements ArrayAccess
     public function addRadio($name, array $options)
     {
         $this->form['elements'][$name] = new FormRadioItem($this, $name, $options);
+
         return $this;
     }
 
@@ -209,7 +219,19 @@ class Form implements ArrayAccess
     public function addSubmit($name = 'submit')
     {
         $this->form['elements'][$name] = new FormSubmitItem($this, $name);
+
         return $this;
+    }
+
+
+
+    /**
+     * Prida sury js kod do js validacni funkce
+     * @param   string  js kod
+     */
+    public function setRawValidation($js)
+    {
+        $this->rawValidation = $js;
     }
 
 
@@ -221,7 +243,9 @@ class Form implements ArrayAccess
      */
     public function start($attrs = array())
     {
-        $this->el = Html::element('form');
+        $jsTag              = null;
+        $this->el           = Html::element('form');
+        $this->el['id']     = $this->name;
         $this->el['action'] = $this->form['url'];
         $this->el['method'] = 'post';
 
@@ -229,9 +253,30 @@ class Form implements ArrayAccess
             $this->el['enctype'] = $this->form['enctype'];
         }
 
+        if ($this->js) {
+            $this->el['onsubmit'] = "return validate{$this->name}();";
+
+            $jsValidation = "function validate{$this->name}() {\n"
+                          . "$('#{$this->name} label[generated=true]').empty().hide();\n"
+                          . $this->rawValidation
+                          . "var valid = true;\n";
+
+            foreach ($this->form['elements'] as $item) {
+                foreach ($item->conditions as $condition) {
+                    $jsValidation .= $condition->js();
+                }
+            }
+
+            $jsValidation .= "return valid;\n}";
+            $jsValidation = "<script type=\"text/javascript\">\n//<![CDATA[\n$jsValidation\n//]]>\n</script>\n";
+
+            if (class_exists('Application', false))
+                Application::getInstance()->controller->view->helper('js')->need('validate');
+        }
+
         $this->el->setAttributes($attrs);
 
-        return $this->el->renderStart();
+        return $jsValidation . $this->el->renderStart();
     }
 
 
@@ -242,15 +287,15 @@ class Form implements ArrayAccess
      */
     public function end()
     {
-        $ret = '';
+        $hidden = null;
 
-        foreach ($this->form['elements'] as $name => $item) {
+        foreach ($this->form['elements'] as $item) {
             if ($item instanceof FormTextHiddenItem) {
-                $ret .= $item->element();
+                $hidden .= $item->element();
             }
         }
 
-        return $ret . $this->el->renderEnd();
+        return $hidden . $this->el->renderEnd();
     }
 
 
@@ -350,9 +395,9 @@ class Form implements ArrayAccess
      * @param   string  zprava
      * @return  void
      */
-    public function addError($message)
+    public function addError($message, $name = null)
     {
-        $this->errors[] = $message;
+        $this->errors[] = array($name, $message);
     }
 
 
@@ -387,11 +432,14 @@ class Form implements ArrayAccess
     {
         if (!$this->hasErrors()) return;
 
-        $list = '<ul class="form-error-list">';
+        $list = "<ul class=\"errors\">\n";
         foreach ($this->errors as $error) {
-            $list .= "<li>$error</li>";
+            if (!empty($error[0]))
+                $list .= "<li><label class=\"error\" for=\"$error[0]\">$error[1]</label></li>\n";
+            else
+                $list .= "<li><label class=\"error\">$error[1]</label></li>\n";
         }
-        $list .= '</ul>';
+        $list .= "</ul>\n";
 
         return $list;
     }
@@ -404,13 +452,12 @@ class Form implements ArrayAccess
      */
     public function renderForm()
     {
-        $form = $this->start()
-              . '<table>';
+        $form = $this->start() . "\n<table>";
 
         foreach ($this->form['elements'] as $name => $el) {
             if ($el instanceof FormTextHiddenItem) continue;
 
-            $form .= '<tr><td>';
+            $form .= "\n<tr><td>";
 
             if ($el instanceof FormSubmitItem) {
                 $form .= '</td><td>' . $el->element(ucfirst($name));
@@ -425,8 +472,7 @@ class Form implements ArrayAccess
             $form .= '</td></tr>';
         }
 
-        $form .= '</table>' . $this->end();
-        return $form;
+        return $form . "\n</table>" . $this->end();
     }
 
 

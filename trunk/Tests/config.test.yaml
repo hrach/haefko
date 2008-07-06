@@ -1,0 +1,7 @@
+Core.debug: 1
+multi:
+    localhost:
+        Core.debug: 1
+        Db.connection:
+            driver: mysqli
+            host: localhost

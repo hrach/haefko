@@ -1,9 +1,9 @@
-<?php $messages = $controller->model->getMessages() ?>
+
 <h1>Zprávy ze skupiny: <?=$messages['name']?></h1>
 
 <?=$this->link('/groups', 'Zpět')?>
 <br />
-<?=$this->link('/create', 'Nová zpráva')?>
+<?=$this->link('/messages/create', 'Nová zpráva')?>
 <br />
 <br />
 
@@ -19,7 +19,7 @@
 	<td><?= $message['author'] ?></td>
 	<td><?= $message['text'] ?></td>
 	<td><?= $message['date'] ?></td>
-	<td><?= $this->link("/edit/message:$message[message_id]", 'Editovat') ?></td>
+	<td><?= $this->link("/messages/edit/$message[message_id]", 'Editovat') ?></td>
 </tr>
 <?php } ?>
 </table>

@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.6
+ * @version     0.7
  * @package     Haefko
  */
 
@@ -23,11 +23,13 @@ abstract class FormItem
     public $name;
     public $form;
     public $conditions = array();
+    public $el;
 
+    protected $label;
     protected $value;
-    protected $sanitize = false;
-    protected $required = false;
     protected $empty;
+    protected $validation = array();
+    protected $sanitize = false;
 
 
 
@@ -35,12 +37,22 @@ abstract class FormItem
      * Konstruktor
      * @param   Form    formular
      * @param   string  jmeno elementu
+     * @param   string  tag
      * @return  void
      */
-    public function __construct(Form $form, $name)
+    public function __construct(Form $form, $name, $element = 'input')
     {
         $this->name = $name;
         $this->form = $form;
+
+        $this->el = Html::element($element);
+        $this->el['id']   = "{$this->form->name}-{$this->name}";
+        $this->el['name'] = "{$this->form->name}[{$this->name}]";
+        
+        $this->label = Html::element('label');
+        $this->label['for']  = $this->el['id'];
+        $this->label['id']   = $this->el['id'] . '-label';
+
     }
 
 
@@ -137,15 +149,23 @@ abstract class FormItem
      */
     public function addRule($rule, $message, $arg = null)
     {
-        $cond = new FormCondition($this, null, null);
-        $cond->addRule($rule, $message, $arg);
-        $this->conditions[] = $cond;
-
         if ($rule == Form::FILLED) {
-            $this->required = true;
+            $this->label->addClass('required');
         }
 
-        return $this;
+        return $this->addCondition(null)->addRule($rule, $message, $arg);
+    }
+
+
+
+    /**
+     * Prida chybovou zpravu pro aktualni vstupni pole
+     * @param   string  chybova zprava
+     * @return  void
+     */
+    public function addError($message)
+    {
+        $this->form->addError($message, $this->el['id']);
     }
 
 
@@ -158,21 +178,11 @@ abstract class FormItem
      */
     public function label($label, $attrs = array())
     {
-        $id = $this->form->name . '-' . $this->name;
 
-        $el = Html::element('label');
-        $el->setAttributes($attrs);
+        $this->label->setAttributes($attrs);
+        $this->label->setContent($label);
 
-        $el['for'] = $id;
-        $el['id'] = $id . '-label';
-
-        if ($this->required) {
-            $el['class'] .= ' required';
-        }
-
-        $el->setContent($label);
-
-        return $el->render();
+        return $this->label->render();
     }
 
 
@@ -197,15 +207,13 @@ class FormSubmitItem extends FormTextItem
      */
     public function element($value, $attrs = array())
     {
-        $el = Html::element('input');
-        $el['type'] = 'submit';
-        $el['id'] = $this->form->name . '-' . $this->name;
-        $el['name'] = "{$this->form->name}[{$this->name}]";
-        $el['value'] = $value;
-        $el['class'] = 'submit';
+        $this->el['type']  = 'submit';
+        $this->el['value'] = $value;
 
-        $el->setAttributes($attrs);
-        return $el->render();
+        $this->el->addClass('submit');
+        $this->el->setAttributes($attrs);
+
+        return $this->el->render();
     }
 
 
@@ -245,15 +253,13 @@ class FormTextItem extends FormItem
      */
     public function element($attrs = array())
     {
-        $el = Html::element('input');
-        $el['type'] = 'text';
-        $el['id'] = $this->form->name . '-' . $this->name;
-        $el['name'] = "{$this->form->name}[{$this->name}]";
-        $el['value'] = empty($this->value) ? $this->empty : $this->value;
-        $el['class'] = 'text';
+        $this->el['type']  = 'text';
+        $this->el['value'] = empty($this->value) ? $this->empty : $this->value;
 
-        $el->setAttributes($attrs);
-        return $el->render();
+        $this->el->addClass('text');
+        $this->el->setAttributes($attrs);
+
+        return $this->el->render();
     }
 
 
@@ -277,14 +283,12 @@ class FormTextPasswordItem extends FormItem
      */
     public function element($attrs = array())
     {
-        $el = Html::element('input');
-        $el['type'] = 'password';
-        $el['id'] = $this->form->name . '-' . $this->name;
-        $el['name'] = "{$this->form->name}[{$this->name}]";
-        $el['class'] = 'text password';
+        $this->el['type'] = 'password';
 
-        $el->setAttributes($attrs);
-        return $el->render();
+        $this->el->addClass('text', 'password');
+        $this->el->setAttributes($attrs);
+
+        return $this->el->render();
     }
 
 
@@ -308,15 +312,12 @@ class FormTextHiddenItem extends FormItem
      */
     public function element($attrs = array())
     {
-        $el = Html::element('input');
-        $el['type'] = 'hidden';
-        $el['id'] = $this->form->name . '-' . $this->name;
-        $el['name'] = "{$this->form->name}[{$this->name}]";
-        $el['value'] = $this->value;
+        $this->el['type']  = 'hidden';
+        $this->el['value'] = $this->value;
 
+        $this->el->setAttributes($attrs);
 
-        $el->setAttributes($attrs);
-        return $el->render();
+        return $this->el->render();
     }
 
 
@@ -344,15 +345,12 @@ class FormFileItem extends FormItem
      */
     public function element($attrs = array())
     {
-        $el = Html::element('input');
-        $el['type'] = 'file';
-        $el['id'] = $this->form->name . '-' . $this->name;
-        $el['name'] = "{$this->form->name}[{$this->name}]";
-        $el['class'] = 'file';
+        $this->el['type'] = 'file';
 
+        $this->el->addClass('file');
+        $this->el->setAttributes($attrs);
 
-        $el->setAttributes($attrs);
-        return $el->render();
+        return $this->el->render();
     }
 
 
@@ -370,20 +368,29 @@ class FormTextareaItem extends FormItem
 
 
     /**
+     * Konstruktor
+     * @param   Form    formular
+     * @param   string  jmeno elementu
+     * @return  void
+     */
+    public function __construct(Form $form, $name)
+    {
+        parent::__construct($form, $name, 'textarea');
+    }
+
+
+
+    /**
      * Vrati html tag elementu vstupniho pole
      * @param   array   atributy tagu
      * @return  string
      */
     public function element($attrs = array())
     {
-        $el = Html::element('textarea');
-        $el['id'] = $this->form->name . '-' . $this->name;
-        $el['name'] = "{$this->form->name}[{$this->name}]";
-        $el->setContent(empty($this->value) ? $this->empty : $this->value);
+        $this->el->setContent(empty($this->value) ? $this->empty : $this->value);
+        $this->el->setAttributes($attrs);
 
-
-        $el->setAttributes($attrs);
-        return $el->render();
+        return $this->el->render();
     }
 
 
@@ -413,7 +420,7 @@ class FormSelectItem extends FormItem
      */
     public function __construct($form, $name, array $options)
     {
-        parent::__construct($form, $name);
+        parent::__construct($form, $name, 'select');
         $this->options = $options;
     }
 
@@ -441,13 +448,10 @@ class FormSelectItem extends FormItem
      */
     public function element($attrs = array())
     {
-        $el = Html::element('select');
-        $el->setAttributes($attrs);
-        $el['id'] = $this->form->name . '-' . $this->name;
-        $el['name'] = "{$this->form->name}[{$this->name}]";
-        $el->setContent($this->factoryOptions(), true);
+        $this->el->setAttributes($attrs);
+        $this->el->setContent($this->factoryOptions(), true);
 
-        return $el->render();
+        return $this->el->render();
     }
 
 
@@ -458,16 +462,15 @@ class FormSelectItem extends FormItem
      */
     protected function factoryOptions()
     {
-        $html = '';
+        $html = null;
 
         foreach ($this->options as $name => $value) {
             $el = Html::element('option');
             $el['value'] = $name;
             $el->setContent($value);
 
-            if ($this->value == $name) {
+            if ($this->value == $name)
                 $el['selected'] = 'selected';
-            }
 
             $html .= $el->render();
         }
@@ -507,19 +510,16 @@ class FormCheckBoxItem extends FormItem
      */
     public function element($attrs = array())
     {
-        $el = Html::element('input');
-        $el['type'] = 'checkbox';
-        $el['id'] = $this->form->name . '-' . $this->name;
-        $el['name'] = "{$this->form->name}[{$this->name}]";
-        $el['value'] = 'true';
-        $el['class'] = 'checkbox';
-        if ($this->value) {
+        $this->el['type']  = 'checkbox';
+        $this->el['value'] = 'true';
+
+        if ($this->value)
             $el['checked'] = 'checked';
-        }
 
+        $this->el->addClass('checkbox');
+        $this->el->setAttributes($attrs);
 
-        $el->setAttributes($attrs);
-        return $el->render();
+        return $this->el->render();
     }
 
 

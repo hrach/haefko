@@ -153,8 +153,11 @@ class InflectorTest extends UnitTestCase
 
 	function testErrorViewFile()
 	{
-		$name = Inflector::errorViewFile('phtml', 'e404');
+		$name = Inflector::errorViewFile('phtml', 'e404', '');
 		$this->assertEqual($name, 'views/errors/e404.phtml');
+
+		$name = Inflector::errorViewFile('phtml', 'e404', 'green');
+		$this->assertEqual($name, 'views/green/errors/e404.phtml');
 	}
 
 	function testElementFile()
