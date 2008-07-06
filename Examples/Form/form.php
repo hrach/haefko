@@ -10,13 +10,17 @@ $form->addText('name')
 	 ->addText('url')
 	 ->addPassword('pass')
 	 ->addPassword('pass_check')
+	 ->addCheckbox('agree')
 	 ->addSelect('city', array('Praha', 'Brno', 'Ostrava'))
 	 ->addSubmit();
 
 $form['url']->setEmptyValue('http://');
 $form['url']->addCondition(Form::FILLED)->addRule(Form::URL, 'Zadejte validní URL');
 $form['pass']->addRule(Form::MINLENGTH, 'Prilis krastké heslo', 4)->addRule(Form::EQUAL, 'Hesla musi byt stejna', $form['pass_check']);
+$form['agree']->addRule('filled', 'Musíte souhlasi s podmínkami smlouvy!');
 
+
+//$form->setDefaults(array('agree' => true));
 
 // =============== {end of configuration} ==================
 
@@ -37,6 +41,12 @@ if ($form->isSubmit()) {
 
 ?>
 
+	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+	<script type="text/javascript" src="jquery.js"></script>
+	<script type="text/javascript" src="jquery.validate.js"></script>
+
 
 <hr />
 <?= $form ?>
+
+<button name="test" type="button" value="" onclick="validateform()">Button Text</button>

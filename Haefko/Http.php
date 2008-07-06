@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.6
+ * @version     0.7
  * @package     Haefko
  */
 
@@ -196,7 +196,7 @@ class Http
         $url = Strings::ltrim($url, dirname($_SERVER['SCRIPT_NAME']));
         $url = Strings::ltrim($url, '/' . basename($_SERVER['SCRIPT_NAME']));
 
-        return Strings::sanitizeUrl($url);
+        return trim($url, '/\\');
     }
 
 

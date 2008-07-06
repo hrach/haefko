@@ -1,15 +1,15 @@
 multi:
-    localhost:
-        Core.debug: 2
-        Db.connection:
-            driver: mysqli
-            host: localhost
-            username: root
-            database: konference
-            charset: utf8
-            lazy: true
+	localhost:
+		Core.debug: 2
+		Db.connection:
+			driver: mysqli
+			host: localhost
+			username: root
+			database: konference
+			charset: utf8
+			lazy: true
     haefko:
-        Core.debug: 2
+        Core.debug: 1
         Db.connection:
             driver: mysqli
             host: localhost

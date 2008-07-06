@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.6
+ * @version     0.7
  * @package     Haefko
  */
 
@@ -72,11 +72,11 @@ class RssView extends View implements IView
     {
         parent::render();
 
-        $this->createFeed();
-
         if (!$this->controller->app->error) {
             Http::mimeType('application/rss+xml');
         }
+
+        $this->createFeed();
 
         return ob_get_clean();
     }

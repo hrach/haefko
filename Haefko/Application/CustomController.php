@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.6
+ * @version     0.7
  * @package     Haefko
  */
 
@@ -98,7 +98,7 @@ abstract class CustomController
     {
         $this->app->error = true;
 
-        if ($debug === true && Config::read('Core.debug', 0) === 0) {
+        if ($debug === true && Config::read('Core.debug') == 0) {
             Http::error('404');
             $this->view->view('404');
         } else {
@@ -130,35 +130,14 @@ abstract class CustomController
      */
     public function url($link, $absolute = false)
     {
-        $newUrl = array();
-        $url = Strings::urlToArray($link);
+        $url = preg_replace('#\{url\}#', Router::getUrl(), $link);
+        $url = preg_replace_callback('#\{(args|!args)(?:\:(.+)(?:,(.+))*)?\}#U', array($this, 'urlArgs'), $url);
+        $url = Strings::sanitizeUrl($url);
 
-        foreach ($url as $val) {
-            if (preg_match('#\{(args|!args)(?:\:(.+)(?:,(.+))*)?\}#U', $val, $matchs)) {
-                $tag = $matchs[1];
-                unset($matchs[0], $matchs[1]);
-                if (count($matchs) == 0) {
-                    $matchs = array_keys(Router::$args);
-                } elseif ($tag == '!args') {
-                    $matchs = array_diff(array_keys(Router::$args), $matchs);
-                }
-                foreach ($matchs as $match) {
-                    if (isset(Router::$args[$match])) {
-                        $newUrl[] = Router::$args[$match];
-                    }
-                }
-            } elseif ($val == '{url}' && Router::getUrl() != '') {
-                $newUrl[] = Router::getUrl();
-            } else {
-                $newUrl[] = $val;
-            }
-        }
-
-        if ($absolute) {
-            return Http::$serverUri . Http::$baseUri . implode('/', $newUrl);
-        } else {
-            return Http::$baseUri . implode('/', $newUrl);
-        }
+        if ($absolute)
+            return Http::$serverUri . Http::$baseUri . $url;
+        else
+            return Http::$baseUri . $url;
     }
 
 
@@ -173,13 +152,12 @@ abstract class CustomController
     public function getArg($name, $default = false, $named = true)
     {
         if (isset(Router::$args[$name])) {
-            if ($named === true) {
+            if ($named === true)
                 return Strings::ltrim(Router::$args[$name], "$name:");
-            } elseif ($named === false) {
+            elseif ($named === false)
                 return Router::$args[$name];
-            } else {
+            else
                 return Strings::ltrim(Router::$args[$name], "$named:");
-            }
         } else {
             return $default;
         }
@@ -196,25 +174,49 @@ abstract class CustomController
         $method = Inflector::actionName(Router::$action);
         $exists = method_exists(get_class($this), $method);
 
-
-        if ($exists) {
+        if ($exists)
             $this->view->view(Router::$action);
-        } elseif(!$this->app->error) {
+        elseif(!$this->app->error)
             throw new ApplicationException('method', $method);
-        }
 
         $this->view->loadHelpers();
 
         call_user_func(array($this, 'init'));
-
-        if ($exists) {
+        if ($exists)
             call_user_func_array(array($this, $method), Router::$args);
-        }
-
         call_user_func(array($this, 'renderInit'));
 
         echo $this->view->render();
     }
+
+
+
+    /**
+     * Vrati cas url s pozadovanymi argumenty
+     * @param   array   matches
+     * @return  string
+     */
+    private function urlArgs($matches)
+    {
+        $url = null;
+        $tag = $matches[1];
+        unset($matches[0], $matches[1]);
+
+        if (count($matches) == 0) {
+            $matches = array_keys(Router::$args);
+        } elseif ($tag == '!args') {
+            $matches = array_diff(array_keys(Router::$args), $matches);
+        }
+
+        foreach ($matches as $match) {
+            if (isset(Router::$args[$match])) {
+                $url .= '/' . Router::$args[$match];
+            }
+        }
+
+        return trim($url, '/');
+    }
+
 
 
 

@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.6
+ * @version     0.7
  * @package     Haefko
  */
 
@@ -125,7 +125,9 @@ class Router
             if (!empty($value) && $value{0} == ':') {
                 $value = substr($value, 1);
                 if (preg_match('#(.+){(.*)}#U', $value, $match)) {
-                    if (empty($match[2]) || $match[2]{0} != '#') {
+                    if (empty($match[2])) {
+                        $match[2] = '#.*#';
+                    } elseif ($match[2]{0} != '#') {
                         $match[2] = '#^' . $match[2] . '$#';
                     }
 

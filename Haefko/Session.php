@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.6
+ * @version     0.7
  * @package     Haefko
  */
 
@@ -114,15 +114,17 @@ class Session
             $domain  = Http::getDomain();
 
             if (class_exists('Config', false)) {
-                ini_set('session.save_path', Config::read('Session.temp', Application::getInstance()->getPath() . 'temp'));
+                if (Config::read('Session.temp') !== false)
+                    ini_set('session.save_path', Config::read('Session.temp'));
+
                 $name    = Config::read('Session.name', $name);
                 $expires = Config::read('Session.expires', $expires);
                 $path    = config::read('Session.path', $path);
                 $domain  = config::read('Session.domain', $domain);
             }
 
-            if (substr_count ($domain, ".") == 1) {
-                $domain = '.' . $domain;
+            if (substr_count($domain, ".") == 1) {
+                $domain = ".$domain";
             } else {
                 $domain = preg_replace ('/^([^.])*/i', null, $domain);
             }

@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.6
+ * @version     0.7
  * @package     Haefko
  */
 
@@ -158,12 +158,11 @@ class LayoutView extends View
     {
         $app = Application::getInstance();
 
-        $x = -1;
         $layouts = array(
             $app->getPath() . Inflector::layoutFile($this->ext, $this->layoutName, Router::$namespace, $this->themeName),
-            $app->getCorePath() . 'views/' . Strings::dash($this->layoutName) . '.phtml',
-            $app->getPath() . 'views/layout' . $this->ext,
-            $app->getCorePath() . 'views/layout.phtml'
+            $app->getPath() . Inflector::layoutFile($this->ext, $this->layoutName, '', ''),
+            $app->getCorePath() . Inflector::layoutFile($this->ext, $this->layoutName, '', ''),
+            $app->getCorePath() . Inflector::layoutFile('phtml', 'layout', '', ''),
         );
 
         foreach ($layouts as $layout) {

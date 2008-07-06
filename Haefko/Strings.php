@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.6
+ * @version     0.7
  * @package     Haefko
  */
 
@@ -101,8 +101,7 @@ class Strings
      */
     public static function sanitizeUrl($url)
     {
-        $url = trim($url, '/');
-        return preg_replace('#\/+#', '/', $url);
+        return preg_replace('#\/+#', '/', trim($url, '/'));
     }
 
 
@@ -177,4 +176,17 @@ if (!function_exists('lcfirst')) {
         return (string) $string;
     }
 
+}
+
+
+
+/**
+ * Prevede php pole do js pole
+ * @param   array   pole
+ * @return  string
+ */
+function toJsArray(array $array)
+{
+    if (empty($array)) return '[]';
+    return "['" . join("', '", $array) . "']";
 }

@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.6
+ * @version     0.7
  * @package     Haefko
  */
 
@@ -41,6 +41,7 @@ class Html implements ArrayAccess
     private $attrs = array();
     private $content;
     private $empty;
+    private $classes = array();
 
 
 
@@ -155,8 +156,12 @@ class Html implements ArrayAccess
     {
         $string = "<{$this->name}";
 
+        $this->attrs['class'] = $this->getClasses();
+
         foreach ($this->attrs as $name => $value) {
-            $string .= ' ' . $name . '="' . htmlspecialchars($value) . '"';
+            if (!empty($value)) {
+                $string .= ' ' . $name . '="' . htmlspecialchars($value) . '"';
+            }
         }
 
         if ($this->empty) {
@@ -179,6 +184,45 @@ class Html implements ArrayAccess
         if (!$this->empty) {
             return "</{$this->name}>" . ($this->name == 'a' ? '' : "\n");
         }
+    }
+
+
+
+    /**
+     * Prida tridu
+     * @param   string  jmeno tridy
+     * @return  void
+     */
+    public function addClass($name)
+    {
+        $names = func_get_args();
+        foreach ($names as $name) {
+            if (!empty($name))
+                $this->classes[$name] = true;
+        }
+    }
+
+
+
+    /**
+     * Odebere tridu
+     * @param   string  jmeno tridy
+     * @return  void
+     */
+    public function removeClass($name)
+    {
+        unset($this->classes[$name]);
+    }
+
+
+
+    /**
+     * Vrati tridy
+     * @return  string
+     */
+    public function getClasses()
+    {
+        return implode(' ', array_keys($this->classes));
     }
 
 
