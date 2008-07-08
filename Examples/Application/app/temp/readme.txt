@@ -1,1 +1,0 @@
-Adresari "/app/temp" nastavte prava pro zapis (777).

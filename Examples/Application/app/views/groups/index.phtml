@@ -1,8 +1,0 @@
-<h1>Seznam skupin</h1>
-<hr />
-
-<ol>
-<?php foreach ($groups as $group) { ?>
-	<li><?= $this->link("/messages/$group[group_id]", $group['name']) ?></li>
-<?php } ?>
-</ol>

@@ -235,6 +235,49 @@ class FormSubmitItem extends FormTextItem
 
 
 /**
+ * Formularove tlacitko reset
+ */
+class FormResetItem extends FormItem
+{
+
+
+
+    /**
+     * Vrati html tag elementu vstupniho pole
+     * @param   string  popisek
+     * @param   array   atributy tagu
+     * @return  string
+     */
+    public function element($value, $attrs = array())
+    {
+        $el = Html::element('input');
+        $el['type']  = 'reset';
+        $el['value'] = $value;
+
+        $el->addClass('reset');
+        $el->setAttributes($attrs);
+
+        return $el->render();
+    }
+
+
+
+    /**
+     * Zjisti, zda je vstupni pole validni
+     * @return  void
+     */
+    public function isValid()
+    {
+        return true;
+    }
+
+
+
+}
+
+
+
+/**
  * Formularove textove pole
  */
 class FormTextItem extends FormItem

@@ -226,6 +226,20 @@ class Form implements ArrayAccess
 
 
     /**
+     * Prida tlacitko reset
+     * @param   string  jmeno elementu
+     * @return  Form
+     */
+    public function addReset($name = 'reset')
+    {
+        $this->form['elements'][$name] = new FormResetItem($this, $name);
+
+        return $this;
+    }
+
+
+
+    /**
      * Prida sury js kod do js validacni funkce
      * @param   string  js kod
      */
@@ -459,7 +473,7 @@ class Form implements ArrayAccess
 
             $form .= "\n<tr><td>";
 
-            if ($el instanceof FormSubmitItem) {
+            if ($el instanceof FormSubmitItem || $el instanceof FormResetItem) {
                 $form .= '</td><td>' . $el->element(ucfirst($name));
             } elseif ($el instanceof FormCheckboxItem) {
                 $form .= '</td><td>' . $el->element() . ' ' . $el->label(ucfirst($name));
