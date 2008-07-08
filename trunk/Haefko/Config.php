@@ -73,9 +73,6 @@ class Config
      */
     public static function load($fileName)
     {
-        //require_once dirname(__FILE__) . '/Components/spyc.php';
-
-        //$data = Spyc::YAMLLoad($fileName);
         $data = self::parseFile($fileName);
 
         foreach ($data as $key => $val) {
@@ -118,6 +115,11 @@ class Config
 
 
 
+    /**
+     * Preparsuje yaml soubor (jen primitivni syntaxe!)
+     * @param   string  cesta k souboru
+     * @return  array
+     */
     public static function parseFile($file)
     {
         $data = trim(file_get_contents($file));
@@ -128,6 +130,11 @@ class Config
 
 
 
+    /**
+     * Parsuje uzel
+     * @param   string  textovy blok
+     * @return  array
+     */
     protected static function parseNode($data)
     {
         $array = array();

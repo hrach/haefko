@@ -12,7 +12,8 @@ $form->addText('name')
 	 ->addPassword('pass_check')
 	 ->addCheckbox('agree')
 	 ->addSelect('city', array('Praha', 'Brno', 'Ostrava'))
-	 ->addSubmit();
+	 ->addSubmit()
+	 ->addReset();
 
 $form['url']->setEmptyValue('http://');
 $form['url']->addCondition(Form::FILLED)->addRule(Form::URL, 'Zadejte validní URL');
@@ -20,7 +21,7 @@ $form['pass']->addRule(Form::MINLENGTH, 'Prilis krastké heslo', 4)->addRule(For
 $form['agree']->addRule('filled', 'Musíte souhlasi s podmínkami smlouvy!');
 
 
-//$form->setDefaults(array('agree' => true));
+$form->setDefaults(array('agree' => true));
 
 // =============== {end of configuration} ==================
 

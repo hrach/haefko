@@ -11,11 +11,8 @@ $autoload->addFramework()
          ->register();
 
 
-Router::addService('rss');
-
-Router::connect('/:controller{groups|}', array('controller' => 'groups'));
-Router::connect('/:controller{messages}/:group{\d+}', array('action' => 'group'));
-Router::connect('/:controller{messages}/:action{create|edit}/*');
-
+/*
+routing
+*/
 
 $app->run();
