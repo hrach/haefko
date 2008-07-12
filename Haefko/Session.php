@@ -39,24 +39,21 @@ class Session
 
     public static function read($var)
     {
-        if (!self::$started) {
+        if (!self::$started)
             self::start();
-        }
 
-        if (isset($_SESSION[$var])) {
+        if (isset($_SESSION[$var]))
             return $_SESSION[$var];
-        } else {
+        else
             false;
-        }
     }
 
 
 
     public static function safeRead($var)
     {
-        if (isset($_COOKIE[ini_get('session.name')])) {
+        if (isset($_COOKIE[ini_get('session.name')]))
             return self::read($var);
-        }
 
         return false;
     }
@@ -65,9 +62,8 @@ class Session
 
     public static function exists($var)
     {
-        if (!self::$started) {
+        if (!self::$started)
             self::start();
-        }
 
         return isset($_SESSION[$var]);
     }
@@ -76,9 +72,8 @@ class Session
 
     public static function write($var, $val)
     {
-        if (!self::$started) {
+        if (!self::$started)
             self::start();
-        }
 
         $_SESSION[$var] = $val;
     }
@@ -87,9 +82,8 @@ class Session
 
     public static function delete($var)
     {
-        if (!self::$started) {
+        if (!self::$started)
             self::start();
-        }
 
         unset($_SESSION[$var]);
     }
@@ -123,11 +117,10 @@ class Session
                 $domain  = config::read('Session.domain', $domain);
             }
 
-            if (substr_count($domain, ".") == 1) {
+            if (substr_count($domain, ".") == 1)
                 $domain = ".$domain";
-            } else {
+            else
                 $domain = preg_replace ('/^([^.])*/i', null, $domain);
-            }
 
             ini_set('session.name', $name);
             ini_set('session.cookie_lifetime', $expires);
@@ -140,9 +133,8 @@ class Session
 
     private static function checkHeaders()
     {
-        if (headers_sent()) {
+        if (headers_sent())
             throw new Exception("Sessions nelze zapnout, hlavicky byly jiz odeslany.");
-        }
     }
 
 

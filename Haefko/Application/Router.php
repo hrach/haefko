@@ -52,9 +52,9 @@ class Router
     public static function getUrl()
     {
         static $url;
-        if (empty($url)) {
+
+        if (empty($url))
             $url = Http::getRequestUrl();
-        }
 
         return $url;;
     }
@@ -89,9 +89,8 @@ class Router
      */
     public static function connect($route, array $defaults = array())
     {
-        if (self::$routing) {
+        if (self::$routing)
             return false;
-        }
 
         $router = array(
             'namespace' => '',
@@ -111,55 +110,47 @@ class Router
             }
         }
 
-        if (count($rule) < count(self::$url)) {
+        if (count($rule) < count(self::$url))
             return false;
-        }
 
         foreach ($rule as $x => $value) {
-            if (!isset(self::$url[$x])) {
+            if (!isset(self::$url[$x]))
                 $urlVal = '';
-            } else {
+            else
                 $urlVal = self::$url[$x];
-            }
 
             if (!empty($value) && $value{0} == ':') {
                 $value = substr($value, 1);
                 if (preg_match('#(.+){(.*)}#U', $value, $match)) {
-                    if (empty($match[2])) {
+                    if (empty($match[2]))
                         $match[2] = '#.*#';
-                    } elseif ($match[2]{0} != '#') {
+                    elseif ($match[2]{0} != '#')
                         $match[2] = '#^' . $match[2] . '$#';
-                    }
 
-                    if (preg_match($match[2], $urlVal)) {
+                    if (preg_match($match[2], $urlVal))
                         $router[$match[1]] = $urlVal;
-                    } else {
+                    else
                         return false;
-                    }
                 } else {
-                    if (!empty($urlVal)) {
+                    if (!empty($urlVal))
                         $router[$value] = $urlVal;
-                    } else {
+                    else
                         return false;
-                    }
                 }
             } else {
-                if ($value != $urlVal) {
+                if ($value != $urlVal)
                     return false;
-                }
             }
         }
 
 
         foreach ($defaults as $key => $default) {
-            if (empty($router[$key])) {
+            if (empty($router[$key]))
                 $router[$key] = $default;
-            }
         }
 
-        if (empty($router['action'])) {
+        if (empty($router['action']))
             $router['action'] = 'index';
-        }
 
         self::$namespace = strtolower($router['namespace']);
         self::$controller = strtolower($router['controller']);

@@ -32,11 +32,10 @@ class Debug
     {
         $app = Application::getInstance();
 
-        if (class_exists('Db', false)) {
+        if (class_exists('Db', false))
             $sql = Db::$debugSql;
-        } else {
+        else
             $sql = null;
-        }
 
         $time = round((microtime(true) - self::$startTime) * 1000, 2);
 
@@ -89,16 +88,14 @@ class Debug
     {
         $ret = "<ul>";
         foreach ($array as $key => $val) {
-            if (in_array($key, $skip)) {
+            if (in_array($key, $skip))
                 continue;
-            }
 
             $ret .= "<li>$key: ";
-            if (is_array($val)) {
+            if (is_array($val))
                 $ret .= self::readableArray($val);
-            } else {
+            else
                 $ret .= $val;
-            }
             $ret .= "</li>";
         }
         $ret .= "</ul>";

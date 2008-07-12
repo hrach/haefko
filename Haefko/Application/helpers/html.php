@@ -41,18 +41,16 @@ class HtmlHelper extends CustomHelper
     {
         $el = Html::element('a');
 
-        if (substr($url, 0, 4) == 'www.') {
+        if (substr($url, 0, 4) == 'www.')
             $url = "http://$url";
-        }
 
         $el['href'] = $url;
         $el->setAttributes($attrs);
 
-        if (is_null($title)) {
+        if (is_null($title))
             $el->setContent($url);
-        } else {
+        else
             $el->setContent($title, $escape);
-        }
 
         return $el->render();
     }
@@ -78,9 +76,8 @@ class HtmlHelper extends CustomHelper
         $el['type'] = 'button';
         $el['onclick'] = "document.location.href='$url'";
 
-        if ($confirm !== false && !empty($confirm)) {
+        if ($confirm !== false && !empty($confirm))
             $el['onclick'] = "if (confirm('$confirm')) {" . $el['onclick'] . "}";
-        }
 
         return $el->render();
     }
@@ -198,11 +195,10 @@ class HtmlHelper extends CustomHelper
     public function title($title = null, $suffix = null)
     {
         $el = Html::element('title');
-        if (is_null($title)) {
+        if (is_null($title))
             $el->setContent($this->controller->view->title . $suffix);
-        } else {
+        else
             $el->setContent($title . $suffix);
-        }
 
         return $el->render();
     }

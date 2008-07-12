@@ -120,11 +120,10 @@ class Html implements ArrayAccess
      */
     public function setContent($value, $escape = false)
     {
-        if (!$escape) {
+        if (!$escape)
             $this->content = htmlspecialchars($value);
-        } else {
+        else
             $this->content = $value;
-        }
     }
 
 
@@ -162,16 +161,14 @@ class Html implements ArrayAccess
         $this->attrs['class'] = $this->getClasses();
 
         foreach ($this->attrs as $name => $value) {
-            if (!empty($value)) {
+            if (!empty($value))
                 $string .= ' ' . $name . '="' . htmlspecialchars($value) . '"';
-            }
         }
 
-        if ($this->empty) {
+        if ($this->empty)
             $string .= "/>\n";
-        } else {
+        else
             $string .= '>';
-        }
 
         return $string;
     }
@@ -184,9 +181,8 @@ class Html implements ArrayAccess
      */
     public function renderEnd()
     {
-        if (!$this->empty) {
+        if (!$this->empty)
             return "</{$this->name}>" . ($this->name == 'a' ? '' : "\n");
-        }
     }
 
 
@@ -239,9 +235,8 @@ class Html implements ArrayAccess
 
     public function offsetGet($key)
     {
-        if (isset($this->attrs[$key])) {
+        if (isset($this->attrs[$key]))
             return $this->attrs[$key];
-        }
 
         return false;
     }
@@ -250,9 +245,8 @@ class Html implements ArrayAccess
 
     public function offsetUnset($key)
     {
-        if (isset($this->attrs[$key])) {
+        if (isset($this->attrs[$key]))
             unset($this->attrs[$key]);
-        }
     }
 
 

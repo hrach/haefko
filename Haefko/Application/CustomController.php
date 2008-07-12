@@ -181,9 +181,8 @@ abstract class CustomController
     {
         $method = Inflector::actionName(Router::$action);
 
-        if ($this->ajax && method_exists(get_class($this), $method . 'Ajax')) {
+        if ($this->ajax && method_exists(get_class($this), $method . 'Ajax'))
             $method .= 'Ajax';
-        }
 
         $exists = method_exists(get_class($this), $method);
 
@@ -195,10 +194,7 @@ abstract class CustomController
         $this->view->loadHelpers();
 
         call_user_func(array($this, 'init'));
-
-        if ($exists)
-            call_user_func_array(array($this, $method), Router::$args);
-
+        if ($exists) call_user_func_array(array($this, $method), Router::$args);
         call_user_func(array($this, 'renderInit'));
 
         echo $this->view->render();
@@ -213,8 +209,6 @@ abstract class CustomController
      */
     private function urlArgs($matches)
     {
-        Debug::dump($matches);
-
         $args = array();
         $matches = array_diff(array_keys(Router::$args), explode(',', $matches[1]));
 

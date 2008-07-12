@@ -66,9 +66,9 @@ class FormMultiCheckboxItem extends FormItem
             $el['id'] = $iname;
             $el['name'] = "{$this->form->name}[{$this->name}][]";
             $el['value'] = $name;
-            if (is_array($this->value) && in_array($name, $this->value)) {
+
+            if (is_array($this->value) && in_array($name, $this->value))
                 $el['checked'] = 'checked';
-            }
 
             $label = Html::element('label');
             $label['for'] = $iname;
@@ -130,9 +130,8 @@ class FormMultiSelectItem extends FormSelectItem
             $el['value'] = $name;
             $el->setContent($value);
 
-            if (in_array($name, $this->value)) {
+            if (in_array($name, $this->value))
                 $el['selected'] = 'selected';
-            }
 
             $html .= $el->render();
         }
@@ -149,9 +148,8 @@ class FormMultiSelectItem extends FormSelectItem
     protected function isValueValid()
     {
         foreach ($this->value as $key) {
-            if (!isset($this->options[$key])) {
+            if (!isset($this->options[$key]))
                 return false;
-            }
         }
 
         return true;
@@ -217,9 +215,9 @@ class FormRadioItem extends FormItem
             $el['id'] = $iname;
             $el['name'] = "{$this->form->name}[{$this->name}]";
             $el['value'] = $name;
-            if ($name == $this->value) {
+
+            if ($name == $this->value)
                 $el['checked'] = 'checked';
-            }
 
             $label = Html::element('label');
             $label['for'] = $iname;
