@@ -43,9 +43,8 @@ class RssView extends View implements IView
     {
         parent::__construct();
 
-        if (Config::read('Core.debug', 0) == 2) {
+        if (Config::read('Core.debug', 0) == 2)
             Config::write('Core.debug', 1);
-        }
     }
 
 
@@ -71,9 +70,8 @@ class RssView extends View implements IView
     {
         parent::render();
 
-        if (!$this->controller->app->error) {
+        if (!$this->controller->app->error)
             Http::mimeType('application/rss+xml');
-        }
 
         $this->createFeed();
 
@@ -107,9 +105,8 @@ class RssView extends View implements IView
                 echo "\t</image>\n";
             }
 
-            foreach ($this->items as $item) {
+            foreach ($this->items as $item)
                 $item->render();
-            }
 
         echo "</channel>\n";
         echo "</rss>\n";

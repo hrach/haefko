@@ -114,11 +114,11 @@ class Strings
     public static function urlToArray($url)
     {
         $url = self::sanitizeUrl($url);
-        if (!empty($url)) {
+
+        if (!empty($url))
             return explode('/', $url);
-        } else {
+        else
             return array();
-        }
     }
 
 
@@ -131,9 +131,8 @@ class Strings
      */
      public static function ltrim($string, $substring)
      {
-        if (strpos($string, $substring) === 0) {
+        if (strpos($string, $substring) === 0)
             return substr($string, strlen($substring));
-        }
 
         return $string;
      }
@@ -149,9 +148,8 @@ class Strings
      public static function rtrim($string, $substring)
      {
         $i = strlen($substring);
-        if (substr($string, -$i) == $substring) {
+        if (substr($string, -$i) == $substring)
             return substr($string, 0, -$i);
-        }
 
         return $string;
      }
@@ -187,6 +185,8 @@ if (!function_exists('lcfirst')) {
  */
 function toJsArray(array $array)
 {
-    if (empty($array)) return '[]';
+    if (empty($array))
+        return '[]';
+
     return "['" . join("', '", $array) . "']";
 }

@@ -50,25 +50,22 @@ class FormCondition
     public function isValid($value)
     {
         if (!is_null($this->rule)) {
-            if (is_object($this->arg)) {
+            if (is_object($this->arg))
                 $arg = $this->arg->value;
-            } else {
+            else
                 $arg = $this->arg;
-            }
 
-            if (!$this->valid($this->rule, $value, $this->arg)) {
+            if (!$this->valid($this->rule, $value, $this->arg))
                 return true;
-            }
         }
 
         $valid = true;
 
         foreach ($this->rules as $rule) {
-            if (is_object($rule['arg'])) {
+            if (is_object($rule['arg']))
                 $arg = $rule['arg']->getValue();
-            } else {
+            else
                 $arg = $rule['arg'];
-            }
 
             if (!$this->valid($rule['rule'], $value, $arg)) {
                 $this->field->addError($rule['message']);
@@ -147,13 +144,12 @@ class FormCondition
         if (in_array($rule, array('filled', 'notfilled'))) {
             return "'{$this->field->getEmptyValue()}'";
         } else {
-            if ($arg instanceof FormItem) {
+            if ($arg instanceof FormItem)
                 return "$('#{$arg->el['id']}').val()";
-            } elseif (is_array($arg)) {
+            elseif (is_array($arg))
                 return toJsArray($arg);
-            } else {
+            else
                 return "'$arg'";
-            }
         }
     }
 

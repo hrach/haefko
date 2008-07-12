@@ -39,15 +39,13 @@ class Db
      */
     public static function connect(array $config = array())
     {
-        if (empty($config)) {
+        if (empty($config))
             $config = Config::read('Db.connection', array());
-        }
 
         dibi::connect($config);
 
-        if (Config::read('Core.debug', 0) > 1) {
+        if (Config::read('Core.debug', 0) > 1)
             dibi::addHandler(array('Db', 'sqlHandler'));
-        }
     }
 
 
@@ -61,13 +59,12 @@ class Db
      */
     public static function sqlHandler($connection, $event, $arg)
     {
-        if ($event == 'afterQuery') {
+        if ($event == 'afterQuery')
             self::$debugSql[] = array(
                 'sql' => dibi::$sql,
                 'time' => dibi::$elapsedTime,
                 'rows' => dibi::affectedRows(),
             );
-        }
     }
 
 

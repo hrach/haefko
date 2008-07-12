@@ -61,17 +61,15 @@ class Form implements ArrayAccess
      */
     public function __construct($url = null, $internalUrl = true, $name = 'form')
     {
-        if ($internalUrl === true) {
+        if ($internalUrl === true)
             $url = Application::getInstance()->controller->url($url);
-        }
 
-        if ($name == 'form' && self::$counter == 0) {
+        if ($name == 'form' && self::$counter == 0)
             $this->name = 'form';
-        } elseif ($name == 'form') {
+        elseif ($name == 'form')
             $this->name = 'form' . ++self::$counter;
-        } else {
+        else
             $this->name = $name;
-        }
 
         $this->form['url'] = $url;
     }
@@ -277,9 +275,8 @@ class Form implements ArrayAccess
                           . "var valid = true;\n";
 
             foreach ($this->form['elements'] as $item) {
-                foreach ($item->conditions as $condition) {
+                foreach ($item->conditions as $condition)
                     $jsValidation .= $condition->js();
-                }
             }
 
             $jsValidation .= "return valid;\n}";
@@ -305,9 +302,8 @@ class Form implements ArrayAccess
         $hidden = null;
 
         foreach ($this->form['elements'] as $item) {
-            if ($item instanceof FormTextHiddenItem) {
+            if ($item instanceof FormTextHiddenItem)
                 $hidden .= $item->element();
-            }
         }
 
         return $hidden . $this->el->renderEnd();
@@ -328,9 +324,8 @@ class Form implements ArrayAccess
                 $this->value = & $this->data[$name]['name'];
             } elseif(isset($_POST[$this->name][$name])) {
                 $value = $_POST[$this->name][$name];
-                if ($item->getEmptyValue() == $value) {
+                if ($item->getEmptyValue() == $value)
                     $value = '';
-                }
 
                 $this->data[$name] = $value;
                 $item->setValue($this->data[$name]);
@@ -356,9 +351,8 @@ class Form implements ArrayAccess
         $return = true;
 
         foreach ($this->form['elements'] as $item) {
-            if (!$item->isValid()) {
+            if (!$item->isValid())
                 $return = false;
-            }
         }
 
         return $return;
@@ -386,9 +380,8 @@ class Form implements ArrayAccess
     public function setDefaults(array $defaults)
     {
         foreach ($defaults as $name => $value) {
-            if (isset($this->form['elements'][$name])) {
+            if (isset($this->form['elements'][$name]))
                 $this->form['elements'][$name]->setValue($value);
-            }
         }
     }
 
@@ -470,19 +463,19 @@ class Form implements ArrayAccess
         $form = $this->start() . "\n<table>";
 
         foreach ($this->form['elements'] as $name => $el) {
-            if ($el instanceof FormTextHiddenItem) continue;
+            if ($el instanceof FormTextHiddenItem)
+                continue;
 
             $form .= "\n<tr><td>";
 
-            if ($el instanceof FormSubmitItem || $el instanceof FormResetItem) {
+            if ($el instanceof FormSubmitItem || $el instanceof FormResetItem)
                 $form .= '</td><td>' . $el->element(ucfirst($name));
-            } elseif ($el instanceof FormCheckboxItem) {
+            elseif ($el instanceof FormCheckboxItem)
                 $form .= '</td><td>' . $el->element() . ' ' . $el->label(ucfirst($name));
-            } elseif ($el instanceof FormMultiCheckboxItem || $el instanceof FormRadioItem) {
+            elseif ($el instanceof FormMultiCheckboxItem || $el instanceof FormRadioItem)
                 $form .= '</td><td>' . $el->render();
-            } else {
+            else
                 $form .= $el->label(ucfirst($name)) . '</td><td>' . $el->element();
-            }
 
             $form .= '</td></tr>';
         }
@@ -511,9 +504,8 @@ class Form implements ArrayAccess
      */
     public function offsetGet($key)
     {
-        if (isset($this->form['elements'][$key])) {
+        if (isset($this->form['elements'][$key]))
             return $this->form['elements'][$key];
-        }
     }
 
 
@@ -525,9 +517,8 @@ class Form implements ArrayAccess
      */
     public function offsetUnset($key)
     {
-        if (isset($this->form['elements'][$key])) {
+        if (isset($this->form['elements'][$key]))
             unset($this->form['elements'][$key]);
-        }
     }
 
 

@@ -88,9 +88,8 @@ abstract class FormItem
     public function setValue($value)
     {
         if ($value != $this->empty) {
-            if ($this->sanitize && is_string($value)) {
+            if ($this->sanitize && is_string($value))
                 $value = trim($value);
-            }
 
             $this->value = $value;
         }
@@ -116,9 +115,8 @@ abstract class FormItem
     public function isValid()
     {
         foreach ($this->conditions as $condition) {
-            if (!$condition->isValid($this->getValue())) {
+            if (!$condition->isValid($this->getValue()))
                 return false;
-            }
         }
 
         return true;
@@ -149,9 +147,8 @@ abstract class FormItem
      */
     public function addRule($rule, $message, $arg = null)
     {
-        if ($rule == Form::FILLED) {
+        if ($rule == Form::FILLED)
             $this->label->addClass('required');
-        }
 
         return $this->addCondition(null)->addRule($rule, $message, $arg);
     }

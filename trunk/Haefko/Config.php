@@ -38,9 +38,8 @@ class Config
      */
     public static function write($var, $val)
     {
-        if (!empty($var)) {
+        if (!empty($var))
             self::$config[$var] = $val;
-        }
     }
 
 
@@ -55,14 +54,12 @@ class Config
     {
         $serverName = $_SERVER['SERVER_NAME'];
 
-        if (self::read('Config.trim-www', true)) {
+        if (self::read('Config.trim-www', true))
             $serverName = Strings::ltrim($serverName, 'www.');
-        }
 
         if (isset($configure[$serverName]) && is_array($configure[$serverName])) {
-            foreach ($configure[$serverName] as $key => $val) {
+            foreach ($configure[$serverName] as $key => $val)
                 self::$config[$key] = $val;
-            }
         }
     }
 
@@ -78,11 +75,10 @@ class Config
         $data = self::parseFile($fileName);
 
         foreach ($data as $key => $val) {
-            if ($key == 'multi' && is_array($val)) {
+            if ($key == 'multi' && is_array($val))
                 self::multiWrite($val);
-            } else {
+            else
                 self::write($key, $val);
-            }
         }
     }
 
@@ -97,11 +93,10 @@ class Config
      */
     public static function read($var, $default = false)
     {
-        if (isset(self::$config[$var])) {
+        if (isset(self::$config[$var]))
             return self::$config[$var];
-        } else {
-            return $default;
-        }
+
+        return $default;
     }
 
 

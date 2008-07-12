@@ -22,11 +22,10 @@ class Cookie
 
     public static function read($var)
     {
-        if (isset($_COOKIE[$var])) {
+        if (isset($_COOKIE[$var]))
             return $_COOKIE[$var];
-        } else {
-            return false;
-        }
+
+        return false;
     }
 
 
@@ -43,9 +42,8 @@ class Cookie
         self::checkHeaders();
 
         $expires = 3600;
-        if (class_exists('Config', false)) {
+        if (class_exists('Config', false))
             $expires = Config::read('Cookie.expires', $expires);
-        }
 
         setcookie($var, $val, time() + $expires, $path, $domain);
     }
@@ -62,9 +60,8 @@ class Cookie
 
     private static function checkHeaders()
     {
-        if (headers_sent()) {
+        if (headers_sent())
             throw new Exception("Nelze nastavit cookie, hlavicky byly jiz odeslany.");
-        }
     }
 
 

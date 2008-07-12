@@ -37,9 +37,8 @@ class Autoload
      */
     public static function getInstance()
     {
-        if (self::$autoload === false) {
+        if (self::$autoload === false)
             self::$autoload = new Autoload();
-        }
 
         return self::$autoload;
     }
@@ -75,9 +74,8 @@ class Autoload
      */
     public function addApplication()
     {
-        if (class_exists('Application', false)) {
+        if (class_exists('Application', false))
             $this->addDir(Application::getInstance()->getPath());
-        }
 
         return $this;
     }
@@ -91,11 +89,10 @@ class Autoload
      */
     public function addDir($dirPath)
     {
-        if (file_exists($dirPath)) {
+        if (file_exists($dirPath))
             $this->scanDirs[] = $dirPath;
-        } else {
+        else
             throw new Exception('Autoload: adresar neexistuje: ' . $dirPath);
-        }
 
         return  $this;
     }
@@ -109,13 +106,11 @@ class Autoload
      */
     public function loadHandler($class)
     {
-        if ($this->list == false) {
+        if ($this->list == false)
             $this->createClassList();
-        }
 
-        if (isset($this->list[$class]) && file_exists($this->list[$class])) {
+        if (isset($this->list[$class]) && file_exists($this->list[$class]))
             require_once $this->list[$class];
-        }
     }
 
 
@@ -127,18 +122,16 @@ class Autoload
      */
     private function createClassList()
     {
-        if (class_exists('Config', false)) {
+        if (class_exists('Config', false))
             $this->cacheFile = Config::read('Autoload.cache-file', Application::getInstance()->getPath(). 'temp/autoload.cache.dat');
-        }
 
         if (file_exists($this->cacheFile)) {
             $this->list = unserialize(file_get_contents($this->cacheFile));
         } else {
             $this->findClasses();
 
-            if (file_exists(dirname($this->cacheFile))) {
+            if (file_exists(dirname($this->cacheFile)))
                 file_put_contents($this->cacheFile, serialize($this->list));
-            }
         }
     }
 
@@ -153,13 +146,11 @@ class Autoload
     {
         $files  = array();
 
-        foreach ($this->scanDirs as $scanDir) {
+        foreach ($this->scanDirs as $scanDir)
             $this->getFiles(new RecursiveDirectoryIterator($scanDir), $files);
-        }
 
-        foreach ($files as $file) {
+        foreach ($files as $file)
             $this->getClasses($file);
-        }
     }
 
 
@@ -172,20 +163,17 @@ class Autoload
      */
     private function getFiles(& $rdi, & $files)
     {
-        if (!is_object($rdi)) {
+        if (!is_object($rdi))
             return;
-        }
 
         for ($rdi->rewind(); $rdi->valid(); $rdi->next()) {
-            if ($rdi->isDot()) {
+            if ($rdi->isDot())
                 continue;
-            }
 
-            if ($rdi->isFile() && !in_array(substr(strrchr($rdi->getFilename(), '.'), 1), $this->skipFiles)) {
+            if ($rdi->isFile() && !in_array(substr(strrchr($rdi->getFilename(), '.'), 1), $this->skipFiles))
                 $files[] = $rdi->getPathname();
-            } elseif($rdi->isDir() && !in_array($rdi->getFilename(), $this->skipDirs) && $rdi->hasChildren()) {
+            elseif($rdi->isDir() && !in_array($rdi->getFilename(), $this->skipDirs) && $rdi->hasChildren())
                 $this->getFiles($rdi->getChildren(), $files);
-            }
         }
     }
 
