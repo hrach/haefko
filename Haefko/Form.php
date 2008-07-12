@@ -59,16 +59,18 @@ class Form implements ArrayAccess
      * @param   boole   jedna se o interni url
      * @return  void
      */
-    public function __construct($url = null, $internalUrl = true)
+    public function __construct($url = null, $internalUrl = true, $name = 'form')
     {
         if ($internalUrl === true) {
             $url = Application::getInstance()->controller->url($url);
         }
 
-        if (self::$counter == 0) {
+        if ($name == 'form' && self::$counter == 0) {
             $this->name = 'form';
-        } else {
+        } elseif ($name == 'form') {
             $this->name = 'form' . ++self::$counter;
+        } else {
+            $this->name = $name;
         }
 
         $this->form['url'] = $url;
@@ -263,9 +265,8 @@ class Form implements ArrayAccess
         $this->el['action'] = $this->form['url'];
         $this->el['method'] = 'post';
 
-        if (isset($this->form['enctype'])) {
+        if (isset($this->form['enctype']))
             $this->el['enctype'] = $this->form['enctype'];
-        }
 
         if ($this->js) {
             $this->el['onsubmit'] = "return validate{$this->name}();";

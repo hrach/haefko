@@ -23,7 +23,9 @@ class Config
 {
 
 
+
     public static $spaces = "    ";
+
     private static $config = array();
 
 
@@ -115,6 +117,7 @@ class Config
 
 
 
+
     /**
      * Preparsuje yaml soubor (jen primitivni syntaxe!)
      * @param   string  cesta k souboru
@@ -131,7 +134,7 @@ class Config
 
 
     /**
-     * Parsuje uzel
+     * Preparsuje uzel
      * @param   string  textovy blok
      * @return  array
      */
@@ -143,24 +146,23 @@ class Config
         foreach ($data as $line => $node) {
             if (in_array($line, $skip)) continue;
 
-            if (preg_match('#^(.+):\s*$#', $node, $match)) {
+            if (preg_match('#^(.+):(array:)?\s*$#U', $node, $match)) {
                 $node = array();
                 $i = $line + 1;
 
-                while (isset($data[$i]) && substr($data[$i], 0, 4) == self::$spaces) {
-                    $node[] = substr($data[$i], 4);
+                while (isset($data[$i]) && substr($data[$i], 0, strlen(self::$spaces)) == self::$spaces) {
+                    $node[] = substr($data[$i], strlen(self::$spaces));
                     $skip[] = $i;
                     $i++;
                 }
 
-                $array[$match[1]] = self::parseNode($node);
+                if (isset($match[2]))
+                    $array[$match[1]] = $node;
+                else 
+                    $array[$match[1]] = self::parseNode($node);
 
             } elseif (preg_match('#^(.+):\s(.+)$#', $node, $match)) {
-                $array[$match[1]] = $match[2];
-
-            } else {
-                die ('Haefko: spatny format konfigurace');
-
+                $array[$match[1]] = trim($match[2]);
             }
         }
 

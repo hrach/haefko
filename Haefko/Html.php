@@ -91,7 +91,10 @@ class Html implements ArrayAccess
     public function setAttributes(array $attrs)
     {
         foreach ($attrs as $name => $value) {
-            $this->attrs[$name] = $value;
+            if ($name == 'class')
+                $this->addClass($value);
+            else
+                $this->attrs[$name] = $value;
         }
     }
 

@@ -12,6 +12,7 @@
 
 
 
+ob_start();
 require_once dirname(__FILE__) . '/../Config.php';
 require_once dirname(__FILE__) . '/Exceptions.php';
 require_once dirname(__FILE__) . '/Inflector.php';
@@ -29,7 +30,7 @@ class Application
 
 
 
-    public static $version = '0.7.0.20';
+    public static $version = '0.7.0.25';
     private static $app;
 
 
@@ -40,18 +41,16 @@ class Application
      * @param   mixed   jmeno konfiguracniho souboru aplikace
      * @return  Application
      */
-    public static function create($path = '/app/', $config = 'config.yaml')
+    public static function create($path = '/app/', $config = 'config.yml')
     {
-        if (self::$app instanceof Application) {
+        if (self::$app instanceof Application)
             die('Haefko: aplikace je jiz vytvorena!');
-        }
 
         self::$app = new Application();
         self::$app->path = $path;
 
-        if ($config !== false) {
+        if ($config !== false)
             self::$app->loadConfig($config);
-        }
 
         return self::$app;
     }
@@ -69,22 +68,28 @@ class Application
 
 
 
+    /**
+     * Nacte tridu pomoci autoloadu nebo pomoci jmennych konvenci
+     * @param   string  jmeno tridy
+     * @param   string  typ tridy (controller, model, ...)
+     * @param   array   argumenty pro Inflector
+     * @param   bool    vratit bool hodnotu, false == vyhodi vyjimku
+     * @return  bool
+     */
     public static function load($class, $type, array $args, $return = false)
     {
         static $types = array('controller', 'model', 'view', 'helper');
+
         if (!in_array($type, $types))
             throw new Exception("Nepodporovany typ Application::load $type!");
 
-
-        $app = self::getInstance();
-        $file = $app->getPath() . call_user_func_array(array('Inflector', $type . 'File'), $args);
+        $file = self::getInstance()->getPath() . call_user_func_array(array('Inflector', $type . 'File'), $args);
 
         if (!class_exists($class) && !file_exists($file)) {
-            if (!$return) {
+            if (!$return)
                 throw new ApplicationException($type, $class);
-            } else {
+            else
                 return false;
-            }
         } elseif (file_exists($file)) {
             require_once $file;
         }
@@ -104,11 +109,10 @@ class Application
         $app = self::getInstance();
         $file = $app->getPath() . $file;
 
-        if (file_exists($file)) {
+        if (file_exists($file))
             require_once $file;
-        } else {
+        else
             die("Haefko: nenalezen soubor $file!");
-        }
     }
 
 
@@ -122,11 +126,10 @@ class Application
     {
         $file = dirname(__FILE__) . "/../$file.php";
 
-        if (file_exists($file)) {
+        if (file_exists($file))
             require_once $file;
-        } else {
+        else
             die("Haefko: nenalezen soubor $file!");
-        }
     }
 
 
@@ -138,6 +141,10 @@ class Application
 
 
 
+    /**
+     * Konstruktor aplikace
+     * @return  void
+     */
     public function __construct()
     {
         set_exception_handler(array($this, 'exceptionHandler'));
@@ -154,17 +161,15 @@ class Application
     {
         $file = $this->getPath() . $file;
 
-        if (file_exists($file)) {
+        if (file_exists($file))
             Config::load($file);
-        } else {
+        else
             die("Haefko: nenalezen konfiguracni soubor $file!");
-        }
 
-        if (Config::read('Core.debug', 0) > 0) {
+        if (Config::read('Core.debug', 0) > 0)
             $this->debugMode();
-        } else {
+        else
             $this->nonDebugMode();
-        }
 
         return $this;
     }
@@ -180,23 +185,22 @@ class Application
     {
         $class = Inflector::controllerClass(Router::$controller, Router::$namespace);
 
-        if (!Application::load('Controller', 'controller', array('controller', ''), true)) {
+        if (!Application::load('Controller', 'controller', array('controller', ''), true))
             eval('class Controller extends CustomController {}');
-        }
 
-        if ($class == 'Controller') {
+
+        if ($class == 'Controller')
             throw new ApplicationException('routing');
-        } else {
+        else
             Application::load($class, 'controller', array(Router::$controller, Router::$namespace));
-        }
+
 
         $this->controller = new $class;
         $this->controller->render();
 
 
-        if (Config::read('Core.debug', 0) > 1) {
+        if (Config::read('Core.debug', 0) > 1)
             Debug::debugRibbon();
-        }
     }
 
 
@@ -245,7 +249,7 @@ class Application
         ini_set('display_errors', false);
         ini_set('error_reporting', E_ERROR | E_WARNING | E_PARSE);
         ini_set('log_errors', true);
-        ini_set('error_log', Config::read('Core.debug-file', $this->getPath() . 'temp/errors.log.dat'));
+        ini_set('error_log', Config::read('Core.error.log', $this->getPath() . 'temp/errors.log.dat'));
     }
 
 
@@ -257,6 +261,7 @@ class Application
      */
     public function exceptionHandler(Exception $exception)
     {
+        $this->error = true;
         Router::$service = null;
 
         if ($exception instanceof ApplicationException) {
