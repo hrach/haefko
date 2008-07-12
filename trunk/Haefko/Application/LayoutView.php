@@ -141,11 +141,10 @@ class LayoutView extends View
         $this->vars['content'] = parent::render();
         $this->layoutPath = $this->layoutPathFactory();
 
-        if ($this->layoutName === false) {
+        if ($this->layoutName === false)
             return $this->vars['content'];
-        } else {
+        else
             return $this->parse($this->layoutPath, $this->vars);
-        }
     }
 
 
@@ -166,9 +165,8 @@ class LayoutView extends View
         );
 
         foreach ($layouts as $layout) {
-            if (file_exists($layout)) {
+            if (file_exists($layout))
                 return $layout;
-            }
         }
 
         $this->layoutName = false;

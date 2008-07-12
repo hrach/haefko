@@ -27,8 +27,8 @@ class View implements IView
 
     public $controller;
     public $base;
+    public $ext = 'phtml';
 
-    protected $ext = 'phtml';
     protected $vars = array();
     protected $protected = array();
 
@@ -131,22 +131,19 @@ class View implements IView
             $appFile = $this->controller->app->getPath() . $file;
             $coreFile = $this->controller->app->getCorePath() . $file;
 
-            if (file_exists($appFile)) {
+            if (file_exists($appFile))
                 require_once $appFile;
-            } elseif (file_exists($coreFile)) {
+            elseif (file_exists($coreFile))
                 require_once $coreFile;
-            } else {
+            else
                 die("Haefko: nenalezen helper $class!");
-            }
         }
 
-        if (is_null($var)) {
+        if (is_null($var))
             $var = strtolower($name);
-        }
 
-        if (!isset($this->$var)) {
+        if (!isset($this->$var))
             $this->set($var, new $class);
-        }
 
         return $this->$var;
     }
@@ -160,10 +157,10 @@ class View implements IView
     public function loadHelpers()
     {
         $this->helper('html');
-        foreach ($this->controller->helpers as $helper) {
+        foreach ($this->controller->helpers as $helper)
             $this->helper($helper);
-        }
     }
+
 
 
     /**
@@ -182,9 +179,8 @@ class View implements IView
         if (isset($this->protected[$name]))
             throw new Exception("Nelze nastavit novou hodnotu chranene promenne \$$name!");
 
-        if ($protected === true) {
+        if ($protected === true)
             $this->protected[$name] = true;
-        }
 
         $this->vars[$name] = $value;
     }
@@ -204,11 +200,10 @@ class View implements IView
         if (empty($name))
             throw Exception('Nelze nastavit hodnotu nejmenne promenne!');
 
-        if ($protected === true) {
+        if ($protected === true)
             $this->protected[$name] = true;
-        } else {
+        else
             unset($this->protected[$name]);
-        }
 
         $this->vars[$name] = $value;
     }
@@ -262,11 +257,10 @@ class View implements IView
      */
     public function __get($name)
     {
-        if (isset($this->vars[$name])) {
+        if (isset($this->vars[$name]))
             return $this->vars[$name];
-        } else {
+        else
             throw new Exception("Neexistujici promenna \$$name!");
-        }
     }
 
 
@@ -277,9 +271,11 @@ class View implements IView
      */
     public function render()
     {
-        ob_start();
         $this->viewPath = $this->viewPathFactory();
-        return $this->parse($this->viewPath, $this->vars);
+        if ($this->viewPath === false)
+            return;
+        else
+            return $this->parse($this->viewPath, $this->vars);
     }
 
 
@@ -293,24 +289,35 @@ class View implements IView
         $app = Application::getInstance();
 
         if (!$app->error) {
-            $view = Inflector::viewFile($this->ext, $this->viewName, Router::$namespace, $this->themeName, Router::$controller, !empty(Router::$service));
 
-            if (file_exists($app->getPath() . $view)) {
-                return $app->getPath() . $view;
+            if ($this->controller->ajax) {
+                $ajaxView = Inflector::viewFile("ajax.{$this->ext}", $this->viewName, Router::$namespace, $this->themeName, Router::$controller, !empty(Router::$service));
+
+                if (file_exists($app->getPath() . $ajaxView))
+                    return $app->getPath() . $ajaxView;
+                else
+                    return false;
             } else {
-                throw new ApplicationException('view', $view);
+                $view = Inflector::viewFile($this->ext, $this->viewName, Router::$namespace, $this->themeName, Router::$controller, !empty(Router::$service));
+
+                if (file_exists($app->getPath() . $view))
+                    return $app->getPath() . $view;
+                else
+                    throw new ApplicationException('view', $view);
             }
+
         } else {
+
             $appView = $app->getPath() . Inflector::errorViewFile($this->ext, $this->viewName, '');
             $coreView = $app->getCorePath() . Inflector::errorViewFile('phtml', $this->viewName, '');
 
-            if (file_exists($appView)) {
+            if (file_exists($appView))
                 return $appView;
-            } elseif (file_exists($coreView)) {
+            elseif (file_exists($coreView))
                 return $coreView;
-            } else {
+            else
                 die("Haefko: chyby systemovy soubor $coreView!");
-            }
+
         }
     }
 

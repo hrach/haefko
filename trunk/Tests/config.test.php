@@ -26,7 +26,7 @@ class ConfigTest extends UnitTestCase
             )
         );
 
-        $data = Config::parseFile(dirname(__FILE__) . '/config.test.yaml');
+        $data = Config::parseFile(dirname(__FILE__) . '/config.test.yml');
         $this->assertEqual($data, $array);
     }
 

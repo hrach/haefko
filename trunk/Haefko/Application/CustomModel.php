@@ -32,14 +32,11 @@ abstract class CustomModel extends DibiTable
      */
     public function __construct(CustomController & $controller)
     {
+        $this->controller = $controller;
         Db::connect();
 
-        $this->controller = $controller;
-        if (!empty($this->table)) {
-            $this->name = $this->table;
-        } else {
+        if (empty($this->name))
             $this->name = strtolower(Strings::rtrim(get_class($this), 'Model'));
-        }
 
         parent::__construct();
     }

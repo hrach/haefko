@@ -1,7 +1,7 @@
 <?php
 
-require_once '../../Haefko/Form.php';
-require_once '../../Haefko/Debug.php';
+require_once '../Haefko/Form.php';
+require_once '../Haefko/Debug.php';
 
 
 

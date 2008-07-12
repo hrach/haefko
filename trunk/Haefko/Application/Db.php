@@ -26,7 +26,7 @@ class Db
 
 
 
-    private static $debugSql = array();
+    public static $debugSql = array();
 
 
 
@@ -68,17 +68,6 @@ class Db
                 'rows' => dibi::affectedRows(),
             );
         }
-    }
-
-
-
-    /**
-     * Vrati pole sql dotazu
-     * @return  array
-     */
-    public static function getDebug()
-    {
-        return self::$debugSql;
     }
 
 

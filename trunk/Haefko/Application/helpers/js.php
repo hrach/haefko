@@ -47,6 +47,8 @@ class JsHelper extends CustomHelper
             'resizer' => array('jquery.textarearesizer.js', 'jquery.textarearesizer.css'),
             'autocomplete' => array('jquery.autocomplete.js', 'jquery.autocomplete.css'),
             'validate' => array('jquery.validate.js'),
+            'rater' => array('jquery.rater.js', 'jquery.rater.css'),
+            'markitup' => array('jquery.markitup.js', 'jquery.markitup.css')
         );
     }
 
@@ -54,16 +56,14 @@ class JsHelper extends CustomHelper
 
     public function need($name)
     {
-        if (!isset($this->definitions[$name])) {
+        if (!isset($this->definitions[$name]))
             die("Haefko: nepodporany script JsHelperu $name!");
-        }
 
         foreach ($this->definitions[$name] as $item) {
-            if (strpos($item, '.js') !== false) {
+            if (strpos($item, '.js') !== false)
                 $this->js($item);
-            } else {
+            else
                 $this->css($item);
-            }
         }
     }
 
@@ -148,6 +148,19 @@ class JsHelper extends CustomHelper
         $this->raw("$('$name').TextAreaResizer();");
     }
 
+
+
+    public function rater($name, $file, $options = '{}')
+    {
+        $this->need('rater');
+        $this->raw("$('$name').empty().rater('$file', $options);");
+    }
+
+
+    public function markitup($name, $options = null) {
+        $this->need('markitup');
+        $this->raw("$('$name').markItUp($options);");
+    }
 
 
     public function autocomplete($name, array $options)

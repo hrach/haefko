@@ -30,8 +30,7 @@ class RssView extends View implements IView
     public $lang;
     public $copyright;
     public $image = array();
-
-    protected $ext = 'rss.php';
+    public $ext = 'rss.php';
 
     private $items = array();
 

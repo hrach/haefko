@@ -24,13 +24,14 @@ abstract class CustomController
 {
 
 
-    public $load = array();
-    public $helpers = array();
-    public $services = array('rss' => 'RssView');
 
     public $app;
     public $view;
     public $model;
+    public $ajax = false;
+    public $load = array();
+    public $helpers = array();
+    public $services = array('rss' => 'RssView');
 
 
 
@@ -41,15 +42,18 @@ abstract class CustomController
      */
     public function __construct($viewClass = 'LayoutView')
     {
-        $this->app = Application::getInstance();
+        $this->app  = Application::getInstance();
+        $this->ajax = Http::isAjax();
 
-        foreach ($this->load as $file) {
-            Application::loadCore($file);
+        if (!$this->app->error) {
+            foreach ($this->load as $file)
+                Application::loadCore($file);
         }
 
-        if (isset($this->services[Router::$service])) {
+        if (isset($this->services[Router::$service]))
             $viewClass = $this->services[Router::$service];
-        }
+        elseif ($this->ajax)
+            $viewClass = 'View';
 
         Application::loadCore("Application/$viewClass");
         $this->view = new $viewClass($this);
@@ -58,15 +62,17 @@ abstract class CustomController
         Application::loadCore('Application/Db');
 
         if (!Application::load('Model', 'model', array('model', ''), true)) {
+            $created = true;
             eval ('class Model extends CustomModel {}');
+        } else {
+            $created = false;
         }
 
         $class = Inflector::modelClass(Router::$controller, Router::$namespace);
         Application::load($class, 'model', array(Router::$controller, Router::$namespace), true);
 
-        if (class_exists($class)) {
+        if (class_exists($class) && !($this->app->error && $created))
             $this->model = new $class($this);
-        }
     }
 
 
@@ -99,7 +105,7 @@ abstract class CustomController
         $this->app->error = true;
 
         if ($debug === true && Config::read('Core.debug') == 0) {
-            Http::error('404');
+            Http::error(404);
             $this->view->view('404');
         } else {
             $this->view->view($view);
@@ -131,7 +137,9 @@ abstract class CustomController
     public function url($link, $absolute = false)
     {
         $url = preg_replace('#\{url\}#', Router::getUrl(), $link);
-        $url = preg_replace_callback('#\{(args|!args)(?:\:(.+)(?:,(.+))*)?\}#U', array($this, 'urlArgs'), $url);
+        $url = preg_replace('#\{\:(\w+)\}#e', 'isset(Router::$args["\\1"]) ? Router::$args["\\1"] : "\\0"', $url);
+        $url = preg_replace('#\{args\}#e', 'implode("/", Router::$args)', $url);
+        $url = preg_replace_callback('#\{args!(.+)\}#', array($this, 'urlArgs'), $url);
         $url = Strings::sanitizeUrl($url);
 
         if ($absolute)
@@ -172,18 +180,25 @@ abstract class CustomController
     public function render()
     {
         $method = Inflector::actionName(Router::$action);
+
+        if ($this->ajax && method_exists(get_class($this), $method . 'Ajax')) {
+            $method .= 'Ajax';
+        }
+
         $exists = method_exists(get_class($this), $method);
 
         if ($exists)
             $this->view->view(Router::$action);
-        elseif(!$this->app->error)
+        elseif (!$this->app->error)
             throw new ApplicationException('method', $method);
 
         $this->view->loadHelpers();
 
         call_user_func(array($this, 'init'));
+
         if ($exists)
             call_user_func_array(array($this, $method), Router::$args);
+
         call_user_func(array($this, 'renderInit'));
 
         echo $this->view->render();
@@ -198,23 +213,15 @@ abstract class CustomController
      */
     private function urlArgs($matches)
     {
-        $url = null;
-        $tag = $matches[1];
-        unset($matches[0], $matches[1]);
+        Debug::dump($matches);
 
-        if (count($matches) == 0) {
-            $matches = array_keys(Router::$args);
-        } elseif ($tag == '!args') {
-            $matches = array_diff(array_keys(Router::$args), $matches);
-        }
+        $args = array();
+        $matches = array_diff(array_keys(Router::$args), explode(',', $matches[1]));
 
-        foreach ($matches as $match) {
-            if (isset(Router::$args[$match])) {
-                $url .= '/' . Router::$args[$match];
-            }
-        }
+        foreach ($matches as $match)
+            $args[] = Router::$args[$match];
 
-        return trim($url, '/');
+        return implode('/', $args);
     }
 
 

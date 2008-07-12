@@ -24,8 +24,8 @@ class Http
 
 
 
-    public static $serverUri = '';
-    public static $baseUri = '';
+    public static $serverUri;
+    public static $baseUri;
 
 
 
@@ -60,9 +60,9 @@ class Http
      */
     public static function isAjax()
     {
-        if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest') {
+        if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')
             return true;
-        }
+
         return false;
     }
 
@@ -110,12 +110,10 @@ class Http
     public static function redirect($absoluteUrl, $code = 300)
     {
         static $supportCode = array(300, 301, 302, 303, 304, 307);
-
         self::checkHeaders('Redirect ' . $absoluteUrl);
 
-        if (!in_array($code, $supportCode)) {
+        if (!in_array($code, $supportCode))
             throw new Exception("Nepodporovany typ presmerovani.");
-        }
 
         header('Location: ' . $absoluteUrl, true, $code);
     }
@@ -144,17 +142,17 @@ class Http
     {
         self::checkHeaders('Error code ' . $code);
         switch ($code) {
-            case 401:
-                header('HTTP/1.1 401 Unauthorized');
+        case 401:
+            header('HTTP/1.1 401 Unauthorized');
             break;
-            case 404:
-                header('HTTP/1.1 404 Not Found');
+        case 404:
+            header('HTTP/1.1 404 Not Found');
             break;
-            case 500:
-                header('HTTP/1.1 500 Internal Server Error');
+        case 500:
+            header('HTTP/1.1 500 Internal Server Error');
             break;
-            default:
-                throw new Exception("Nepodporovany typ chybove hlavicky.");
+        default:
+            throw new Exception("Nepodporovany typ chybove hlavicky.");
             break;
         }
     }
@@ -169,19 +167,18 @@ class Http
      */
     public static function getParam($var = null, $method = 'post')
     {
-        if ($method == 'post') {
+        if ($method == 'post')
             $method = '_POST';
-        } else {
+        else
             $method = '_GET';
-        }
 
-        if (isset($$method[$var])) {
+
+        if (isset($$method[$var]))
             return $$method[$var];
-        } elseif(!isset($var)) {
+        elseif(!isset($var))
             return $$method;
-        } else {
+        else
             return null;
-        }
     }
 
 
@@ -219,11 +216,10 @@ class Http
     {
         $base = Strings::sanitizeUrl(dirname($_SERVER['SCRIPT_NAME']));
 
-        if (empty($base)) {
+        if (empty($base))
             return '/';
-        } else {
+        else
             return '/' . $base . '/';
-        }
     }
 
 
@@ -246,9 +242,8 @@ class Http
      */
     private static function checkHeaders($data = null)
     {
-        if (headers_sent()) {
+        if (headers_sent())
             throw new Exception("Nelze zaslat hlavicku, hlavicky byly jiz odeslany. Data: " . $data);
-        }
     }
 
 
