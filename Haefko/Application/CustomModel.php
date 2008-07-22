@@ -36,7 +36,7 @@ abstract class CustomModel extends DibiTable
         Db::connect();
 
         if (empty($this->name))
-            $this->name = strtolower(Strings::rtrim(get_class($this), 'Model'));
+            $this->name = strtolower(strRightTrim(get_class($this), 'Model'));
 
         parent::__construct();
     }

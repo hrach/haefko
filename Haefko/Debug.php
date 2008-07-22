@@ -37,9 +37,18 @@ class Debug
         else
             $sql = null;
 
-        $time = round((microtime(true) - self::$startTime) * 1000, 2);
-
         require_once $app->getCorePath() . '../Templates/debugRibbon.phtml';
+    }
+
+
+
+    /**
+     * Vrati pocet mikrosekund od zacatku pozadavku
+     * @return  float
+     */
+    public static function getTime()
+    {
+        return round((microtime(true) - self::$startTime) * 1000, 2);
     }
 
 
@@ -64,7 +73,7 @@ class Debug
     public static function exceptionHandler(Exception $exception)
     {
         ob_clean();
-        $trace = preg_replace('#(\[password\]\s=&gt;\s).+#mi', '$1*CHRANENO*', print_r($exception->getTrace(), true));
+        //$trace = preg_replace('#(\[password\]\s=&gt;\s).+#mi', '$1*CHRANENO*', print_r($exception->getTrace(), true));
         $app = Application::getInstance();
         require_once $app->getCorePath() . '../Templates/debugException.phtml';
     }
@@ -84,18 +93,19 @@ class Debug
      * @param   array   pole pro prevod
      * @return  string
      */
-    public static function readableArray($array, $skip = array('password'))
+    public static function readableArray($array)
     {
         $ret = "<ul>";
         foreach ($array as $key => $val) {
-            if (in_array($key, $skip))
+            if ($key === 'password')
                 continue;
 
             $ret .= "<li>$key: ";
+            
             if (is_array($val))
                 $ret .= self::readableArray($val);
             else
-                $ret .= $val;
+                $ret .= "<strong>$val</strong>";
             $ret .= "</li>";
         }
         $ret .= "</ul>";

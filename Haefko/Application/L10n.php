@@ -19,10 +19,24 @@ class L10n
 {
 
 
-    public static $domain;
-    public static $lang;
+    public static $domain = 'messages';
+    public static $lang = 'cs';
 
     private static $langs = array();
+    private static $map = array(
+        'be' => 'be_BY', 'bg' => 'bg_BG', 'bs' => 'bs_BA',
+        'ca' => 'ca_ES', 'cs' => 'cs_CZ', 'da' => 'da_DK',
+        'et' => 'et_EE', 'eu' => 'eu_ES', 'gl' => 'gl_ES',
+        'he' => 'he_IL', 'hi' => 'hi_IN', 'hr' => 'hr_HR',
+        'hu' => 'hu_HU', 'hy' => 'hy_AM', 'is' => 'is_IS',
+        'ja' => 'ja_JP', 'lt' => 'lt_LT', 'lv' => 'lv_LV',
+        'mk' => 'mk_MK', 'mt' => 'mt_MT', 'nb' => 'nb_NO',
+        'nn' => 'nn_NO', 'pl' => 'pl_PL', 'sk' => 'sk_SK',
+        'sl' => 'sl_SI', 'sq' => 'sq_AL', 'th' => 'th_TH',
+        'tn' => 'tn_ZA', 'tr' => 'tr_TR', 'ts' => 'ts_ZA',
+        'uk' => 'uk_UA', 've' => 've_ZA', 'xh' => 'xh_ZA',
+        'zu' => 'zu_ZA'
+    );
 
 
 
@@ -32,19 +46,20 @@ class L10n
      */
     public static function initialize()
     {
-        self::$lang = getenv("LANG");
         self::$langs = Config::read('L10n.langs', array());
 
-        $setBy = Config::read('L10n.autodetect', 'config');
-
-        if ($setBy == 'config')
-            self::langByConfig();
-        elseif ($setBy == 'browser')
+        switch (Config::read('L10n.autodetect', 'config')) {
+        case 'browser':
             self::langByBrowser();
-        elseif ($setBy == 'url')
+            break;
+        case 'url':
             self::langByUrl(Config::read('L10n.url.var', 'lang'));
+            break;
+        default:
+            self::langByConfig();
+        }
 
-        self::domain('messages');
+        self::domain(self::$domain);
     }
 
 
@@ -55,7 +70,7 @@ class L10n
      * @param   string  domena
      * @return  string
      */
-    public static function translate($string, $domain = null)
+    public static function __($string, $domain = null)
     {
         if (is_null($domain))
             $domain = self::$domain;
@@ -73,7 +88,7 @@ class L10n
      * @param   string  domena
      * @return  string
      */
-    public static function ntranslate($singular, $plural, $count, $domain = null)
+    public static function __n($singular, $plural, $count, $domain = null)
     {
         if (is_null($domain))
             $domain = self::$domain;
@@ -110,8 +125,8 @@ class L10n
      */
     public static function lang($lang)
     {
-        if (!self::isAllowed($lang))
-            return false;
+        if (isset(self::$map[$lang]))
+            $lang = self::$map[$lang];
 
         putenv("LANG=$lang");
         setlocale(LC_ALL, $lang); 
@@ -129,25 +144,26 @@ class L10n
         $langs = preg_split('#,\s?#', (isset($_SERVER["HTTP_ACCEPT_LANGUAGE"])) ? $_SERVER["HTTP_ACCEPT_LANGUAGE"] : '');
         foreach ($langs as $lang) {
             if (preg_match('#^(\w*(?:-\w*)?)(?:;q=.+)?$#U', $lang, $match)) {
-                if (!self::isAllowed($match[1]))
+                $lang = str_replace('-', '_', $match[1]);
+                if (!self::isAllowed($lang))
                     continue;
 
-                return self::lang($match[1]);
+                return self::lang($lang);
             }
         }
 
-        return self::langByConfig();
+        return false;
     }
 
 
 
     /**
      * Nastavi jazyk podle konfigurace
-     * @param   bool
+     * @param   void
      */
     public static function langByConfig()
     {
-        return self::lang(Config::read('L10n.lang', 'cs'));
+        self::lang(Config::read('L10n.lang', self::$lang));
     }
 
 
@@ -159,9 +175,14 @@ class L10n
      */
     public static function langByUrl($variable = 'lang')
     {
-        if (isset(Router::$args[$variable]))
-            return self::lang(Router::$args[$variable]);
+        if (isset(Router::$args[$variable])) {
+            if (self::isAllowed($lang)) {
+                self::lang(Router::$args[$variable]);
+                return true;
+            }
+        }
 
+        self::langByConfig();
         return false;
     }
 
@@ -193,9 +214,9 @@ class L10n
  * @param   string  domena
  * @return  string
  */
-function t($string, $domain = null)
+function __($string, $domain = null)
 {
-    return L10n::translate($string, $domain);
+    return L10n::__($string, $domain);
 }
 
 
@@ -208,9 +229,9 @@ function t($string, $domain = null)
  * @param   string  domena
  * @return  string
  */
-function nt($singular, $plural, $count, $domain = null)
+function __n($singular, $plural, $count, $domain = null)
 {
-    return L10n::ntranslate($singular, $plural, $count, $domain = null);
+    return L10n::__n($singular, $plural, $count, $domain = null);
 }
 
 

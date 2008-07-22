@@ -96,24 +96,6 @@ class LayoutView extends View
 
 
     /**
-     * Vytvori odkaz v zavislosti na systemovem routingu
-     * @param   string  url
-     * @param   string  text odkazu
-     * @param   array   pole s html atributy
-     * @param   bool    je text odkazu html
-     * @return  string
-     */
-    public function link($url, $title, array $attrs = array(), $html = false)
-    {
-        $app = Application::getInstance();
-        $url = call_user_func_array(array($app->controller, 'url'), (array) $url);
-
-        return $this->html->link($url, $title, $attrs, $html);
-    }
-
-
-
-    /**
      * Vytvori tlacitko v zavislosti na systemovem routingu s moznosti js potvrzeni
      * @param   string  url
      * @param   string  text odkazu
