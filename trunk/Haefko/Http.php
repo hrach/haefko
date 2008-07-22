@@ -12,7 +12,7 @@
 
 
 
-require_once dirname(__FILE__) . '/Strings.php';
+require_once dirname(__FILE__) . '/functions.php';
 
 
 
@@ -189,9 +189,8 @@ class Http
      */
     public static function getRequestUrl()
     {
-        $url = $_SERVER['REQUEST_URI'];
-        $url = Strings::ltrim($url, dirname($_SERVER['SCRIPT_NAME']));
-        $url = Strings::ltrim($url, '/' . basename($_SERVER['SCRIPT_NAME']));
+        $url = urldecode($_SERVER['REQUEST_URI']);
+        $url = strLeftTrim($url, dirname($_SERVER['SCRIPT_NAME']));
 
         return trim($url, '/\\');
     }
@@ -214,7 +213,7 @@ class Http
      */
     private static function getBaseUri()
     {
-        $base = Strings::sanitizeUrl(dirname($_SERVER['SCRIPT_NAME']));
+        $base = strSanitizeUrl(dirname($_SERVER['SCRIPT_NAME']));
 
         if (empty($base))
             return '/';

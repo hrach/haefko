@@ -12,10 +12,6 @@
 
 
 
-require_once dirname(__FILE__) . '/../Strings.php';
-
-
-
 /**
  * Trida Inflector spravuje jmenne konvence
  */
@@ -26,7 +22,7 @@ class Inflector
 
     public static function controllerClass($name, $namespace = null)
     {
-        return Strings::camelize($namespace) . Strings::camelize($name) . 'Controller';
+        return strCamelize($namespace) . strCamelize($name) . 'Controller';
     }
 
 
@@ -34,16 +30,16 @@ class Inflector
     public static function controllerFile($name, $namespace = false)
     {
         if (!$namespace)
-            return 'controllers/' . Strings::dash($name) . '.php';
+            return 'controllers/' . strDash($name) . '.php';
         else
-            return 'controllers/' . Strings::dash($namespace) . '/' . Strings::dash($name) . '.php';
+            return 'controllers/' . strDash($namespace) . '/' . strDash($name) . '.php';
     }
 
 
 
     public static function modelClass($name, $namespace = null)
     {
-        return Strings::camelize($namespace) . Strings::camelize($name) . 'Model';
+        return strCamelize($namespace) . strCamelize($name) . 'Model';
     }
 
 
@@ -51,9 +47,9 @@ class Inflector
     public static function modelFile($name, $namespace = false)
     {
         if (!$namespace)
-            return 'models/' . Strings::dash($name) . '.php';
+            return 'models/' . strDash($name) . '.php';
         else
-            return 'models/' . Strings::dash($namespace) . '/' . Strings::dash($name) . '.php';
+            return 'models/' . strDash($namespace) . '/' . strDash($name) . '.php';
     }
 
 
@@ -74,7 +70,7 @@ class Inflector
 
     public static function actionName($name)
     {
-        return Strings::camelize($name) . 'Action';
+        return strCamelize($name) . 'Action';
     }
 
 
@@ -83,8 +79,8 @@ class Inflector
     {
         $path  = 'views/';
         $path .= ($theme) ? "$theme/" : '';
-        $path .= ($namespace) ? Strings::dash($namespace) . '-' : '';
-        $path .= Strings::dash($name) .".$ext";
+        $path .= ($namespace) ? strDash($namespace) . '-' : '';
+        $path .= strDash($name) .".$ext";
 
         return $path;
     }
@@ -95,10 +91,10 @@ class Inflector
     {
         $path  = 'views/';
         $path .= ($theme) ? "$theme/" : '';
-        $path .= ($namespace) ? Strings::dash($namespace) . '-' : '';
-        $path .= Strings::dash($controller) . '/';
+        $path .= ($namespace) ? strDash($namespace) . '-' : '';
+        $path .= strDash($controller) . '/';
         $path .= ($service) ? 'service/' : '';
-        $path .= Strings::dash($name) . ".$ext";
+        $path .= strDash($name) . ".$ext";
 
         return $path;
     }
@@ -118,7 +114,7 @@ class Inflector
 
     public static function elementFile($ext, $path)
     {
-        return 'views/' . Strings::sanitizeUrl($path) . ".$ext";
+        return 'views/' . strSanitizeUrl($path) . ".$ext";
     }
 
 

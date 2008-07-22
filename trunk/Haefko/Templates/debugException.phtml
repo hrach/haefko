@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Haefko - your php5 framework
  *
@@ -10,6 +11,7 @@
  * @package     Haefko
  */
 
+
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
@@ -17,59 +19,83 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="robots" content="noindex,noarchive" />
     <meta name="generator" content="Háefko - your php5 framework" />
-    <title>Háefko: Neodchycená výjimka</title>
+    <title>Exception: <?= htmlspecialchars($exception->getMessage()) ?></title>
     <style type="text/css" media="screen">
     body {
-        background: #f8f4ed;
-        font-family: sans-serif;
+        font-family: Calibri, sans-serif;
         padding: 0;
         margin: 0;
-    } 
+    }
+
     a {
         color: #079fd8;
         text-decoration: none
-    } 
+    }
+
     a:hover {
         text-decoration: underline;
-    } 
+    }
+
     h1 {
-        background: #f2fafe;
-        border-bottom: 3px solid #d5effb;
-        font-size: 22px;
+        background: #6F071E;
+        color: white;
+        font-size: 28px;
         margin: 0;
-        padding: 5px 20px;
+        padding: 15px 20px;
     }
-    h2 {
-        font-size: 18px;
-        margin: 0;
+
+    code {
+        display: block;
+        font-family: Consolas, 'Lucida Console', 'Monaco CE', fixed, monospace;
+        background: #EFF9FF;
+        border: 1px solid #86CAEF;
+        padding: 2px;
+        width: 850px;
+        overflow: auto;
     }
-    code{
-        background: white;
-        border: 1px solid #dfd5c3;
-        padding: 2px 3px;
-    }    
-    pre {
-        background: white;
-        border: 1px solid #dfd5c3;
-        padding: 2px 3px;
-        font-size: 12px;
-        margin: 0;
+
+    span.line {
+        background: red;
+        position: absolute;
+        width: 850px;
+        height: 20px;
+        opacity: 0.2;
+        filter: alpha(opacity=20);
+        -khtml-opacity: 0.2;
     }
     </style>
 </head>
 <body>
-<h1>Háefko: Neodchycená výjimka</h1>
-<div style="padding: 10px 20px;">
-    <h3 style="color: #75011b;"><?= $exception->getMessage(); ?></h3>
-    řádek <code><?= $exception->getLine(); ?></code> - <code><?= $exception->getFile(); ?></code>
+<h1><?= $exception->getMessage(); ?></h1>
+<?php
+$i = 0;
+$trace = $exception->getTrace();
 
-    <br /><br />
-    <pre style="text-align: left;"><?= $trace ?>
-    </pre>
+
+foreach ($trace as $k => $item) {
+    if (!preg_match('#dibi|haefko#i', $item['file'])) {
+        $i = $k;
+        break;
+    }
+}
+
+$l = $trace[$i]['line'] - 1;
+$file = highlight_file($trace[$i]['file'], true);
+$file = preg_split('#<br />#', $file);
+$file[$l] = '<span class="line"></span>' . $file[$l];
+$file = implode('<br />', $file);
+?>
+
+<div style="padding: 10px 20px;">
+    <br />
+    <p><?= $trace[$i]['file'] ?> (<?= $l ?>):</p>
+    <?= $file ?>
 
     <p>
-        Vygenerováno v <?php echo date('h:i - d.m.Y') ?><br />
-        Powered by <a href="http://haefko.programujte.com">Háefko</a> (<?= Application::$version ?>)<br />
+        Čas generování: <?= self::getTime() ?>ms<br />
+        Server: <?= htmlspecialchars($_SERVER['SERVER_SOFTWARE']) ?><br />
+        Vygenerováno: <?php echo date('d.m.Y, h.i') ?><br />
+        Powered by: <a href="http://haefko.programujte.com">Háefko</a>, <?= Application::$version ?><br />
     </p>
 </div>
 </body>

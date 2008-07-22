@@ -12,7 +12,7 @@
 
 
 
-require_once dirname(__FILE__) . '/Strings.php';
+require_once dirname(__FILE__) . '/functions.php';
 
 
 
@@ -55,7 +55,7 @@ class Config
         $serverName = $_SERVER['SERVER_NAME'];
 
         if (self::read('Config.trim-www', true))
-            $serverName = Strings::ltrim($serverName, 'www.');
+            $serverName = strLeftTrim($serverName, 'www.');
 
         if (isset($configure[$serverName]) && is_array($configure[$serverName])) {
             foreach ($configure[$serverName] as $key => $val)
@@ -135,20 +135,20 @@ class Config
      */
     protected static function parseNode($data)
     {
+        $len = strlen(self::$spaces);
         $array = array();
         $skip = array();
 
         foreach ($data as $line => $node) {
             if (in_array($line, $skip)) continue;
 
-            if (preg_match('#^(.+):(array:)?\s*$#U', $node, $match)) {
+            if (preg_match('#^(.+):( ?array:)?\s*$#U', $node, $match)) {
                 $node = array();
                 $i = $line + 1;
 
-                while (isset($data[$i]) && substr($data[$i], 0, strlen(self::$spaces)) == self::$spaces) {
-                    $node[] = substr($data[$i], strlen(self::$spaces));
-                    $skip[] = $i;
-                    $i++;
+                while (isset($data[$i]) && substr($data[$i], 0, $len) == self::$spaces) {
+                    $node[] = substr($data[$i], $len);
+                    $skip[] = $i++;
                 }
 
                 if (isset($match[2]))

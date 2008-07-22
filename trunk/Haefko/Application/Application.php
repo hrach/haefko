@@ -188,16 +188,13 @@ class Application
         if (!Application::load('Controller', 'controller', array('controller', ''), true))
             eval('class Controller extends CustomController {}');
 
-
         if ($class == 'Controller')
             throw new ApplicationException('routing');
         else
             Application::load($class, 'controller', array(Router::$controller, Router::$namespace));
 
-
         $this->controller = new $class;
         $this->controller->render();
-
 
         if (Config::read('Core.debug', 0) > 1)
             Debug::debugRibbon();
@@ -289,6 +286,9 @@ class Application
             Debug::exceptionHandler($exception);
 
         }
+
+        if (Config::read('Core.debug', 0) > 1)
+            Debug::debugRibbon();
     }
 
 

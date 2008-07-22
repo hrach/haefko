@@ -13,7 +13,6 @@
 
 
 require_once dirname(__FILE__) . '/../Http.php';
-require_once dirname(__FILE__) . '/../Strings.php';
 
 
 
@@ -123,7 +122,8 @@ abstract class CustomController
     public function redirect($url, $exit = true)
     {
         Http::redirect($this->url($url, true), 303);
-        if ($exit) exit;
+        if ($exit)
+            exit;
     }
 
 
@@ -140,7 +140,7 @@ abstract class CustomController
         $url = preg_replace('#\{\:(\w+)\}#e', 'isset(Router::$args["\\1"]) ? Router::$args["\\1"] : "\\0"', $url);
         $url = preg_replace('#\{args\}#e', 'implode("/", Router::$args)', $url);
         $url = preg_replace_callback('#\{args!(.+)\}#', array($this, 'urlArgs'), $url);
-        $url = Strings::sanitizeUrl($url);
+        $url = strSanitizeUrl($url);
 
         if ($absolute)
             return Http::$serverUri . Http::$baseUri . $url;
@@ -161,11 +161,11 @@ abstract class CustomController
     {
         if (isset(Router::$args[$name])) {
             if ($named === true)
-                return Strings::ltrim(Router::$args[$name], "$name:");
+                return strLeftTrim(Router::$args[$name], "$name:");
             elseif ($named === false)
                 return Router::$args[$name];
             else
-                return Strings::ltrim(Router::$args[$name], "$named:");
+                return strLeftTrim(Router::$args[$name], "$named:");
         } else {
             return $default;
         }

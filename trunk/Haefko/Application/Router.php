@@ -13,7 +13,6 @@
 
 
 require_once dirname(__FILE__) . '/../Http.php';
-require_once dirname(__FILE__) . '/../Strings.php';
 
 
 
@@ -40,7 +39,7 @@ class Router
      */
     public static function __staticConstruct()
     {
-        self::$url = Strings::urlToArray(Http::getRequestUrl());
+        self::$url = strUrlToArray(Http::getRequestUrl());
     }
 
 
@@ -98,7 +97,7 @@ class Router
             'action' => ''
         );
 
-        $rule = Strings::urlToArray($route);
+        $rule = strUrlToArray($route);
 
         if (isset($rule[count($rule) - 1]) && $rule[count($rule) - 1] == '*') {
             array_pop($rule);

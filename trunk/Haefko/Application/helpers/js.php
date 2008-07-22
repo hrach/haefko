@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.6
+ * @version     0.7
  * @package     Haefko
  */
 
@@ -24,27 +24,32 @@ class JsHelper extends CustomHelper
 
 
 
-    public $base = 'design/';
-    public $pathJs = 'js/';
-    public $pathCss = 'css/';
+    public $pathJs  = 'design/js/';
+    public $pathCss = 'design/css/';
 
-    protected $defitions = array();
-    protected $filesCss = array();
-    protected $filesJs = array('jquery.js');
-    protected $inline = array();
+    protected $js;
+    protected $files = array();
+    protected $includeJs = array();
+    protected $includeCss = array();
+
+    private $linkBy;
 
 
 
+    /**
+     * Konstroktor - preddefinuje jmena souboru pro automaticke navteni plug-inu
+     * @return  void
+     */
     public function __construct()
     {
         parent::__construct();
 
-        $this->definitions = array(
+        $this->files = array(
             'jquery' => array('jquery.js'),
-            'fancy' => array('jquery.fancybox.js', 'jquery.fancybox.css'),
+            'fancybox' => array('jquery.fancybox.js', 'jquery.fancybox.css'),
             'corner' => array('jquery.corner.js'),
             'calendar' => array('jquery.datepicker.js', 'date.js', 'jquery.datepicker.css'),
-            'resizer' => array('jquery.textarearesizer.js', 'jquery.textarearesizer.css'),
+            'textarearesizer' => array('jquery.textarearesizer.js', 'jquery.textarearesizer.css'),
             'autocomplete' => array('jquery.autocomplete.js', 'jquery.autocomplete.css'),
             'validate' => array('jquery.validate.js'),
             'rater' => array('jquery.rater.js', 'jquery.rater.css'),
@@ -54,12 +59,20 @@ class JsHelper extends CustomHelper
 
 
 
+    /**
+     * Nacten knihovny pro plug-in $name
+     * @param   string  jmeno pluginu
+     * @return  void
+     */
     public function need($name)
     {
-        if (!isset($this->definitions[$name]))
+        $name = strtolower($name);
+        if (!isset($this->files[$name]))
             die("Haefko: nepodporany script JsHelperu $name!");
 
-        foreach ($this->definitions[$name] as $item) {
+        $this->js('jquery.js');
+
+        foreach ($this->files[$name] as $item) {
             if (strpos($item, '.js') !== false)
                 $this->js($item);
             else
@@ -69,105 +82,112 @@ class JsHelper extends CustomHelper
 
 
 
-    public function raw($line)
-    {
-        $this->inline[] = $line;
-    }
-
-
-
+    /**
+     * Prida html tagy pro include js $file
+     * @param   strgin  jmeno js souboru
+     * @return  bool
+     */
     public function js($file)
     {
-        if (!in_array($file, $this->filesJs))
-            $this->filesJs[] = $file;
+        if (!in_array($file, $this->includeJs)) {
+            $this->includeJs[] = $file;
+            return true;
+        }
+
+        return false;
     }
 
 
 
+    /**
+     * Prida html tagy pro include css $file
+     * @param   strgin  jmeno js souboru
+     * @return  bool
+     */
     public function css($file)
     {
-        if (!in_array($file, $this->filesCss))
-            $this->filesCss[] = $file;
+        if (!in_array($file, $this->includeCss)) {
+            $this->includeCss[] = $file;
+            return true;
+        }
+
+        return false;
     }
 
 
 
+    /**
+     * Vyrenderuje js kod
+     * @return  string
+     */
+    public function render()
+    {
+        $code = null;
+
+        foreach ($this->includeJs as $file)
+            $code .= "\t" . $this->controller->view->html->js($this->pathJs . $file);
+
+        foreach ($this->includeCss as $file)
+            $code .= "\t" . $this->controller->view->html->css($this->pathCss . $file);
+
+        if (!empty($this->js))
+        $code .= "\t<script type=\"text/javascript\">\n\t//<![CDATA[\n"
+              .  "\t$(document).ready(function() {\n\t\t\n{$this->js};\n\t});\n"
+              .  "\t//]]>\n\t</script>";
+
+        return $code;
+    }
+
+
+
+    public function raw($code)
+    {
+        if ($this->linkBy == '.')
+            $this->js .= ";\n";
+
+        $this->js .= "$code\n";
+        $this->linkBy = '';
+    }
+
+
+
+    public function jquery($selector)
+    {
+        if (!empty($selector)) {
+            if ($this->linkBy == '.')
+                $this->js .= ";\n";
+
+            $this->js .= "$('$selector')";
+            $this->linkBy = '.';
+        }
+
+        return $this;
+    }
+
+
+
+    public function __call($name, $args)
+    {
+        if (isset($this->files[strtolower($name)]))
+            $this->need($name);
+
+        foreach ($args as & $val)
+            $val = json_encode($val);
+
+        $this->js .= "{$this->linkBy}$name(" . implode(', ', $args). ")";
+        $this->linkBy = '.';
+
+        return $this;
+    }
+
+
+
+    /**
+     * Vyrenderuje js kod
+     */
     public function __toString()
     {
-        $ret = '';
-
-        foreach ($this->filesJs as $file)
-            $ret .= "\t" . $this->controller->view->html->js($this->base . $this->pathJs . $file);
-
-        foreach ($this->filesCss as $file)
-            $ret .= "\t" . $this->controller->view->html->css($this->base . $this->pathCss . $file);
-
-        if (!empty($this->inline))
-        $ret .= "\t<script type=\"text/javascript\">\n\t//<![CDATA[\n"
-             .  "\t$(document).ready(function() {\n\t\t"
-             .  implode("\n\t\t", $this->inline)
-             .  "\n\t});\n"
-             .  "\t//]]>\n\t</script>";
-
-        return $ret;
-    }
-
-
-
-    /* ================== jQuery plug-in's methods ================== */
-
-
-
-    public function calendar($name, $options = null)
-    {
-        $this->need('calendar');
-        $this->raw("$('$name').datePicker($options);");
-    }
-
-
-
-    public function fancy($name, $options = null)
-    {
-        $this->need('fancy');
-        $this->raw("$('$name').fancybox($options);");
-    }
-
-
-
-    public function corner($name, $options = null)
-    {
-        $this->need('corner');
-        $this->raw("$('$name').corner($options);");
-    }
-
-
-
-    public function resizer($name)
-    {
-        $this->need('resizer');
-        $this->raw("$('$name').TextAreaResizer();");
-    }
-
-
-
-    public function rater($name, $file, $options = '{}')
-    {
-        $this->need('rater');
-        $this->raw("$('$name').empty().rater('$file', $options);");
-    }
-
-
-    public function markitup($name, $options = null) {
-        $this->need('markitup');
-        $this->raw("$('$name').markItUp($options);");
-    }
-
-
-    public function autocomplete($name, array $options)
-    {
-        $this->need('autocomplete');
-        $options = toJsArray($options);
-        $this->raw("$('$name').autocomplete($options);");
+        return $this->render();
     }
 
 
