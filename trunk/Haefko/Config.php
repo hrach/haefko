@@ -60,6 +60,8 @@ class Config
         if (isset($configure[$serverName]) && is_array($configure[$serverName])) {
             foreach ($configure[$serverName] as $key => $val)
                 self::$config[$key] = $val;
+        } else {
+            die('Haefko: v multi-serverove konfiguraci chybi klic $serverName');
         }
     }
 

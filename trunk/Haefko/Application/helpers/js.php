@@ -122,7 +122,7 @@ class JsHelper extends CustomHelper
      */
     public function render()
     {
-        $code = null;
+        $code = '';
 
         foreach ($this->includeJs as $file)
             $code .= "\t" . $this->controller->view->html->js($this->pathJs . $file);

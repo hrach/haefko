@@ -110,12 +110,12 @@ class Http
     public static function redirect($absoluteUrl, $code = 300)
     {
         static $supportCode = array(300, 301, 302, 303, 304, 307);
-        self::checkHeaders('Redirect ' . $absoluteUrl);
+        self::checkHeaders("Redirect $absoluteUrl");
 
         if (!in_array($code, $supportCode))
             throw new Exception("Nepodporovany typ presmerovani.");
 
-        header('Location: ' . $absoluteUrl, true, $code);
+        header("Location: $absoluteUrl", true, $code);
     }
 
 
@@ -127,7 +127,7 @@ class Http
      */
     public static function mimeType($mime)
     {
-        self::checkHeaders('Mime ' . $mime);
+        self::checkHeaders("Mime $mime");
         header("Content-type: $mime");
     }
 
@@ -140,7 +140,7 @@ class Http
      */
     public static function error($code = 404)
     {
-        self::checkHeaders('Error code ' . $code);
+        self::checkHeaders("Error code $code");
         switch ($code) {
         case 401:
             header('HTTP/1.1 401 Unauthorized');
@@ -218,7 +218,7 @@ class Http
         if (empty($base))
             return '/';
         else
-            return '/' . $base . '/';
+            return "/$base/";
     }
 
 
@@ -242,7 +242,7 @@ class Http
     private static function checkHeaders($data = null)
     {
         if (headers_sent())
-            throw new Exception("Nelze zaslat hlavicku, hlavicky byly jiz odeslany. Data: " . $data);
+            throw new Exception("Nelze zaslat hlavicku, hlavicky byly jiz odeslany. Data: $data");
     }
 
 
