@@ -88,18 +88,35 @@ abstract class CustomController
 
 
     /**
-     * Metoda init je zavolana vzdy po vytvoreni controlleru, jeste pred zavolanim action
+     * Metoda init je zavolana vzdy pred zavolanim action
      */
     public function init()
-    {}
+    {
+        if (isset($this->model))
+            call_user_func(array($this->model, 'init'));
+    }
 
 
 
     /**
      * Metoda renderInit je zavolana vzdy pred vyrenderovanim sablony, po zavolani action
      */
-    public function renderInit()
-    {}
+    public function prepareView()
+    {
+        if (isset($this->model))
+            call_user_func(array($this->model, 'prepareView'));
+    }
+
+
+
+    /**
+     * Metoda prepareLayout je zavolana vzdy pred vyrenderovanim layout sablony
+     */
+    public function prepareLayout()
+    {
+        if (isset($this->model))
+            call_user_func(array($this->model, 'prepareLayout'));
+    }
 
 
 
@@ -206,7 +223,8 @@ abstract class CustomController
 
         call_user_func(array($this, 'init'));
         if ($exists) call_user_func_array(array($this, $method), Router::$args);
-        call_user_func(array($this, 'renderInit'));
+        call_user_func(array($this, 'prepareView'));
+        call_user_func(array($this, 'prepareLayout'));
 
         echo $this->view->render();
     }
@@ -228,7 +246,6 @@ abstract class CustomController
 
         return implode('/', $args);
     }
-
 
 
 

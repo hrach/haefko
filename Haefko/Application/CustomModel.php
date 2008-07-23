@@ -43,4 +43,28 @@ abstract class CustomModel extends DibiTable
 
 
 
+    /**
+     * Metoda init je zavolana vzdy pred zavolanim action
+     */
+    public function init()
+    {}
+
+
+
+    /**
+     * Metoda renderInit je zavolana vzdy pred vyrenderovanim sablony, po zavolani action
+     */
+    public function prepareView()
+    {}
+
+
+
+    /**
+     * Metoda prepareLayout je zavolana vzdy pred vyrenderovanim layout sablony
+     */
+    public function prepareLayout()
+    {}
+
+
+
 }

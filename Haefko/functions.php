@@ -224,6 +224,7 @@ if (!function_exists('json_encode')) {
                 break;
             }
         }
+
         $result = array();
         if ($isList) {
             foreach ($a as $v)

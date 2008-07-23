@@ -73,7 +73,6 @@ class Debug
     public static function exceptionHandler(Exception $exception)
     {
         ob_clean();
-        //$trace = preg_replace('#(\[password\]\s=&gt;\s).+#mi', '$1*CHRANENO*', print_r($exception->getTrace(), true));
         $app = Application::getInstance();
         require_once $app->getCorePath() . '../Templates/debugException.phtml';
     }
