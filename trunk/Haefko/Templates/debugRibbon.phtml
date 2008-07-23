@@ -14,48 +14,47 @@
 <style type="text/css" media="screen">
 #hf-debug-ribbon {
     opacity: 0.3;
-    filter: alpha(opacity=30);
-    -moz-opacity: 0.3;
-    -khtml-opacity: 0.3;
     background: #222;
+    border-bottom: 1px solid #aaa;
+    border-right: 1px solid #aaa;
     color: #ddd;
     position: fixed;
     top: 0;
     left: 0;
     text-align: left;
+    font-size: 13px;
+    font-family: sans-serif;
     width: 18px;
-    height: 18px;
+    height: 16px;
     overflow: hidden;
 }
 
 #hf-debug-ribbon:hover {
     opacity: 1;
-    filter: alpha(opacity=100);
-    -moz-opacity: 1;
-    -khtml-opacity: 1;
     width: auto;
     height: auto;
 }
 
 #hf-debug-ribbon a {
     color: white;
-}
-
-#hf-debug-ribbon ul {
-    padding-left: 15px;
-    margin: 0;
-    font-size: 12px;
+    text-decoration: none;
 }
 
 #hf-debug-ribbon-config, #hf-debug-ribbon-sql {
     border: 1px solid #444;
     border-collapse: collapse;
     background: #333;
-    margin-top: 2px;
+    margin: 2px 0 0 0;
     padding: 2px;
 }
 
+#hf-debug-ribbon-config strong {
+    color: #ddd;
+}
+
 #hf-debug-ribbon-sql td, #hf-debug-ribbon-sql th {
+    background: #333;
+    color: #ddd;
     border: 1px solid #666;
     padding: 0 3px;
 }

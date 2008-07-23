@@ -43,9 +43,6 @@ class Db
             $config = Config::read('Db.connection', array());
 
         dibi::connect($config);
-
-        if (Config::read('Core.debug', 0) > 1)
-            dibi::addHandler(array('Db', 'sqlHandler'));
     }
 
 
@@ -70,3 +67,8 @@ class Db
 
 
 }
+
+
+
+if (Config::read('Core.debug', 0) > 1)
+    dibi::addHandler(array('Db', 'sqlHandler'));

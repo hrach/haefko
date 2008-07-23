@@ -41,13 +41,16 @@ abstract class CustomController
      */
     public function __construct($viewClass = 'LayoutView')
     {
-        $this->app  = Application::getInstance();
+        $this->app = Application::getInstance();
         $this->ajax = Http::isAjax();
 
         if (!$this->app->error) {
             foreach ($this->load as $file)
                 Application::loadCore($file);
         }
+
+
+        // Nacteni view
 
         if (isset($this->services[Router::$service]))
             $viewClass = $this->services[Router::$service];
@@ -58,19 +61,27 @@ abstract class CustomController
         $this->view = new $viewClass($this);
 
 
+        // Nacteni modelu
+
         Application::loadCore('Application/Db');
 
         if (!Application::load('Model', 'model', array('model', ''), true)) {
-            $created = true;
+            $eval = true;
             eval ('class Model extends CustomModel {}');
-        } else {
-            $created = false;
         }
 
         $class = Inflector::modelClass(Router::$controller, Router::$namespace);
         Application::load($class, 'model', array(Router::$controller, Router::$namespace), true);
 
-        if (class_exists($class) && !($this->app->error && $created))
+        if (!class_exists($class)) {
+            $class = Inflector::modelClass(Router::$controller, '');
+            Application::load($class, 'model', array(Router::$controller, ''), true);
+        }
+
+        if (!class_exists($class) && !($this->app->error) && !isset($eval))
+            $class = 'Model';
+
+        if (class_exists($class))
             $this->model = new $class($this);
     }
 

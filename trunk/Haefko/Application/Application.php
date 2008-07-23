@@ -261,29 +261,24 @@ class Application
         $this->error = true;
         Router::$service = null;
 
-        if ($exception instanceof ApplicationException) {
-
-            $this->controller = new Controller();
-            $this->controller->error($exception->error, true);
-            $this->controller->view->message = $exception->getMessage();
-            $this->controller->view->loadHelpers();
-            $this->controller->init();
-            echo $this->controller->view->render();
-
-        } elseif (Config::read('Core.debug') == 0) {
-
-            error_log($exception->getMessage());
-
-            $this->controller = new Controller();
-            $this->controller->error('500');
-            $this->controller->view->loadHelpers();
-            $this->controller->init();
-            echo $this->controller->view->render();
-
+        if (!($exception instanceof ApplicationException || Config::read('Core.debug') == 0)) {
+            self::loadCore('Debug');
+            Debug::exceptionHandler($exception);
         } else {
 
-            $this->loadCore('Debug');
-            Debug::exceptionHandler($exception);
+            $this->controller = new Controller();
+
+            if ($exception instanceof ApplicationException) {
+                $this->controller->error($exception->error, true);
+                $this->controller->view->message = $exception->getMessage();
+            } else {
+                error_log($exception->getMessage());
+                $this->controller->error('500');
+            }
+
+            $this->controller->view->loadHelpers();
+            $this->controller->init();
+            echo $this->controller->view->render();
 
         }
 

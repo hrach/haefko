@@ -78,7 +78,7 @@ function strToAscii($string)
 function strToCoolUrl($title) {
     $title = preg_replace('~[^\\pL0-9_]+~u', '-', $title);
     $title = trim($title, "-");
-    $title = self::toAscii($title);
+    $title = strToAscii($title);
     $title = strtolower($title);
     $title = preg_replace('~[^-a-z0-9_]+~', '', $title);
     return $title;
