@@ -48,10 +48,10 @@ class JsHelper extends CustomHelper
             'jquery' => array('jquery.js'),
             'fancybox' => array('jquery.fancybox.js', 'jquery.fancybox.css'),
             'corner' => array('jquery.corner.js'),
-            'calendar' => array('jquery.datepicker.js', 'date.js', 'jquery.datepicker.css'),
+            'datepicker' => array('jquery.datepicker.js', 'date.js', 'jquery.datepicker.css'),
             'textarearesizer' => array('jquery.textarearesizer.js', 'jquery.textarearesizer.css'),
             'autocomplete' => array('jquery.autocomplete.js', 'jquery.autocomplete.css'),
-            'validate' => array('jquery.validate.js'),
+            'hfvalidate' => array('jquery.hf.validate.js'),
             'rater' => array('jquery.rater.js', 'jquery.rater.css'),
             'markitup' => array('jquery.markitup.js', 'jquery.markitup.css')
         );

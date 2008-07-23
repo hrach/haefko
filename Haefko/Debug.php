@@ -93,28 +93,30 @@ class Debug
      * @param   array   pole pro prevod
      * @return  string
      */
-    public static function readableArray($array)
+    public static function readableArray($array, $indent = 0)
     {
-        $ret = "<ul>";
+        $ret = null;
+        $tab = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $indent);
+
         foreach ($array as $key => $val) {
-            if ($key === 'password')
+            if (preg_match('#(pass(ord)?|passw)#i', $key))
                 continue;
 
-            $ret .= "<li>$key: ";
-            
+            $ret .= "$tab$key: ";
+
             if (is_array($val))
-                $ret .= self::readableArray($val);
+                $ret .= "<br />" . self::readableArray($val, $indent + 1);
             else
-                $ret .= "<strong>$val</strong>";
-            $ret .= "</li>";
+                $ret .= "<strong>$val</strong><br />";
         }
-        $ret .= "</ul>";
+
         return $ret;
     }
 
 
 
 }
+
 
 
 Debug::$startTime = microtime(true);

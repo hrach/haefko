@@ -283,7 +283,7 @@ class Form implements ArrayAccess
             $jsValidation = "<script type=\"text/javascript\">\n//<![CDATA[\n$jsValidation\n//]]>\n</script>\n";
 
             if (class_exists('Application', false))
-                Application::getInstance()->controller->view->helper('js')->need('validate');
+                Application::getInstance()->controller->view->helper('js')->need('hfvalidate');
         }
 
         $this->el->setAttributes($attrs);

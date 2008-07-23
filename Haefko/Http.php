@@ -184,7 +184,7 @@ class Http
 
 
     /**
-     * Vraci pozadavek z URL
+     * Vraci pozadavek URL
      * @return  string
      */
     public static function getRequestUrl()
@@ -213,7 +213,7 @@ class Http
      */
     private static function getBaseUri()
     {
-        $base = strSanitizeUrl(dirname($_SERVER['SCRIPT_NAME']));
+        $base = trim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
 
         if (empty($base))
             return '/';
