@@ -24,7 +24,7 @@
     a:hover { text-decoration: underline; }
     h1 { background: #6F071E; color: white; font-size: 28px; margin: 0; padding: 15px 20px; }
     pre, code { font-family: Consolas, 'Lucida Console', 'Monaco CE', fixed, monospace; font-size: 14px; }
-    pre { background: white; border: 1px solid #dedede; padding: 2px; width: 850px; overflow: auto; }
+    pre { background: white; border: 1px solid #dedede; padding: 2px; overflow: auto; }
     span.line { color: black; margin: 0 4px; }
     span.cur-line { background: #EFD1D1; }
     </style>
@@ -47,7 +47,7 @@ foreach ($file as $l => & $row) {
     $row = str_replace("\n", '', $row);
 
     if ($l == $line - 1) {
-        preg_match('#.*(<span.+>)#', $row, $match);
+        preg_match('#.*(<span[^>]+>)#', $row, $match);
         if (!empty($match[1]))
                 $match[1] = '</span>' . $match[1];
         $row = '<span class="cur-line">' . strip_tags($row) . "</span>$match[1]";

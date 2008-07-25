@@ -113,12 +113,11 @@ final class Application
         if (!in_array($type, $types))
             throw new Exception("Application: nepodporovany typ '$type' metody loadClass().");
 
-
         $file = call_user_func_array(array('Inflector', "{$type}File"), array($class));
         $this->loadFrameworkFile($file, true);
 
         if (!class_exists($class, false))
-            throw new ApplicationException($type, $class);
+            throw new ApplicationException('missing-' . $type, $class);
     }
 
 
@@ -139,7 +138,7 @@ final class Application
         elseif (file_exists($file2))
             require_once $file2;
         elseif ($throw && !$this->error)
-            throw new ApplicationException('file', $file);
+            throw new ApplicationException('missing-file', $file);
         elseif ($throw)
             die("Application: soubor '$file' nenalezen.");
         else

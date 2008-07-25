@@ -23,19 +23,29 @@ require_once dirname(__FILE__) . '/../Html.php';
 class View implements IView
 {
 
-
-
+    /** @var CustomController */
     public $controller;
+
+    /** @var string Relativni cesta vztamo k web-rootu serveru */
     public $base;
+
+    /** @var string Pripona view */
     public $ext = 'phtml';
 
+    /** @var array Promenne pro view */
     protected $vars = array();
+
+    /** @var array Seznam chranenych promennych */
     protected $protected = array();
 
+    /** @var string Cesta ke view */
     protected $viewPath;
+
+    /** @var string Jmeno view */
     protected $viewName;
+
+    /** @var string Jmeno tematu */
     protected $themeName;
-    protected $absoluteView = false;
 
 
 
@@ -57,13 +67,11 @@ class View implements IView
     /**
      * Nastaví view sablonu
      * @param   string jmeno sablony
-     * @param   bool   nedoplnit adresarovou strukturu?
      * @return  void
      */
-    public function view($viewName, $absoluteView = false)
+    public function view($viewName)
     {
         $this->viewName = $viewName;
-        $this->absoluteView = $absoluteView;
     }
 
 
@@ -121,16 +129,17 @@ class View implements IView
      */
     public function helper($name, $var = null)
     {
-        $class = Inflector::helperClass($name);
-
-        if (!class_exists($class))
-            die("Haefko: nenalezen helper $class!");
-
         if (is_null($var))
             $var = strtolower($name);
 
-        if (!isset($this->$var))
+        if (!isset($this->$var)) {
+            $class = Inflector::helperClass($name);
+
+            if (!class_exists($class))
+                throw new ApplicationException('missing-file', Inflector::helperFile($class));
+
             $this->set($var, new $class);
+        }
 
         return $this->$var;
     }
