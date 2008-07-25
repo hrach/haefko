@@ -28,16 +28,15 @@ class Debug
      * Vytvori specialni debug listu s informace o prave probehlem rizeni aplikace
      * @return  void
      */
-    public static function debugRibbon()
+    public static function debugToolbar()
     {
         $app = Application::getInstance();
 
+        $sql = array();
         if (class_exists('Db', false))
             $sql = Db::$sqls;
-        else
-            $sql = null;
 
-        require_once $app->corePath . 'Templates/debugRibbon.phtml';
+        require_once $app->corePath . 'Templates/debugToolbar.phtml';
     }
 
 

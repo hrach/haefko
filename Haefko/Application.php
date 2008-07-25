@@ -210,7 +210,7 @@ final class Application
         $this->controller->render();
 
         if (Config::read('Core.debug', 0) > 1)
-            Debug::debugRibbon();
+            Debug::debugToolbar();
     }
 
 
@@ -273,7 +273,7 @@ final class Application
         }
 
         if (Config::read('Core.debug', 0) > 1)
-            Debug::debugRibbon();
+            Debug::debugToolbar();
     }
 
 

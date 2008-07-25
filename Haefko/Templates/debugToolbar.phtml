@@ -12,7 +12,7 @@
 
 ?>
 <style type="text/css" media="screen">
-#hf-debug-ribbon {
+#hf-debug-toolbar {
     opacity: 0.3;
     background: #222;
     border-bottom: 1px solid #aaa;
@@ -29,18 +29,18 @@
     overflow: hidden;
 }
 
-#hf-debug-ribbon:hover {
+#hf-debug-toolbar:hover {
     opacity: 1;
     width: auto;
     height: auto;
 }
 
-#hf-debug-ribbon a {
+#hf-debug-toolbar a {
     color: white;
     text-decoration: none;
 }
 
-#hf-debug-ribbon-config, #hf-debug-ribbon-sql {
+#hf-debug-toolbar-config, #hf-debug-toolbar-sql {
     border: 1px solid #444;
     border-collapse: collapse;
     background: #333;
@@ -48,42 +48,43 @@
     padding: 2px;
 }
 
-#hf-debug-ribbon-config strong {
+#hf-debug-toolbar-config strong {
     color: #ddd;
 }
 
-#hf-debug-ribbon-sql td, #hf-debug-ribbon-sql th {
+#hf-debug-toolbar-sql td, #hf-debug-toolbar-sql th {
     background: #333;
     color: #ddd;
     border: 1px solid #666;
     padding: 0 3px;
 }
 
-#hf-debug-ribbon-sql td {
+#hf-debug-toolbar-sql td {
     background: #444;
 }
 
 </style>
 <script type="text/javascript">
 //<![CDATA[
-function hfRibbonToogler(id, id2) {
+function hftoolbarToogler(id, id2) {
     div = document.getElementById(id2);
-    div.style.display = 'none';
+    if (div)
+        div.style.display = 'none';
     div = document.getElementById(id);
     div.style.display = (div.style.display == '') ? 'none' : '';
 }
 //]]>
 </script>
-<div id="hf-debug-ribbon">
-    <div id="hf-debug-ribbon-toolbar">
+<div id="hf-debug-toolbar">
+    <div id="hf-debug-toolbar-toolbar">
         HF <span style="font-size: 12px">v.<?= Application::$version ?></span> ::
         <?= Debug::getTime() ?> ms ::
-        <a href="javascript:hfRibbonToogler('hf-debug-ribbon-config', 'hf-debug-ribbon-sql')">config</a>&nbsp;
-        <?php if (!is_null($sql)) { ?> :: <a href="javascript:hfRibbonToogler('hf-debug-ribbon-sql', 'hf-debug-ribbon-config')">sql</a><?php } ?>&nbsp;&nbsp;
+        <a href="javascript:hftoolbarToogler('hf-debug-toolbar-config', 'hf-debug-toolbar-sql')">config</a>
+        <?php if (!empty($sql)) { ?>&nbsp; :: <a href="javascript:hftoolbarToogler('hf-debug-toolbar-sql', 'hf-debug-toolbar-config')">sql</a><?php } ?>
     </div>
 
-    <?php if (!is_null($sql)) { ?>
-    <table style="display: none" id="hf-debug-ribbon-sql">
+    <?php if (!empty($sql)) { ?>
+    <table style="display: none" id="hf-debug-toolbar-sql">
         <tr><th>SQL</th><th>time</th><th>rows</th></tr>
         <?php foreach ($sql as $row) { ?>
         <tr><td><?= $row['sql'] ?></td><td><?= sprintf('%0.3f', $row['time'] * 1000) ?> ms</td><td><?= $row['rows'] ?></td></tr>
@@ -91,7 +92,7 @@ function hfRibbonToogler(id, id2) {
     </table>
     <?php } ?>
 
-    <div id="hf-debug-ribbon-config" style="display: none;">
+    <div id="hf-debug-toolbar-config" style="display: none;">
         <?= self::readableArray(Config::getConfig()) ?>
     </div>
 </div>
