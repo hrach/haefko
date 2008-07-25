@@ -2,6 +2,7 @@
 
 require_once('simpletest/unit_tester.php');
 require_once('simpletest/reporter.php');
+require_once('Haefko/functions.php');
 require_once('Haefko/Application/Inflector.php');
 
 
@@ -34,17 +35,11 @@ class InflectorTest extends UnitTestCase
 
 	function testControllerFile()
 	{
-		$name = Inflector::controllerFile('posts');
+		$name = Inflector::controllerFile('Posts');
 		$this->assertEqual($name, 'controllers/posts.php');
 
-		$name = Inflector::controllerFile('super-posts');
+		$name = Inflector::controllerFile('SuperPosts');
 		$this->assertEqual($name, 'controllers/super-posts.php');
-
-		$name = Inflector::controllerFile('posts', 'admin');
-		$this->assertEqual($name, 'controllers/admin/posts.php');
-
-		$name = Inflector::controllerFile('posts', 'my-admin');
-		$this->assertEqual($name, 'controllers/my-admin/posts.php');
 	}
 
 
@@ -66,17 +61,11 @@ class InflectorTest extends UnitTestCase
 
 	function testModelFile()
 	{
-		$name = Inflector::modelFile('posts');
+		$name = Inflector::modelFile('Posts');
 		$this->assertEqual($name, 'models/posts.php');
 
-		$name = Inflector::modelFile('super-posts');
+		$name = Inflector::modelFile('SuperPosts');
 		$this->assertEqual($name, 'models/super-posts.php');
-
-		$name = Inflector::modelFile('posts', 'admin');
-		$this->assertEqual($name, 'models/admin/posts.php');
-
-		$name = Inflector::modelFile('posts', 'my-admin');
-		$this->assertEqual($name, 'models/my-admin/posts.php');
 	}
 
 	function testHelperClass()
@@ -90,20 +79,20 @@ class InflectorTest extends UnitTestCase
 
 	function testHelperFile()
 	{
-		$name = Inflector::helperFile('html');
-		$this->assertEqual($name, 'helpers/html.php');
+		$name = Inflector::helperFile('HtmlHelper');
+		$this->assertEqual($name, 'helpers/html-helper.php');
 
-		$name = Inflector::helperFile('RSSrender');
-		$this->assertEqual($name, 'helpers/rssrender.php');
+		$name = Inflector::helperFile('RssFeedHelper');
+		$this->assertEqual($name, 'helpers/rss-feed-helper.php');
 	}
 
 	function testActionName()
 	{
 		$name = Inflector::actionName('show');
-		$this->assertEqual($name, 'ShowAction');
+		$this->assertEqual($name, 'Show');
 
 		$name = Inflector::actionName('get-rating');
-		$this->assertEqual($name, 'GetRatingAction');
+		$this->assertEqual($name, 'GetRating');
 	}
 
 	function testViewFile()

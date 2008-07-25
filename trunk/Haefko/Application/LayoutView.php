@@ -142,8 +142,8 @@ class LayoutView extends View
         $layouts = array(
             $app->path . Inflector::layoutFile($this->ext, $this->layoutName, Router::$namespace, $this->themeName),
             $app->path . Inflector::layoutFile($this->ext, $this->layoutName, '', ''),
-            $app->corePath . Inflector::layoutFile($this->ext, $this->layoutName, '', ''),
-            $app->corePath . Inflector::layoutFile('phtml', 'layout', '', ''),
+            $app->corePath . 'Application/' . Inflector::layoutFile($this->ext, $this->layoutName, '', ''),
+            $app->corePath . 'Application/' . Inflector::layoutFile('phtml', 'layout', '', ''),
         );
 
         foreach ($layouts as $layout) {

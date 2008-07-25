@@ -1,9 +1,9 @@
 <?php
 
-require '../Haefko/Autoload.php';
+require 'Haefko/Autoload.php';
 
-$autoload = Autoload::getInstance();
-$autoload->addFramework();
-$autoload->register();
+$autoload = new Autoload();
+$autoload->addDir(dirname(__FILE__));
+$autoload->load();
 
-$app = Application::getInstance();
+print_r(file_get_contents($autoload->cache));

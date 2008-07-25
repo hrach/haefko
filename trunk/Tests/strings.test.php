@@ -2,7 +2,7 @@
 
 require_once('simpletest/unit_tester.php');
 require_once('simpletest/reporter.php');
-require_once('Haefko/Strings.php');
+require_once('Haefko/functions.php');
 
 
 class StringsTest extends UnitTestCase
@@ -15,100 +15,100 @@ class StringsTest extends UnitTestCase
 
 	function testCamelize()
 	{
-		$name = Strings::camelize('test');
+		$name = strCamelize('test');
 		$this->assertEqual($name, 'Test');
 
-		$name = Strings::camelize('test-second');
+		$name = strCamelize('test-second');
 		$this->assertEqual($name, 'TestSecond');
 
-		$name = Strings::camelize('-test');
+		$name = strCamelize('-test');
 		$this->assertEqual($name, 'Test');
 
-		$name = Strings::camelize('test-');
+		$name = strCamelize('test-');
 		$this->assertEqual($name, 'Test');
 
-		$name = Strings::camelize('next-test-third');
+		$name = strCamelize('next-test-third');
 		$this->assertEqual($name, 'NextTestThird');
 
-		$name = Strings::camelize('CamelCase');
+		$name = strCamelize('CamelCase');
 		$this->assertEqual($name, 'CamelCase');
 	}
 
 	function testDash()
 	{
-		$name = Strings::dash('Test');
+		$name = strDash('Test');
 		$this->assertEqual($name, 'test');
 
-		$name = Strings::dash('TestSecond');
+		$name = strDash('TestSecond');
 		$this->assertEqual($name, 'test-second');
 
-		$name = Strings::dash('test');
+		$name = strDash('test');
 		$this->assertEqual($name, 'test');
 
-		$name = Strings::dash('test-second');
+		$name = strDash('test-second');
 		$this->assertEqual($name, 'test-second');
 
-		$name = Strings::dash('NextTestThird');
+		$name = strDash('NextTestThird');
 		$this->assertEqual($name, 'next-test-third');
 	}
 
 	function testToAscii()
 	{
-		$name = Strings::toAscii('První test dlouhými písmeny.');
+		$name = strToAscii('První test dlouhými písmeny.');
 		$this->assertEqual($name, 'Prvni test dlouhymi pismeny.');
 
-		$name = Strings::toAscii('ěščřžýáíéúů');
+		$name = strToAscii('ěščřžýáíéúů');
 		$this->assertEqual($name, 'escrzyaieuu');
 
-		$name = Strings::toAscii('ĚŠČŘŽÝÁÍÉÚŮ');
+		$name = strToAscii('ĚŠČŘŽÝÁÍÉÚŮ');
 		$this->assertEqual($name, 'ESCRZYAIEUU');
 	}
 
 	function testCoolUrl()
 	{
-		$name = Strings::coolUrl('První test dlouhými písmeny.');
+		$name = strToCoolUrl('První test dlouhými písmeny.');
 		$this->assertEqual($name, 'prvni-test-dlouhymi-pismeny');
 
-		$name = Strings::coolUrl('Problémy: dvojtečky apod...');
+		$name = strToCoolUrl('Problémy: dvojtečky apod...');
 		$this->assertEqual($name, 'problemy-dvojtecky-apod');
 
-		$name = Strings::coolUrl('Vykřičníkem se nedá zaskočit!!! Nebo ano? :) Ne!');
+		$name = strToCoolUrl('Vykřičníkem se nedá zaskočit!!! Nebo ano? :) Ne!');
 		$this->assertEqual($name, 'vykricnikem-se-neda-zaskocit-nebo-ano-ne');
 	}
 
 	function testSanitizeUrl()
 	{
-		$name = Strings::sanitizeurl('/first/second/third');
+		$name = strSanitizeurl('/first/second/third');
 		$this->assertEqual($name, 'first/second/third');
 
-		$name = Strings::sanitizeurl('/first/second/third/');
+		$name = strSanitizeurl('/first/second/third/');
 		$this->assertEqual($name, 'first/second/third');
 
-		$name = Strings::sanitizeurl('///first/second/third////');
+		$name = strSanitizeurl('///first/second/third////');
 		$this->assertEqual($name, 'first/second/third');
 
-		$name = Strings::sanitizeurl('first///second/third/');
+		$name = strSanitizeurl('first///second/third/');
 		$this->assertEqual($name, 'first/second/third');
 	}
 
 	function testTrim()
 	{
-		$name = Strings::ltrim('MyTest', 'My');
+		$name = strLeftTrim('MyTest', 'My');
 		$this->assertEqual($name, 'Test');
 
-		$name = Strings::ltrim('MyBigTest', 'MyB');
+		$name = strLeftTrim('MyBigTest', 'MyB');
 		$this->assertEqual($name, 'igTest');
 
-		$name = Strings::ltrim('Test', 'A');
+		$name = strLeftTrim('Test', 'A');
 		$this->assertEqual($name, 'Test');
 
-		$name = Strings::rtrim('MyTest', 'Test');
+		$name = strRightTrim('MyTest', 'Test');
 		$this->assertEqual($name, 'My');
 
-		$name = Strings::rtrim('MyBigTest', 'gTest');
+		$name = strRightTrim('MyBigTest', 'gTest');
 		$this->assertEqual($name, 'MyBi');
 
-		$name = Strings::rtrim('Test', 'A');
+		$name = strRightTrim('Test', 'A');
 		$this->assertEqual($name, 'Test');
 	}
 
