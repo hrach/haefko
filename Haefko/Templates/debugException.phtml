@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Haefko - your php5 framework
  *
@@ -11,7 +10,6 @@
  * @package     Haefko
  */
 
-
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
@@ -21,81 +19,58 @@
     <meta name="generator" content="Háefko - your php5 framework" />
     <title>Exception: <?= htmlspecialchars($exception->getMessage()) ?></title>
     <style type="text/css" media="screen">
-    body {
-        font-family: Calibri, sans-serif;
-        padding: 0;
-        margin: 0;
-    }
-
-    a {
-        color: #079fd8;
-        text-decoration: none
-    }
-
-    a:hover {
-        text-decoration: underline;
-    }
-
-    h1 {
-        background: #6F071E;
-        color: white;
-        font-size: 28px;
-        margin: 0;
-        padding: 15px 20px;
-    }
-
-    code {
-        display: block;
-        font-family: Consolas, 'Lucida Console', 'Monaco CE', fixed, monospace;
-        background: #EFF9FF;
-        border: 1px solid #86CAEF;
-        padding: 2px;
-        width: 850px;
-        overflow: auto;
-    }
-
-    span.line {
-        background: red;
-        position: absolute;
-        width: 850px;
-        height: 20px;
-        opacity: 0.2;
-        filter: alpha(opacity=20);
-        -khtml-opacity: 0.2;
-    }
+    body { background: #f6f6f6; font-family: Calibri, sans-serif; padding: 0; margin: 0; }
+    a { color: #6F071E; text-decoration: none; font-weight: bold; }
+    a:hover { text-decoration: underline; }
+    h1 { background: #6F071E; color: white; font-size: 28px; margin: 0; padding: 15px 20px; }
+    pre, code { font-family: Consolas, 'Lucida Console', 'Monaco CE', fixed, monospace; font-size: 14px; }
+    pre { background: white; border: 1px solid #dedede; padding: 2px; width: 850px; overflow: auto; }
+    span.line { color: black; margin: 0 4px; }
+    span.cur-line { background: #EFD1D1; }
     </style>
 </head>
 <body>
 <h1><?= $exception->getMessage(); ?></h1>
 <?php
-$i = 0;
+
 $trace = $exception->getTrace();
-
-
-foreach ($trace as $k => $item) {
-    if (!preg_match('#dibi|haefko#i', $item['file'])) {
-        $i = $k;
+foreach ($trace as $i => $item) {
+    if (!preg_match('#dibi|haefko#i', $item['file']))
         break;
-    }
 }
 
-$l = $trace[$i]['line'] - 1;
-$file = highlight_file($trace[$i]['file'], true);
-$file = preg_split('#<br />#', $file);
-$file[$l] = '<span class="line"></span>' . $file[$l];
-$file = implode('<br />', $file);
+$file  = explode('<br />', highlight_file($trace[$i]['file'], true));
+$line  = $trace[$i]['line'];
+$lines = strlen((string) count($file)) + 1;
+
+foreach ($file as $l => & $row) {
+    $row = str_replace("\n", '', $row);
+
+    if ($l == $line - 1) {
+        preg_match('#.*(<span.+>)#', $row, $match);
+        if (!empty($match[1]))
+                $match[1] = '</span>' . $match[1];
+        $row = '<span class="cur-line">' . strip_tags($row) . "</span>$match[1]";
+    }
+
+    $row = '<span class="line">' . str_pad($l + 1, $lines, " ", STR_PAD_LEFT) . ":</span>$row";
+}
+
+$file = implode("", $file);
+
 ?>
 
 <div style="padding: 10px 20px;">
     <br />
-    <p><?= $trace[$i]['file'] ?> (<?= $l ?>):</p>
-    <?= $file ?>
+    <strong>Soubor: </strong> <?= str_replace($_SERVER['DOCUMENT_ROOT'], '', str_replace('\\', '/', $trace[$i]['file'])) ?><br />
+    <strong>Řádek: </strong><?= $line ?>
+    <pre><?= $file ?></pre>
 
     <p>
-        Čas generování: <?= self::getTime() ?>ms<br />
-        Server: <?= htmlspecialchars($_SERVER['SERVER_SOFTWARE']) ?><br />
-        Vygenerováno: <?php echo date('d.m.Y, h.i') ?><br />
-        Powered by: <a href="http://haefko.programujte.com">Háefko</a>, <?= Application::$version ?><br />
+        Čas generování: <strong><?= self::getTime() ?>ms</strong><br />
+        Server: <strong><?= $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'] ?></strong><br />
+        Vygenerováno: <strong><?= date('d.m.Y, h.i') ?></strong><br />
+        Powered by: <a href="http://haefko.programujte.com">Háefko</a> v.<?= Application::$version ?><br />
     </p>
 </div>
 </body>

@@ -106,7 +106,7 @@ class L10n
      */
     public static function domain($name, $encoding = 'utf-8', $activate = true)
     {
-        $path = Application::getInstance()->getPath() . 'locale';
+        $path = Application::getInstance()->path . 'locale';
         bindtextdomain($name, $path);
         bind_textdomain_codeset($name, $encoding);
 

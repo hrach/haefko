@@ -17,21 +17,27 @@ require_once dirname(__FILE__) . '/../CustomHelper.php';
 
 
 /**
- * Js helper
+ * Javascriptový helper pro jednoduchou tvorbu; implementuje jQuery
  */
 class JsHelper extends CustomHelper
 {
 
+    /** @var string Cesta k js a css scriptum */
+    public $path  = 'design/jsTools/';
 
-
-    public $pathJs  = 'design/js/';
-    public $pathCss = 'design/css/';
-
+    /** @var string Javasriptovy kod */
     protected $js;
+
+    /** @var array Definice souboru ktere se nahraji pri pouziti metody; $method => array($files) */
     protected $files = array();
+
+    /** @var array Soubory js, ktere se includuji */
     protected $includeJs = array();
+
+    /** @var array Soubory css, ktere se includuji */
     protected $includeCss = array();
 
+    /** @var string */
     private $linkBy;
 
 
@@ -44,17 +50,18 @@ class JsHelper extends CustomHelper
     {
         parent::__construct();
 
+        $this->path = Config::read('jsHelper.path', $this->path);
         $this->files = array(
             'jquery' => array('jquery.js'),
-            'fancybox' => array('jquery.fancybox.js', 'jquery.fancybox.css'),
             'corner' => array('jquery.corner.js'),
-            'datepicker' => array('jquery.datepicker.js', 'date.js', 'jquery.datepicker.css'),
-            'textarearesizer' => array('jquery.textarearesizer.js', 'jquery.textarearesizer.css'),
-            'autocomplete' => array('jquery.autocomplete.js', 'jquery.autocomplete.css'),
-            'hfvalidate' => array('jquery.hf.validate.js'),
-            'rater' => array('jquery.rater.js', 'jquery.rater.css'),
-            'markitup' => array('jquery.markitup.js', 'jquery.markitup.css')
+            'datepicker' => array('jquery.datePicker.js', 'date.js', 'datePicker.css'),
+            'markitup' => array('jquery.markitup.js'),
+            'textarearesizer' => array('jquery.textarearesizer.js', 'textarearesizer.css'),
+            'shadowbox' => array('shadowbox.js'),
+            'hfvalidate' => array('jquery.hfvalidate.js'),
         );
+
+        array_merge($this->files, Config::read('jsHelper.files', array()));
     }
 
 
@@ -117,7 +124,7 @@ class JsHelper extends CustomHelper
 
 
     /**
-     * Vyrenderuje js kod
+     * Vyrenderuje js kod pro hlavicku
      * @return  string
      */
     public function render()
@@ -125,10 +132,10 @@ class JsHelper extends CustomHelper
         $code = '';
 
         foreach ($this->includeJs as $file)
-            $code .= "\t" . $this->controller->view->html->js($this->pathJs . $file);
+            $code .= "\t" . $this->controller->view->html->js($this->path . $file);
 
         foreach ($this->includeCss as $file)
-            $code .= "\t" . $this->controller->view->html->css($this->pathCss . $file);
+            $code .= "\t" . $this->controller->view->html->css($this->path . $file);
 
         if (!empty($this->js))
         $code .= "\t<script type=\"text/javascript\">\n\t//<![CDATA[\n"
@@ -140,6 +147,11 @@ class JsHelper extends CustomHelper
 
 
 
+    /**
+     * Prida surovy javasriptovy kod
+     * @param   string  kod
+     * @return  void
+     */
     public function raw($code)
     {
         if ($this->linkBy == '.')
@@ -151,21 +163,30 @@ class JsHelper extends CustomHelper
 
 
 
+    /**
+     * Selector
+     * @param   string  selector
+     * @return  JsHelper
+     */
     public function jquery($selector)
     {
-        if (!empty($selector)) {
-            if ($this->linkBy == '.')
-                $this->js .= ";\n";
+        if ($this->linkBy == '.')
+            $this->js .= ";\n";
 
-            $this->js .= "$('$selector')";
-            $this->linkBy = '.';
-        }
+        $this->js .= "$('$selector')";
+        $this->linkBy = '.';
 
         return $this;
     }
 
 
 
+    /**
+     * Magic method
+     * @param   string  jmeno metody
+     * @param   array   argumenty metody
+     * @return  JsHelper
+     */
     public function __call($name, $args)
     {
         if (isset($this->files[strtolower($name)]))

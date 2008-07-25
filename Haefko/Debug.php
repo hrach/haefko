@@ -33,11 +33,11 @@ class Debug
         $app = Application::getInstance();
 
         if (class_exists('Db', false))
-            $sql = Db::$debugSql;
+            $sql = Db::$sqls;
         else
             $sql = null;
 
-        require_once $app->getCorePath() . '../Templates/debugRibbon.phtml';
+        require_once $app->corePath . 'Templates/debugRibbon.phtml';
     }
 
 
@@ -74,7 +74,7 @@ class Debug
     {
         ob_clean();
         $app = Application::getInstance();
-        require_once $app->getCorePath() . '../Templates/debugException.phtml';
+        require_once $app->corePath . 'Templates/debugException.phtml';
     }
 
 

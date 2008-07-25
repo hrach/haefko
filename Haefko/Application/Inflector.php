@@ -27,12 +27,9 @@ class Inflector
 
 
 
-    public static function controllerFile($name, $namespace = false)
+    public static function controllerFile($class)
     {
-        if (!$namespace)
-            return 'controllers/' . strDash($name) . '.php';
-        else
-            return 'controllers/' . strDash($namespace) . '/' . strDash($name) . '.php';
+        return 'controllers/' . strDash($class) . '.php';
     }
 
 
@@ -44,12 +41,9 @@ class Inflector
 
 
 
-    public static function modelFile($name, $namespace = false)
+    public static function modelFile($class)
     {
-        if (!$namespace)
-            return 'models/' . strDash($name) . '.php';
-        else
-            return 'models/' . strDash($namespace) . '/' . strDash($name) . '.php';
+        return 'models/' . strDash($class) . '.php';
     }
 
 
@@ -63,14 +57,14 @@ class Inflector
 
     public static function helperFile($name)
     {
-        return 'helpers/' . strtolower($name) . '.php';
+        return 'helpers/' . strDash($name) . '.php';
     }
 
 
 
-    public static function actionName($name)
+    public static function actionName($name, $ajax = false)
     {
-        return strCamelize($name) . 'Action';
+        return strCamelize($name);
     }
 
 
