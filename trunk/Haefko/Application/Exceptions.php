@@ -23,10 +23,10 @@ class ApplicationException extends Exception
 
     public function __construct($error, $message = null)
     {
-        static $errors = array('controller', 'method', 'routing', 'view');
+        static $errors = array('controller', 'method', 'routing', 'view', 'helper', 'file');
 
         if (!in_array($error, $errors))
-            throw new Exception("Haefko: nepodporovany typ vyjimky ApplicationException $error!");
+            die("Exception: nepodporovany typ vyjimky '$error'.");
 
         $this->error = $error;
         parent::__construct($message);

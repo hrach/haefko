@@ -22,15 +22,25 @@ require_once dirname(__FILE__) . '/../Http.php';
 abstract class CustomController
 {
 
-
-
+    /** @var Application Reference na instanci aplikace */
     public $app;
+
+    /** @var View */
     public $view;
+
+    /** @var Model */
     public $model;
+
+    /** @var bool Je aplikace volána pøes Ajax? */
     public $ajax = false;
-    public $load = array();
+
+    /** @var array Pole s požadovanými helpery */
     public $helpers = array();
-    public $services = array('rss' => 'RssView');
+
+    /** @var array Pole s vazbami service => ViewClass */
+    protected $services = array(
+        'rss' => 'RssView'
+    );
 
 
 
@@ -44,11 +54,6 @@ abstract class CustomController
         $this->app = Application::getInstance();
         $this->ajax = Http::isAjax();
 
-        if (!$this->app->error) {
-            foreach ($this->load as $file)
-                Application::loadCore($file);
-        }
-
 
         // Nacteni view
 
@@ -57,31 +62,31 @@ abstract class CustomController
         elseif ($this->ajax)
             $viewClass = 'View';
 
-        Application::loadCore("Application/$viewClass");
+        $this->app->loadCore("Application/$viewClass");
         $this->view = new $viewClass($this);
 
 
         // Nacteni modelu
 
-        Application::loadCore('Application/Db');
+        $this->app->loadCore('Application/Db');
 
-        if (!Application::load('Model', 'model', array('model', ''), true)) {
+        if (!$this->app->loadFrameworkFile(Inflector::modelFile('Model'), false)) {
             $eval = true;
             eval ('class Model extends CustomModel {}');
         }
 
         $class = Inflector::modelClass(Router::$controller, Router::$namespace);
-        Application::load($class, 'model', array(Router::$controller, Router::$namespace), true);
+        $this->app->loadFrameworkFile(Inflector::modelFile($class), false);
 
-        if (!class_exists($class)) {
+        if (!class_exists($class, false)) {
             $class = Inflector::modelClass(Router::$controller, '');
-            Application::load($class, 'model', array(Router::$controller, ''), true);
+            $this->app->loadFrameworkFile(Inflector::modelFile($class), false);
         }
 
-        if (!class_exists($class) && !($this->app->error) && !isset($eval))
+        if (!class_exists($class, false) && !($this->app->error) && !isset($eval))
             $class = 'Model';
 
-        if (class_exists($class))
+        if (class_exists($class, false))
             $this->model = new $class($this);
     }
 
@@ -209,8 +214,10 @@ abstract class CustomController
     {
         $method = Inflector::actionName(Router::$action);
 
-        if ($this->ajax && method_exists(get_class($this), $method . 'Ajax'))
-            $method .= 'Ajax';
+        if ($this->ajax && method_exists(get_class($this), $method . 'AjaxAction'))
+            $method .= 'AjaxAction';
+        else
+            $method .= 'Action';
 
         $exists = method_exists(get_class($this), $method);
 

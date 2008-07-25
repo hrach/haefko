@@ -3,7 +3,7 @@
 /**
  * Haefko - your php5 framework
  *
- * @author      Jan Skrasek <skrasek.jan@gmail.com>
+ * @author      Jan Skrasek http://hrach.netuje.cz
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
  * @version     0.7
@@ -15,126 +15,110 @@
 /**
  * Trida Autoload nacita vsechny potrebne tridy pro beh aplikace
  */
-class Autoload
+final class Autoload
 {
 
+    /** @var array Pole s s povolenymi priponami */
+    public $exts = array('php');
 
+    /** @var string Jmeno souboru s cache */
+    public $cache = 'autoload.dat';
 
-    public $skipDirs = array('.svn', '.cvs');
-    public $skipFiles = array('\.phtml$', '\.html$');
-    public $cacheFile = './autoload.cache.dat';
+    /** @var bool Automaticky provest rebuild pri chybejici tride? */
+    public $autoRebuild = false;
 
-    protected $list = false;
-    protected $scanDirs = array();
+    /** @var bool Znovu vytvorit cache trid? */
+    public $rebuild = false;
 
-    private static $autoload = false;
+    /** @var array Pole kde klic je jmeno tridy a hodnota je jmeno souboru */
+    private $classes = array();
 
+    /** @var array Pole se sboury k preparsovani */
+    private $files = array();
 
-
-    /**
-     * Vrati instanci autoloadu
-     * @return  Autoload
-     */
-    public static function getInstance()
-    {
-        if (self::$autoload === false)
-            self::$autoload = new Autoload();
-
-        return self::$autoload;
-    }
+    /** @var array Pole adresaru, ktere se projdou a preparsuji */
+    private $dirs = array();
 
 
 
     /**
+     * Kontruktor
+     * Provede nastaveni podle konfigurace
      * Zaregistruje autoload
      * @return  void
      */
-    public function register()
+    final public function __construct()
     {
-        spl_autoload_register(array($this, 'loadHandler'));
-    }
+        if (class_exists('Config', false)) {
+            $this->exts = Config::read('Autoload.exts', $this->exts);
+            $this->cache = Application::getInstance()->path . Config::read('Autoload.cache', "temp/cache/{$this->cache}");
+            $this->autoRebuild = Config::read('Core.debug') > 0;
+        }
 
-
-
-    /**
-     * Prida adresar frameworku pro zaindexovani
-     * @return  Autoload
-     */
-    public function addFramework()
-    {
-        $this->scanDirs[] = dirname(__FILE__);
-        return $this;
-    }
-
-
-
-    /**
-     * Prida adresar aplikace pro zaindexovani
-     * @return  Autoload
-     */
-    public function addApplication()
-    {
-        if (class_exists('Application', false))
-            $this->addDir(Application::getInstance()->getPath());
-
-        return $this;
+        spl_autoload_register(array($this, 'autoloadHandler'));
     }
 
 
 
     /**
      * Prida predany adresar pro zaindexovani
-     * @param   string  cesta k adresari
-     * @return  Autoload
+     * @param   string  cesta
+     * @return  void
      */
-    public function addDir($dirPath)
+    public function addDir($path)
     {
-        if (file_exists($dirPath))
-            $this->scanDirs[] = $dirPath;
+        if (is_dir($path))
+            $this->dirs[] = $path;
         else
-            throw new Exception('Autoload: adresar neexistuje: ' . $dirPath);
-
-        return  $this;
+            throw new Exception("Autoload: adresar '$path' neexistuje.");
     }
 
 
 
     /**
-     * Handler pro autoload
+     * Nacte soubor obsahujici $class
      * @param   string  jmeno tridy
      * @return  void
      */
-    public function loadHandler($class)
+    public function autoloadHandler($class)
     {
-        if ($this->list == false)
-            $this->createClassList();
-
-        if (isset($this->list[$class]) && file_exists($this->list[$class]))
-            require_once $this->list[$class];
+        if (isset($this->classes[$class]) && file_exists($this->classes[$class]))
+            require_once $this->classes[$class];
+        elseif (!$this->rebuild && $this->autoRebuild)
+            $this->rebuild();
     }
-
 
 
 
     /**
-     * Vytvori seznam trid a jejich souboru
+     * Znovu vytvori cache seznamu trid a jejich souboru
      * @return  void
      */
-    private function createClassList()
+    public function rebuild()
     {
-        if (class_exists('Config', false))
-            $this->cacheFile = Config::read('Autoload.cache-file', Application::getInstance()->getPath(). 'temp/autoload.cache.dat');
+        $this->findClasses();
+        $this->rebuild = true;
 
-        if (file_exists($this->cacheFile)) {
-            $this->list = unserialize(file_get_contents($this->cacheFile));
-        } else {
-            $this->findClasses();
-
-            if (file_exists(dirname($this->cacheFile)))
-                file_put_contents($this->cacheFile, serialize($this->list));
-        }
+        if (is_dir(dirname($this->cache)))
+            file_put_contents($this->cache, serialize($this->classes));
+        else
+            throw new Exception("Autoload: adresar '" . dirname($this->cache) ."' neexistuje.");
     }
 
+
+
+    /**
+     * Nacte z cache seznam trid a jejich souboru
+     * @return  void
+     */
+    public function load()
+    {
+        if (file_exists($this->cache)) {
+            $this->classes = unserialize(file_get_contents($this->cache));
+        } else {
+            $this->rebuild();
+        }
+    }
 
 
 
@@ -144,12 +128,10 @@ class Autoload
      */
     private function findClasses()
     {
-        $files  = array();
+        foreach ($this->dirs as $dir)
+            $this->getFiles(new RecursiveDirectoryIterator($dir));
 
-        foreach ($this->scanDirs as $scanDir)
-            $this->getFiles(new RecursiveDirectoryIterator($scanDir), $files);
-
-        foreach ($files as $file)
+        foreach ($this->files as $file)
             $this->getClasses($file);
     }
 
@@ -158,22 +140,20 @@ class Autoload
     /**
      * Rekurzivni funkce pro najiti vsech souboru
      * @param   RecursiveDirectoryIterator  objekt adresare
-     * @param   array                       seznam souboru
      * @return  void
      */
-    private function getFiles(& $rdi, & $files)
+    private function getFiles(& $rdi)
     {
-        if (!is_object($rdi))
-            return;
+        $exts = '#\.(' . implode('|', $this->exts) . ')$#i';
 
         for ($rdi->rewind(); $rdi->valid(); $rdi->next()) {
             if ($rdi->isDot())
                 continue;
 
-            if ($rdi->isFile() && !in_array(substr(strrchr($rdi->getFilename(), '.'), 1), $this->skipFiles))
-                $files[] = $rdi->getPathname();
-            elseif($rdi->isDir() && !in_array($rdi->getFilename(), $this->skipDirs) && $rdi->hasChildren())
-                $this->getFiles($rdi->getChildren(), $files);
+            if ($rdi->isFile() && preg_match($exts, $rdi->getFilename()))
+                $this->files[] = $rdi->getPathname();
+            elseif($rdi->isDir() && preg_match('#^\.(svn|cvs)$#i', $rdi->getFilename()) && $rdi->hasChildren())
+                $this->getFiles($rdi->getChildren());
         }
     }
 
@@ -193,7 +173,7 @@ class Autoload
                 if ($token[0] == T_CLASS || $token[0] == T_INTERFACE) {
                     $catch = true;
                 } elseif ($token[0] == T_STRING && $catch) {
-                    $this->list[$token[1]] = $file;
+                    $this->classes[$token[1]] = $file;
                     $catch = false;
                 }
             }

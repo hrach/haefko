@@ -1,18 +1,11 @@
 <?php
 
-require_once 'Haefko/Application/Application.php';
+require_once 'Haefko/Application.php';
+$app = new Application();
 
-$app = Application::create();
+/* pouze pokud vyuzivate /app/extends */
+// $app->autoload();
 
-Application::loadCore('Autoload');
-$autoload = Autoload::getInstance();
-$autoload->addFramework()
-         ->addDir($app->getPath())
-         ->register();
-
-
-/*
-routing
-*/
+/* routing */
 
 $app->run();

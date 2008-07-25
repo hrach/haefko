@@ -81,7 +81,7 @@ class LayoutView extends View
      */
     public function renderElement($name)
     {
-        $file = $this->controller->app->getPath() . Inflector::elementFile($this->ext, $name);
+        $file = $this->controller->app->path . Inflector::elementFile($this->ext, $name);
 
         if (file_exists($file)) {
             extract($this->vars);
@@ -140,10 +140,10 @@ class LayoutView extends View
         $app = Application::getInstance();
 
         $layouts = array(
-            $app->getPath() . Inflector::layoutFile($this->ext, $this->layoutName, Router::$namespace, $this->themeName),
-            $app->getPath() . Inflector::layoutFile($this->ext, $this->layoutName, '', ''),
-            $app->getCorePath() . Inflector::layoutFile($this->ext, $this->layoutName, '', ''),
-            $app->getCorePath() . Inflector::layoutFile('phtml', 'layout', '', ''),
+            $app->path . Inflector::layoutFile($this->ext, $this->layoutName, Router::$namespace, $this->themeName),
+            $app->path . Inflector::layoutFile($this->ext, $this->layoutName, '', ''),
+            $app->corePath . Inflector::layoutFile($this->ext, $this->layoutName, '', ''),
+            $app->corePath . Inflector::layoutFile('phtml', 'layout', '', ''),
         );
 
         foreach ($layouts as $layout) {

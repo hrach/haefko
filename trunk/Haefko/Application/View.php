@@ -123,21 +123,8 @@ class View implements IView
     {
         $class = Inflector::helperClass($name);
 
-        if ($this->controller->app->autoload && !class_exists($class)) {
+        if (!class_exists($class))
             die("Haefko: nenalezen helper $class!");
-        } else {
-            $file = Inflector::helperFile($name);
-
-            $appFile = $this->controller->app->getPath() . $file;
-            $coreFile = $this->controller->app->getCorePath() . $file;
-
-            if (file_exists($appFile))
-                require_once $appFile;
-            elseif (file_exists($coreFile))
-                require_once $coreFile;
-            else
-                die("Haefko: nenalezen helper $class!");
-        }
 
         if (is_null($var))
             $var = strtolower($name);
@@ -311,23 +298,23 @@ class View implements IView
             if ($this->controller->ajax) {
                 $ajaxView = Inflector::viewFile("ajax.{$this->ext}", $this->viewName, Router::$namespace, $this->themeName, Router::$controller, !empty(Router::$service));
 
-                if (file_exists($app->getPath() . $ajaxView))
-                    return $app->getPath() . $ajaxView;
+                if (file_exists($app->path . $ajaxView))
+                    return $app->path . $ajaxView;
                 else
                     return false;
             } else {
                 $view = Inflector::viewFile($this->ext, $this->viewName, Router::$namespace, $this->themeName, Router::$controller, !empty(Router::$service));
 
-                if (file_exists($app->getPath() . $view))
-                    return $app->getPath() . $view;
+                if (file_exists($app->path . $view))
+                    return $app->path . $view;
                 else
                     throw new ApplicationException('view', $view);
             }
 
         } else {
 
-            $appView = $app->getPath() . Inflector::errorViewFile($this->ext, $this->viewName, '');
-            $coreView = $app->getCorePath() . Inflector::errorViewFile('phtml', $this->viewName, '');
+            $appView = $app->path . Inflector::errorViewFile($this->ext, $this->viewName, '');
+            $coreView = $app->corePath  . 'Application/' . Inflector::errorViewFile('phtml', $this->viewName, '');
 
             if (file_exists($appView))
                 return $appView;

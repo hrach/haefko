@@ -12,9 +12,8 @@
 
 
 
-require_once dirname(__FILE__) . '/../Components/dibi.compact.php';
+require_once dirname(__FILE__) . '/extends/dibi.compact.php';
 require_once dirname(__FILE__) . '/CustomModel.php';
-require_once dirname(__FILE__) . '/../Config.php';
 
 
 
@@ -24,9 +23,8 @@ require_once dirname(__FILE__) . '/../Config.php';
 class Db
 {
 
-
-
-    public static $debugSql = array();
+    /** @var array Debug provedenych sql dotazu */
+    public static $sqls = array();
 
 
 
@@ -57,7 +55,7 @@ class Db
     public static function sqlHandler($connection, $event, $arg)
     {
         if ($event == 'afterQuery')
-            self::$debugSql[] = array(
+            self::$sqls[] = array(
                 'sql' => dibi::$sql,
                 'time' => dibi::$elapsedTime,
                 'rows' => dibi::affectedRows(),
