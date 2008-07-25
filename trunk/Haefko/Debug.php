@@ -18,8 +18,7 @@
 class Debug
 {
 
-
-
+    /** @var float */
     public static $startTime;
 
 

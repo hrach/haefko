@@ -16,19 +16,25 @@
     <h1>CHYBA: Nenalezena třída controlleru</h1>
     <p>Zkontrolujte URL a routing, zda-li jste neudělali překlep.</p>
     <p>Pro soubor s controllerem využijte následující kostru:
-        <pre>
-        &lt;?php
+<pre>
+&lt;?php
 
-        class <?= $message ?> extends CustomController
-        {
 
-            public function <?= Router::$action ?>Action()
-            {
-                // váš kód
-            }
+class <?= $message ?> extends CustomController
+{
 
-        }
-        </pre>
+
+    public function <?= Router::$action ?>Action()
+    {
+        // váš kód
+    }
+
+
+}
+
+
+?&gt;
+</pre>
     </p>
     <p><strong>Poznámka:</strong> Po vypnutí ladícího režimu bude tato chyba nahrazena E404.</p>
 </div>
