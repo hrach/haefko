@@ -285,11 +285,17 @@ class View implements IView
      */
     public function render()
     {
-        $this->viewPath = $this->viewPathFactory();
-        if ($this->viewPath === false)
-            return;
+        if ($this->viewName === false)
+            $this->viewPath = false;
         else
+            $this->viewPath = $this->viewPathFactory();
+
+        if ($this->viewPath === false) {
+            return;
+        } else {
+            call_user_func(array($this->controller, 'prepareView'));
             return $this->parse($this->viewPath, $this->vars);
+        }
     }
 
 
@@ -317,7 +323,7 @@ class View implements IView
                 if (file_exists($app->path . $view))
                     return $app->path . $view;
                 else
-                    throw new ApplicationException('view', $view);
+                    throw new ApplicationException('missing-view', $view);
             }
 
         } else {

@@ -224,14 +224,12 @@ abstract class CustomController
         if ($exists)
             $this->view->view(Router::$action);
         elseif (!$this->app->error)
-            throw new ApplicationException('method', $method);
+            throw new ApplicationException('missing-method', $method);
 
         $this->view->loadHelpers();
 
         call_user_func(array($this, 'init'));
         if ($exists) call_user_func_array(array($this, $method), Router::$args);
-        call_user_func(array($this, 'prepareView'));
-        call_user_func(array($this, 'prepareLayout'));
 
         echo $this->view->render();
     }

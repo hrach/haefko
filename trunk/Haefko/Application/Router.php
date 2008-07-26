@@ -126,10 +126,12 @@ class Router
                     elseif ($match[2]{0} != '#')
                         $match[2] = '#^' . $match[2] . '$#';
 
-                    if (preg_match($match[2], $urlVal))
-                        $router[$match[1]] = $urlVal;
-                    else
+                    if (preg_match($match[2], $urlVal)) {
+                        if (!($match[2] == "#.*#" && empty($urlVal)))
+                            $router[$match[1]] = $urlVal;
+                    } else {
                         return false;
+                    }
                 } else {
                     if (!empty($urlVal))
                         $router[$value] = $urlVal;

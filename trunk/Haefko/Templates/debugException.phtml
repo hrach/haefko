@@ -34,8 +34,9 @@
 <?php
 
 $trace = $exception->getTrace();
+
 foreach ($trace as $i => $item) {
-    if (!preg_match('#dibi|haefko#i', $item['file']))
+    if (isset($item['file']) && !preg_match('#dibi|haefko#i', $item['file']))
         break;
 }
 

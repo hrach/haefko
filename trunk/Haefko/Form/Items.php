@@ -544,6 +544,18 @@ class FormCheckBoxItem extends FormItem
 
 
     /**
+     * Nastavi hodnotu vstupniho pole
+     * @param   mixed   hodnota
+     * @return  void
+     */
+    public function setValue($value)
+    {
+        $this->value = (bool) $value;
+    }
+
+
+
+    /**
      * Vrati html tag elementu vstupniho pole
      * @param   array   atributy tagu
      * @return  string
@@ -553,8 +565,8 @@ class FormCheckBoxItem extends FormItem
         $this->el['type']  = 'checkbox';
         $this->el['value'] = 'true';
 
-        if ($this->value)
-            $el['checked'] = 'checked';
+        if ((bool) $this->value)
+            $this->el['checked'] = 'checked';
 
         $this->el->addClass('checkbox');
         $this->el->setAttributes($attrs);

@@ -22,10 +22,7 @@ require_once dirname(__FILE__) . '/functions.php';
 class Config
 {
 
-
-
-    public static $spaces = "    ";
-
+    /** @var array konfigurace */
     private static $config = array();
 
 
@@ -38,31 +35,37 @@ class Config
      */
     public static function write($var, $val)
     {
-        if (!empty($var))
-            self::$config[$var] = $val;
+        if ($var == 'servers' && is_array($val)) {
+            if (isset($val[$_SERVER['SERVER_NAME']]))
+                self::multiWrite($val[$_SERVER['SERVER_NAME']]);
+            else
+                die("Haefko: Chybi klic '$serverName' v multi-serverove konfiguraci.");
+        } else {
+            $levels = explode('.', $var);
+            $level = & self::$config;
+
+            foreach ($levels as $name) {
+                if (!isset($level[$name]))
+                    $level[$name] = array();
+
+                $level = & $level[$name];
+            }
+
+            $level = $val;
+        }
     }
 
 
 
     /**
-     * Vybere se jeho odpovidaji klic (nazev domeny) z $configure
-     * Hodnota klice (pole) je dale zpracovano jako klasicka konfigurace
+     * Zpracuje hromadnou konfiguraci
      * @param   array   konfiguracni pole
      * @return  void
      */
     public static function multiWrite(array $configure)
     {
-        $serverName = $_SERVER['SERVER_NAME'];
-
-        if (self::read('Config.trim-www', true))
-            $serverName = strLeftTrim($serverName, 'www.');
-
-        if (isset($configure[$serverName]) && is_array($configure[$serverName])) {
-            foreach ($configure[$serverName] as $key => $val)
-                self::$config[$key] = $val;
-        } else {
-            die('Haefko: v multi-serverove konfiguraci chybi klic $serverName');
-        }
+        foreach ($configure as $key => $val)
+            self::write($key, $val);
     }
 
 
@@ -74,14 +77,7 @@ class Config
      */
     public static function load($fileName)
     {
-        $data = self::parseFile($fileName);
-
-        foreach ($data as $key => $val) {
-            if ($key == 'multi' && is_array($val))
-                self::multiWrite($val);
-            else
-                self::write($key, $val);
-        }
+        self::multiWrite(self::parseFile($fileName));
     }
 
 
@@ -95,10 +91,17 @@ class Config
      */
     public static function read($var, $default = false)
     {
-        if (isset(self::$config[$var]))
-            return self::$config[$var];
+        $levels = explode('.', $var);
+        $level = & self::$config;
 
-        return $default;
+        foreach ($levels as $name) {
+            if (isset($level[$name]))
+                $level = & $level[$name];
+            else
+                return $default;
+        }
+
+        return $level;
     }
 
 
@@ -114,7 +117,6 @@ class Config
 
 
 
-
     /**
      * Preparsuje yaml soubor (jen primitivni syntaxe!)
      * @param   string  cesta k souboru
@@ -123,7 +125,7 @@ class Config
     public static function parseFile($file)
     {
         $data = trim(file_get_contents($file));
-        $data = preg_replace("#\t#", self::$spaces, $data);
+        $data = preg_replace("#\t#", '    ', $data);
         $data = explode("\n", $data);
         return self::parseNode($data);
     }
@@ -137,29 +139,26 @@ class Config
      */
     protected static function parseNode($data)
     {
-        $len = strlen(self::$spaces);
         $array = array();
-        $skip = array();
 
-        foreach ($data as $line => $node) {
-            if (in_array($line, $skip)) continue;
+        for ($i = 0,$to = count($data); $i < $to; $i++) {
+            if (preg_match('#^([a-z0-9\-\.]+):(.*)$#Ui', trim($data[$i]), $match)) {
+                if (empty($match[2])) {
+                    $node = array();
 
-            if (preg_match('#^(.+):( ?array:)?\s*$#U', $node, $match)) {
-                $node = array();
-                $i = $line + 1;
+                    while (isset($data[++$i]) && substr($data[$i], 0, 4) == '    ')
+                        $node[] = substr($data[$i], 4);
 
-                while (isset($data[$i]) && substr($data[$i], 0, $len) == self::$spaces) {
-                    $node[] = substr($data[$i], $len);
-                    $skip[] = $i++;
-                }
-
-                if (isset($match[2]))
-                    $array[$match[1]] = $node;
-                else 
+                    --$i;
                     $array[$match[1]] = self::parseNode($node);
+                } else {
+                    if (preg_match('#\[[\'"](.+)[\'"](?:,\s[\'"](.+)[\'"])*\]#U', $match[2], $value))
+                        array_shift($value);
+                    else
+                        $value = trim(trim($match[2]), '\'"');
 
-            } elseif (preg_match('#^(.+):\s(.+)$#', $node, $match)) {
-                $array[$match[1]] = trim($match[2]);
+                    $array[$match[1]] = $value;
+                }
             }
         }
 

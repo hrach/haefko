@@ -56,7 +56,7 @@ class Db
     {
         if ($event == 'afterQuery')
             self::$sqls[] = array(
-                'sql' => dibi::$sql,
+                'sql' => htmlspecialchars(dibi::$sql),
                 'time' => dibi::$elapsedTime,
                 'rows' => dibi::affectedRows(),
             );

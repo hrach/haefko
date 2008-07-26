@@ -117,7 +117,7 @@ class FormCondition
 
             $rule = ($this->field instanceof FormCheckBoxItem) ? 'expression' : $item['rule'];
             $arg = $this->jsFieldArg($item['rule'], $item['arg']);
-            $js .= "if (!HFisValid('$rule', $value, $arg)) { valid = false; HFcreateErrorLabel('$id', '$item[message]'); }\n";
+            $js .= "if (!HFisValid('$rule', $value, $arg)) { valid = false; HFcreateErrorLabel('$id', '" . addslashes($item['message']) . "'); }\n";
         }
 
 
