@@ -25,10 +25,6 @@ require_once dirname(__FILE__) . '/Html.php';
 class Form implements ArrayAccess
 {
 
-
-
-    public static $counter = 0;
-
     const
         EQUAL      = 'equal',
         FILLED     = 'filled',
@@ -42,13 +38,31 @@ class Form implements ArrayAccess
         INARRAY    = 'inarray',
         NOTINARRAY = 'notinarray';
 
+    /** @var int */
+    public static $counter = 0;
+
+    /** @var bool Zapnout javascriptovou validaci? */
     public $js = true;
+
+    /** @var array Odeslans data */
     public $data;
+
+    /** @var string Jmeno formulare */
     public $name;
 
+    /** @var string Jmeno tlacitka, pomoci ktereho byl odeslan formular */
+    public $submitBy;
+
+    /** @var Html */
     private $el;
-    private $form;
+
+    /** @var array Konfigurace formulare */
+    private $form = array();
+
+    /** @var array Chyby vstupu */
     private $errors = array();
+
+    /** @var string */
     private $rawValidation;
 
 
@@ -257,7 +271,7 @@ class Form implements ArrayAccess
      */
     public function start($attrs = array())
     {
-        $jsTag              = null;
+        $jsValidation       = null;
         $this->el           = Html::element('form');
         $this->el['id']     = $this->name;
         $this->el['action'] = $this->form['url'];
@@ -316,28 +330,20 @@ class Form implements ArrayAccess
      * @param   string  jmeno odesilaciho tlacika
      * @return  bool
      */
-    public function isSubmit($button = 'submit')
+    public function isSubmit()
     {
-        foreach ($this->form['elements'] as $name => $item) {
-            if ($item instanceof FormFileItem && isset($_FILES[$this->name]['name'][$name]) && $_FILES[$this->name]['error'][$name] != 4) {
-                $this->data[$name] = $this->getFileData($name);
-                $this->value = & $this->data[$name]['name'];
-            } elseif(isset($_POST[$this->name][$name])) {
-                $value = $_POST[$this->name][$name];
-                if ($item->getEmptyValue() == $value)
-                    $value = '';
+        static $dataLoaded = false;
 
-                $this->data[$name] = $value;
-                $item->setValue($this->data[$name]);
-            }
+        if (!$dataLoaded) {
+            $dataLoaded = true;
+            $this->dataLoaded();
         }
 
-        if (isset($this->data[$button])) {
-            unset($this->data[$button]);
-            return true;
-        } else {
-            return false;
-        }
+        $buttons = func_get_args();
+        if (empty($buttons))
+            $buttons = array('submit');
+
+        return in_array($this->submitBy, $buttons);
     }
 
 
@@ -561,6 +567,27 @@ class Form implements ArrayAccess
             'tmp_name' => $files['tmp_name'][$name],
             'error' => $files['error'][$name]
         );
+    }
+
+
+
+    /**
+     * Nacte zaslana data
+     * @return  void
+     */
+    private function dataLoaded()
+    {
+        foreach ($this->form['elements'] as $name => $item) {
+            if ($item instanceof FormFileItem && isset($_FILES[$this->name]['name'][$name]) && $_FILES[$this->name]['error'][$name] != 4) {
+                $this->data[$name] = $this->getFileData($name);
+                $this->value = & $this->data[$name]['name'];
+            } elseif ($item instanceof FormSubmitItem && isset($_POST[$this->name][$name])) {
+                $this->submitBy = $name;
+            } elseif (isset($_POST[$this->name][$name])) {
+                $item->setValue($_POST[$this->name][$name]);
+                $this->data[$name] = $item->getvalue();
+            }
+        }
     }
 
 

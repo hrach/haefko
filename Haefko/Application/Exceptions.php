@@ -25,13 +25,13 @@ class ApplicationException extends Exception
 
     /**
      * Konstruktor
-     * @param   string  typ chyby (routing|missing-controller|missing-view|missing-helper|missing-file)
+     * @param   string  typ chyby (routing|missing-controller|missing-method|missing-view|missing-helper|missing-file)
      * @param   string  promenna pro view
      * @return  void
      */
     public function __construct($error, $message = null)
     {
-        static $errors = array('routing', 'missing-controller', 'missing-view', 'missing-helper', 'missing-file');
+        static $errors = array('routing', 'missing-controller', 'missing-method', 'missing-view', 'missing-helper', 'missing-file');
 
         if (!in_array($error, $errors))
             die("Exception: nepodporovany typ vyjimky '$error'.");
