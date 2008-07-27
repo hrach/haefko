@@ -167,9 +167,9 @@ abstract class CustomController
      * @param   bool    absolutni url
      * @return  string
      */
-    public function url($link, $absolute = false)
+    public function url($url, $absolute = false)
     {
-        $url = preg_replace('#\{url\}#', Router::getUrl(), $link);
+        $url = preg_replace('#\{url\}#', Router::getUrl(), $url);
         $url = preg_replace('#\{\:(\w+)\}#e', 'isset(Router::$args["\\1"]) ? Router::$args["\\1"] : "\\0"', $url);
         $url = preg_replace('#\{args\}#e', 'implode("/", Router::$args)', $url);
         $url = preg_replace_callback('#\{args!(.+)\}#', array($this, 'urlArgs'), $url);
@@ -190,15 +190,13 @@ abstract class CustomController
      * @param   mixed   bool/string - jedna se o jemnny argument/odstranic dany prefix
      * @return  mixed
      */
-    public function getArg($name, $default = false, $named = true)
+    public function getArg($variable, $default = null, $name = null)
     {
-        if (isset(Router::$args[$name])) {
-            if ($named === true)
-                return strLeftTrim(Router::$args[$name], "$name:");
-            elseif ($named === false)
-                return Router::$args[$name];
+        if (isset(Router::$args[$variable])) {
+            if (!empty($name))
+                return strLeftTrim(Router::$args[$variable], "$variable:");
             else
-                return strLeftTrim(Router::$args[$name], "$named:");
+                return strLeftTrim(Router::$args[$variable], "$name:");
         } else {
             return $default;
         }

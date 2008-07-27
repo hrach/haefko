@@ -254,7 +254,6 @@ final class Application
         if (!($exception instanceof ApplicationException || Config::read('Core.debug') == 0)) {
             Debug::exceptionHandler($exception);
         } else {
-
             $this->controller = new Controller();
 
             if ($exception instanceof ApplicationException) {

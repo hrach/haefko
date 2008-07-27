@@ -75,27 +75,6 @@ class LayoutView extends View
 
 
     /**
-     * Naètení externího kodu
-     * @param   string  jmeno souboru bez pripony
-     * @return  void
-     */
-    public function renderElement($name)
-    {
-        $file = $this->controller->app->path . Inflector::elementFile($this->ext, $name);
-
-        if (file_exists($file)) {
-            extract($this->vars);
-            $base = $this->base;
-            $controller = $this->controller;
-            include $file;
-        } else {
-            die("Haefko: nenalezena sablona elementu $file!");
-        }
-    }
-
-
-
-    /**
      * Vytvori tlacitko v zavislosti na systemovem routingu s moznosti js potvrzeni
      * @param   string  url
      * @param   string  text odkazu

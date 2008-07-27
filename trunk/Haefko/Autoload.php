@@ -51,7 +51,7 @@ final class Autoload
     {
         if (class_exists('Config', false)) {
             $this->exts = Config::read('Autoload.exts', $this->exts);
-            $this->cache = Application::getInstance()->path . Config::read('Autoload.cache', "temp/cache/{$this->cache}");
+            $this->cache = Config::read('Autoload.cache', Application::getInstance()->path . "temp/cache/{$this->cache}");
             $this->autoRebuild = Config::read('Core.debug') > 0;
         }
 

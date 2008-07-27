@@ -211,7 +211,7 @@ class HtmlHelper extends CustomHelper
      */
     public function powered()
     {
-        echo 'Powered by <a href="http://haefko.programujte.com">Haefko</a>';
+        echo '<a href="http://haefko.programujte.com"><img src="http://haefko.programujte.com/design/powered.png" style="border: 0;margin: 2px 4px -3px 4px;" alt="Powered by Haefko"></a>';
     }
 
 

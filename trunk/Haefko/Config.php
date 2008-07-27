@@ -36,8 +36,13 @@ class Config
     public static function write($var, $val)
     {
         if ($var == 'servers' && is_array($val)) {
-            if (isset($val[$_SERVER['SERVER_NAME']]))
-                self::multiWrite($val[$_SERVER['SERVER_NAME']]);
+            $sn = $_SERVER['SERVER_NAME'];
+
+            if (self::read('Config.www', true))
+                $sn = strLeftTrim($sn, 'www.');
+
+            if (isset($val[$sn]))
+                self::multiWrite($val[$sn]);
             else
                 die("Haefko: Chybi klic '$serverName' v multi-serverove konfiguraci.");
         } else {
