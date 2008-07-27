@@ -2,11 +2,13 @@
 
 $startTime = microtime(true);
 
+require_once '../Haefko/Debug.php';
 require_once '../Haefko/Application/Router.php';
 
 echo Http::getRequestUrl() . '<br>';
 
-Router::connect(':controller/:action{}/*');
+Router::connect('/:controller{download}/:file');
+Debug::dump(Router::$routing);
 
 //Router::connect('/:lang{cs|en}/:action{show|delete|edit}/:id', array('controller' => 'codes'));
 //Router::connect('/:lang{cs|en}/:action{add|}', array('action' => 'list', 'controller' => 'codes'));

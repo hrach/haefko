@@ -160,6 +160,26 @@ class View implements IView
 
 
     /**
+     * Načtení externího kodu
+     * @param   string  jmeno souboru bez pripony
+     * @return  void
+     */
+    public function renderSnippet($name)
+    {
+        $file = $this->controller->app->path . Inflector::elementFile($this->ext, $name);
+
+        if (file_exists($file)) {
+            extract($this->vars);
+            $controller = $this->controller;
+            include $file;
+        } else {
+            die("Haefko: nenalezena sablona elementu $file!");
+        }
+    }
+
+
+
+    /**
      * Vytvori odkaz v zavislosti na systemovem routingu
      * @param   string  url
      * @param   string  text odkazu
@@ -353,7 +373,6 @@ class View implements IView
     {
         extract($parsedVars);
         $controller = $this->controller;
-        $base = $this->base;
 
         include $parsedFile;
         return ob_get_clean();

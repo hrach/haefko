@@ -102,19 +102,19 @@ class Session
         if (function_exists('ini_set')) {
             ini_set('session.use_cookies', 1);
 
-            $name    = 'hf-session';
-            $expires = 3600;
-            $path    = Http::$baseUri;
-            $domain  = Http::getDomain();
+            $name  = 'haefko-session';
+            $lifeTime = 259200; // 3 days
+            $path = Http::$baseUri;
+            $domain = Http::$domain;
 
             if (class_exists('Config', false)) {
                 if (Config::read('Session.temp') !== false)
                     ini_set('session.save_path', Config::read('Session.temp'));
 
-                $name    = Config::read('Session.name', $name);
-                $expires = Config::read('Session.expires', $expires);
-                $path    = config::read('Session.path', $path);
-                $domain  = config::read('Session.domain', $domain);
+                $name = Config::read('Session.name', $name);
+                $lifeTime = Config::read('Session.lifeTime', $lifeTime);
+                $path = config::read('Session.path', $path);
+                $domain = config::read('Session.domain', $domain);
             }
 
             if (substr_count($domain, ".") == 1)
@@ -123,7 +123,7 @@ class Session
                 $domain = preg_replace ('/^([^.])*/i', null, $domain);
 
             ini_set('session.name', $name);
-            ini_set('session.cookie_lifetime', $expires);
+            ini_set('session.cookie_lifetime', $lifeTime);
             ini_set('session.cookie_path', $path);
             ini_set('session.cookie_domain', $domain);
         }

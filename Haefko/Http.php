@@ -22,9 +22,13 @@ require_once dirname(__FILE__) . '/functions.php';
 class Http
 {
 
+    /** @var string ServerName */
+    public static $domain;
 
-
+    /** @var string */
     public static $serverUri;
+
+    /** @var string Relativné url vztazmo k serveru */
     public static $baseUri;
 
 
@@ -86,17 +90,6 @@ class Http
     public static function getRequestMethod()
     {
         return strtolower($_SERVER['REQUEST_METHOD']);
-    }
-
-
-
-    /**
-     * Vrati domenove jmeno / jmeno serveru
-     * @return  string
-     */
-    public static function getDomain()
-    {
-        return $_SERVER['SERVER_NAME'];
     }
 
 
@@ -191,6 +184,7 @@ class Http
     {
         $url = urldecode($_SERVER['REQUEST_URI']);
         $url = strLeftTrim($url, dirname($_SERVER['SCRIPT_NAME']));
+        $url = strLeftTrim($url, '/' . basename($_SERVER['SCRIPT_NAME']));
 
         return trim($url, '/\\');
     }
@@ -200,6 +194,7 @@ class Http
     public static function initialize()
     {
         self::sanitizeData();
+        self::$domain = $_SERVER['SERVER_NAME'];
         self::$baseUri = self::getBaseUri();
         self::$serverUri = self::getServerUri();
     }
@@ -229,7 +224,7 @@ class Http
      */
     private static function getServerUri()
     {
-        return 'http' . (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] ? 's' : '') . '://' . self::getDomain();
+        return 'http' . (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] ? 's' : '') . '://' . self::$domain;
     }
 
 

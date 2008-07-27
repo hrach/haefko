@@ -61,7 +61,7 @@ class JsHelper extends CustomHelper
             'hfvalidate' => array('jquery.hfvalidate.js'),
         );
 
-        array_merge($this->files, Config::read('jsHelper.files', array()));
+        $this->files = array_merge($this->files, Config::read('jsHelper.files', array()));
     }
 
 
@@ -170,6 +170,8 @@ class JsHelper extends CustomHelper
      */
     public function jquery($selector)
     {
+        $this->need('jquery');
+
         if ($this->linkBy == '.')
             $this->js .= ";\n";
 

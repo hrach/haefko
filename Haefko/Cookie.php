@@ -37,15 +37,20 @@ class Cookie
 
 
 
-    public static function write($var, $val, $path = null, $domain = null)
+    public static function write($var, $val, $path = null, $domain = null, $expires = null)
     {
         self::checkHeaders();
 
-        $expires = 3600;
-        if (class_exists('Config', false))
-            $expires = Config::read('Cookie.expires', $expires);
+        if (is_null($expires)) {
+            $expires = 259200; // 3 days
 
-        setcookie($var, $val, time() + $expires, $path, $domain);
+            if (class_exists('Config', false))
+                $expires = Config::read('Cookie.lifeTime', $expires);
+
+            $expires += time();
+        }
+
+        setcookie($var, $val, $expires, $path, $domain);
     }
 
 
