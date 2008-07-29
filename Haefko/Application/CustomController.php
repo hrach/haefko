@@ -34,7 +34,7 @@ abstract class CustomController
     /** @var bool Je aplikace volána pøes Ajax? */
     public $ajax = false;
 
-    /** @var array Pole s požadovanými helpery */
+    /** @var array Pole s pozadovanými helpery */
     public $helpers = array();
 
     /** @var array Pole s vazbami service => ViewClass */
