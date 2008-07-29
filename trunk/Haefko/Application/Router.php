@@ -101,10 +101,12 @@ class Router
 
         if (isset($rule[count($rule) - 1]) && $rule[count($rule) - 1] == '*') {
             array_pop($rule);
-            $i = 1;
+            $i = 0;
 
-            while (count($rule) < count(self::$url))
-                $rule[] = ":$i++";
+            while (count($rule) < count(self::$url)) {
+                $rule[] = ":$i";
+                ++$i;
+            }
         }
 
         if (count($rule) < count(self::$url))
@@ -122,8 +124,7 @@ class Router
                     if (empty($match[2]))
                         $match[2] = '#.*#';
                     elseif ($match[2]{0} != '#')
-                        $match[2] = '/^' . preg_quote($match[2]) . '$/i';
-
+                        $match[2] = "#^$match[2]$#i";
 
                     if (preg_match($match[2], $urlVal)) {
                         if (!($match[2] == "#.*#" && empty($urlVal)))

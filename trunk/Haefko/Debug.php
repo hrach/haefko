@@ -70,7 +70,7 @@ class Debug
      */
     public static function exceptionHandler(Exception $exception)
     {
-        ob_clean();
+        @ob_clean();
         $app = Application::getInstance();
         require_once $app->corePath . 'Templates/debugException.phtml';
     }

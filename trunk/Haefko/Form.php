@@ -493,7 +493,6 @@ class Form implements ArrayAccess
 
     /**
      * Array-access pro ulozeni objektu vstupniho pole
-     * Nevolejte primo!
      * @return  void
      */
     public function offsetSet($key, $value)
@@ -505,7 +504,6 @@ class Form implements ArrayAccess
 
     /**
      * Array-access pro cteni objektu vstupniho pole
-     * Nevolejte primo!
      * @return  FormItem
      */
     public function offsetGet($key)
@@ -518,7 +516,6 @@ class Form implements ArrayAccess
 
     /**
      * Array-access pro zruseni objektu vstupniho pole
-     * Nevolejte primo!
      * @return  void
      */
     public function offsetUnset($key)
@@ -531,7 +528,6 @@ class Form implements ArrayAccess
 
     /**
      * Array-access pro zjiteni existence objektu vstupniho pole
-     * Nevolejte primo!
      * @return  void
      */
     public function offsetExists($key)
