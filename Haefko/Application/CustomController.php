@@ -17,7 +17,7 @@ require_once dirname(__FILE__) . '/../Http.php';
 
 
 /**
- * Zakladní trida CustomController, od ni musi byt odvozeny vsechny controllery
+ * Zakladni trida CustomController, od ni musi byt odvozeny vsechny controllery
  */
 abstract class CustomController
 {
@@ -31,10 +31,10 @@ abstract class CustomController
     /** @var Model */
     public $model;
 
-    /** @var bool Je aplikace volána pøes Ajax? */
+    /** @var bool Je aplikace volana pøes Ajax? */
     public $ajax = false;
 
-    /** @var array Pole s pozadovanými helpery */
+    /** @var array Pole s pozadovanymi helpery */
     public $helpers = array();
 
     /** @var array Pole s vazbami service => ViewClass */
@@ -193,7 +193,7 @@ abstract class CustomController
     public function getArg($variable, $default = null, $name = null)
     {
         if (isset(Router::$args[$variable])) {
-            if (!empty($name))
+            if (empty($name))
                 return strLeftTrim(Router::$args[$variable], "$variable:");
             else
                 return strLeftTrim(Router::$args[$variable], "$name:");
