@@ -168,6 +168,22 @@ class Router
 
 
 
+
+    public function rewrite($route, $to)
+    {
+        if (self::connect($route)) {
+            $to = preg_replace('#\{\:(namespace|controller|action)\}#e', 'self::${"\\1"}', $to);
+            $to = preg_replace('#\{\:(\w+)\}#e', 'isset(self::$args["\\1"]) ? self::$args["\\1"] : "\\0"', $to);
+            Http::redirect(Http::$serverUri . Http::$baseUri . strSanitizeUrl($to), 300);
+            exit;
+        }
+
+        return false;
+    }
+
+
+
+
 }
 
 
