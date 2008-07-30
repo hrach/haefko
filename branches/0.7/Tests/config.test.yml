@@ -1,0 +1,8 @@
+Core.debug: 1
+servers:
+    localhost:
+        Core.debug: 1
+    	Db.connection:
+	        driver: mysqli
+            host: localhost
+        Array: ['One', "Two"]

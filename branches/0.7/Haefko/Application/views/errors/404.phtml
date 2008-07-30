@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * Haefko - your php5 framework
+ *
+ * @author      Jan Skrasek <skrasek.jan@gmail.com>
+ * @copyright   Copyright (c) 2008, Jan Skrasek
+ * @link        http://hf.programujte.com
+ * @version     0.7
+ * @package     HF
+ */
+
+?>
+<?php $this->title = 'Stránka nebyla nenalezena' ?>
+<div class="error">
+    <h1>Stránka neexistuje</h1>
+    <p>Omlouváme se Vám, ale Vámi požadovaná stránka nebyla na serveru nelazena.</p>
+    <p>Při Vašem požadavku mohly nastat následující problémy:
+        <ul>
+            <li>Stránka na serveru neexistuje</li>
+            <li>Stránka byla na server přesunuta nebo zrušena</li>
+            <li>Nenabízíme vámi požadovanou službu</li>
+        </ul>
+    </p>
+    <p>Pro novou navigaci pokračujte na <?= $this->link('', 'úvodní stránku') ?>.</p>
+    <p>Pokud jste přesvědčeni, že zobrazení této chyby je nedopatření, kontaktujte, prosím, autora.</p>
+</div>
