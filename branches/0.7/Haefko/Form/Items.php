@@ -294,7 +294,7 @@ class FormTextItem extends FormItem
     public function element($attrs = array())
     {
         $this->el['type']  = 'text';
-        $this->el['value'] = empty($this->value) ? $this->empty : $this->value;
+        $this->el['value'] = empty($this->value) && $this->value !== '0' ? $this->empty : $this->value;
 
         $this->el->addClass('text');
         $this->el->setAttributes($attrs);

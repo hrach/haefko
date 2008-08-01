@@ -70,7 +70,7 @@ abstract class CustomController
 
         $this->app->loadCore('Application/Db');
 
-        if (!$this->app->loadFrameworkFile(Inflector::modelFile('Model'), false)) {
+        if (!class_exists('Model') && !$this->app->loadFrameworkFile(Inflector::modelFile('Model'), false)) {
             $eval = true;
             eval ('class Model extends CustomModel {}');
         }
@@ -210,8 +210,9 @@ abstract class CustomController
      */
     public function render()
     {
-        $method = Inflector::actionName(Router::$action);
+        call_user_func(array($this, 'init'));
 
+        $method = Inflector::actionName(Router::$action);
         if ($this->ajax && method_exists(get_class($this), $method . 'AjaxAction'))
             $method .= 'AjaxAction';
         else
@@ -226,7 +227,6 @@ abstract class CustomController
 
         $this->view->loadHelpers();
 
-        call_user_func(array($this, 'init'));
         if ($exists) call_user_func_array(array($this, $method), Router::$args);
 
         echo $this->view->render();
