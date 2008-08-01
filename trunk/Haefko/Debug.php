@@ -21,6 +21,10 @@ class Debug
     /** @var float */
     public static $startTime;
 
+    /** @var array Log sql */
+    private static $sqls = array();
+
+
 
 
     /**
@@ -31,9 +35,7 @@ class Debug
     {
         $app = Application::getInstance();
 
-        $sql = array();
-        if (class_exists('Db', false))
-            $sql = Db::$sqls;
+        $sql = self::$sqls;
 
         require_once $app->corePath . 'Templates/debugToolbar.phtml';
     }
@@ -70,9 +72,20 @@ class Debug
      */
     public static function exceptionHandler(Exception $exception)
     {
-        @ob_clean();
+        //@ob_clean();
         $app = Application::getInstance();
         require_once $app->corePath . 'Templates/debugException.phtml';
+    }
+
+
+
+    public static function queryHandler($query)
+    {
+        self::$sqls[] = array(
+            'sql' => $query['sql'],
+            'time' => '',
+            'rows' => $query['result']->affectedRows()
+        );
     }
 
 
@@ -117,3 +130,4 @@ class Debug
 
 
 Debug::$startTime = microtime(true);
+Event::add('Db.afterQuery', array('Debug', 'queryHandler'));

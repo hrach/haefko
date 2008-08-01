@@ -6,7 +6,7 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.7
+ * @version     0.8
  * @package     Haefko
  */
 
@@ -18,19 +18,18 @@
 class CustomHelper
 {
 
+	/** @var CustomController */
+	protected $controller;
 
 
-    protected $controller;
 
-
-
-    /**
-     * Konstruktor
-     */
-    public function __construct()
-    {
-        $this->controller = Application::getInstance()->controller;
-    }
+	/**
+	 * Konstruktor
+	 */
+	public function __construct()
+	{
+		$this->controller = Application::getInstance()->controller;
+	}
 
 
 

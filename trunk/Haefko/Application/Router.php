@@ -6,13 +6,9 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.7
+ * @version     0.8
  * @package     Haefko
  */
-
-
-
-require_once dirname(__FILE__) . '/../Http.php';
 
 
 
@@ -22,164 +18,180 @@ require_once dirname(__FILE__) . '/../Http.php';
 class Router
 {
 
+	/** @var array Rozparsovane url na framgenty */
+	public static $url = array();
 
+	/** @var string */
+	public static $namespace;
 
-    public static $url = array();
-    public static $namespace;
-    public static $controller;
-    public static $action;
-    public static $service;
-    public static $args = array();
-    public static $routing = false;
+	/** @var string */
+	public static $controller;
 
+	/** @var string */
+	public static $action;
 
+	/** @var string */
+	public static $service;
 
-    /**
-     * Naparsuje url pro dalsi zpracovani
-     */
-    public static function __staticConstruct()
-    {
-        self::$url = strUrlToArray(Http::getRequestUrl());
-    }
+	/** @var array */
+	public static $args = array();
 
-
-
-    /**
-     * Vrati stavajici URL
-     * @return  string
-     */
-    public static function getUrl()
-    {
-        static $url;
-
-        if (empty($url))
-            $url = Http::getRequestUrl();
-
-        return $url;;
-    }
+	/** @var bool Probehl jiz routing? */
+	public static $routing = false;
 
 
 
-    /**
-     * Prida sluzbu pro renderovani alternativniho obsahu
-     * @param   string  jmeno sluzby
-     * @return  bool
-     */
-    public static function addService($name)
-    {
-        $i = count(self::$url) - 1;
-
-        if (isset(self::$url[$i]) && self::$url[$i] == $name) {
-            self::$service = strtolower($name);
-            array_pop(self::$url);
-            return true;
-        }
-
-        return false;
-    }
+	/**
+	 * Naparsuje url pro dalsi zpracovani
+	 */
+	public static function __staticConstruct()
+	{
+		self::$url = strUrlToArray(Http::getRequestUrl());
+	}
 
 
 
-    /**
-     * Pripoji se k url
-     * @param   string  routovaci vyraz
-     * @param   array   defaultni hodnoty
-     * @return  bool
-     */
-    public static function connect($route, array $defaults = array())
-    {
-        if (self::$routing)
-            return false;
+	/**
+	 * Vrati stavajici URL
+	 * @return  string
+	 */
+	public static function getUrl()
+	{
+		static $url;
 
-        $router = array(
-            'namespace' => '',
-            'controller' => '',
-            'action' => ''
-        );
+		if (empty($url))
+			$url = Http::getRequestUrl();
 
-        $rule = strUrlToArray($route);
-
-        if (isset($rule[count($rule) - 1]) && $rule[count($rule) - 1] == '*') {
-            array_pop($rule);
-            $i = 0;
-
-            while (count($rule) < count(self::$url)) {
-                $rule[] = ":$i";
-                ++$i;
-            }
-        }
-
-        if (count($rule) < count(self::$url))
-            return false;
-
-        foreach ($rule as $x => $value) {
-            if (!isset(self::$url[$x]))
-                $urlVal = '';
-            else
-                $urlVal = self::$url[$x];
-
-            if (!empty($value) && $value{0} == ':') {
-                $value = substr($value, 1);
-                if (preg_match('#(.+){(.*)}#U', $value, $match)) {
-                    if (empty($match[2]))
-                        $match[2] = '#.*#';
-                    elseif ($match[2]{0} != '#')
-                        $match[2] = "#^$match[2]$#i";
-
-                    if (preg_match($match[2], $urlVal)) {
-                        if (!($match[2] == "#.*#" && empty($urlVal)))
-                            $router[$match[1]] = $urlVal;
-                        else
-                            break;
-                    } else {
-                        return false;
-                    }
-                } else {
-                    if (!empty($urlVal))
-                        $router[$value] = $urlVal;
-                    else
-                        return false;
-                }
-            } else {
-                if ($value != $urlVal)
-                    return false;
-            }
-        }
-
-
-        foreach ($defaults as $key => $default) {
-            if (empty($router[$key]))
-                $router[$key] = $default;
-        }
-
-        if (empty($router['action']))
-            $router['action'] = 'index';
-
-        self::$namespace = strtolower($router['namespace']);
-        self::$controller = strtolower($router['controller']);
-        self::$action = strtolower($router['action']);
-
-        unset($router['namespace'], $router['controller'], $router['action']);
-
-        self::$args = $router;
-        self::$routing = true;
-        return true;
-    }
+		return $url;;
+	}
 
 
 
+	/**
+	 * Prida sluzbu pro renderovani alternativniho obsahu
+	 * @param   string  jmeno sluzby
+	 * @return  bool
+	 */
+	public static function addService($name)
+	{
+		$i = count(self::$url) - 1;
 
-    public function rewrite($route, $to)
-    {
-        if (self::connect($route)) {
-            $to = preg_replace('#\{\:(namespace|controller|action)\}#e', 'self::${"\\1"}', $to);
-            $to = preg_replace('#\{\:(\w+)\}#e', 'isset(self::$args["\\1"]) ? self::$args["\\1"] : "\\0"', $to);
-            Http::redirect(Http::$serverUri . Http::$baseUri . strSanitizeUrl($to), 300);
-            exit;
-        }
+		if (isset(self::$url[$i]) && self::$url[$i] == $name) {
+			self::$service = strtolower($name);
+			array_pop(self::$url);
+			return true;
+		}
 
-        return false;
-    }
+		return false;
+	}
+
+
+
+	/**
+	 * Pripoji se k url
+	 * @param   string  routovaci vyraz
+	 * @param   array   defaultni hodnoty
+	 * @return  bool
+	 */
+	public static function connect($route, array $defaults = array())
+	{
+		if (self::$routing)
+			return false;
+
+		$router = array(
+			'namespace' => '',
+			'controller' => '',
+			'action' => ''
+		);
+
+		$rule = strUrlToArray($route);
+
+		if (isset($rule[count($rule) - 1]) && $rule[count($rule) - 1] == '*') {
+			array_pop($rule);
+			$i = 0;
+
+			while (count($rule) < count(self::$url)) {
+				$rule[] = ":$i";
+				++$i;
+			}
+		}
+
+		if (count($rule) < count(self::$url))
+			return false;
+
+		foreach ($rule as $x => $value) {
+			if (!isset(self::$url[$x]))
+				$urlVal = '';
+			else
+				$urlVal = self::$url[$x];
+
+			if (!empty($value) && $value{0} == ':') {
+				$value = substr($value, 1);
+				if (preg_match('#(.+){(.*)}#U', $value, $match)) {
+					if (empty($match[2]))
+						$match[2] = '#.*#';
+					elseif ($match[2]{0} != '#')
+						$match[2] = "#^$match[2]$#i";
+
+					if (preg_match($match[2], $urlVal)) {
+						if (!($match[2] == "#.*#" && empty($urlVal)))
+							$router[$match[1]] = $urlVal;
+						else
+							break;
+					} else {
+						return false;
+					}
+				} else {
+					if (!empty($urlVal))
+						$router[$value] = $urlVal;
+					else
+						return false;
+				}
+			} else {
+				if ($value != $urlVal)
+					return false;
+			}
+		}
+
+
+		foreach ($defaults as $key => $default) {
+			if (empty($router[$key]))
+				$router[$key] = $default;
+		}
+
+		if (empty($router['action']))
+			$router['action'] = 'index';
+
+		self::$namespace = strtolower($router['namespace']);
+		self::$controller = strtolower($router['controller']);
+		self::$action = strtolower($router['action']);
+
+		unset($router['namespace'], $router['controller'], $router['action']);
+
+		self::$args = $router;
+		self::$routing = true;
+		return true;
+	}
+
+
+
+	/**
+	 * Presmeruje ze zadane routy na nove url
+	 * @param   string  routa
+	 * @param   string  nove url: test/{:arg)/{:controller}
+	 * @return  bool
+	 */
+	public function rewrite($route, $to)
+	{
+		if (self::connect($route)) {
+			$to = preg_replace('#\{\:(namespace|controller|action)\}#e', 'self::${"\\1"}', $to);
+			$to = preg_replace('#\{\:(\w+)\}#e', 'isset(self::$args["\\1"]) ? self::$args["\\1"] : "\\0"', $to);
+			Http::redirect(Http::$serverUri . Http::$baseUri . strSanitizeUrl($to), 300);
+			exit;
+		}
+
+		return false;
+	}
 
 
 

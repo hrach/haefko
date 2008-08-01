@@ -14,10 +14,13 @@
 
 ob_start();
 require_once dirname(__FILE__) . '/Config.php';
+require_once dirname(__FILE__) . '/Http.php';
+require_once dirname(__FILE__) . '/Event.php';
 require_once dirname(__FILE__) . '/Application/Exceptions.php';
 require_once dirname(__FILE__) . '/Application/Inflector.php';
 require_once dirname(__FILE__) . '/Application/Router.php';
 require_once dirname(__FILE__) . '/Application/CustomController.php';
+require_once dirname(__FILE__) . '/Application/CustomModel.php';
 require_once dirname(__FILE__) . '/Application/View.php';
 
 
@@ -290,10 +293,10 @@ final class Application
             'Debug' => 'Debug',
             'Form' => 'Form',
             'Html' => 'Html',
-            'Db' => 'Application/Db',
+            'Db' => 'Db',
             'L10n' => 'Application/L10n',
             'LayoutView' => 'Application/LayoutView',
-            'RssView' => 'Application/RssView'
+            'RssFeedView' => 'Application/RssFeedView'
         );
 
         if (isset($core[$class]))

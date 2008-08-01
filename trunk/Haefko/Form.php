@@ -78,10 +78,10 @@ class Form implements ArrayAccess
         if ($internalUrl === true)
             $url = Application::getInstance()->controller->url($url);
 
-        if ($name == 'form' && self::$counter == 0)
+        if ($name == 'form' && self::$counter++ == 0)
             $this->name = 'form';
         elseif ($name == 'form')
-            $this->name = 'form' . ++self::$counter;
+            $this->name = 'form' . self::$counter++;
         else
             $this->name = $name;
 
@@ -449,7 +449,7 @@ class Form implements ArrayAccess
         $list = "<ul class=\"errors\">\n";
         foreach ($this->errors as $error) {
             if (!empty($error[0]))
-                $list .= "<li><label class=\"error\" for=\"$error[0]\">$error[1]</label></li>\n";
+                $list .= "<li><label class=\"error\" for=\"$this->name-$error[0]\">$error[1]</label></li>\n";
             else
                 $list .= "<li><label class=\"error\">$error[1]</label></li>\n";
         }
