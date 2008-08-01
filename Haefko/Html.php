@@ -161,7 +161,7 @@ class Html implements ArrayAccess
         $this->attrs['class'] = $this->getClasses();
 
         foreach ($this->attrs as $name => $value) {
-            if (!empty($value))
+            if (!empty($value) || $value == '0')
                 $string .= ' ' . $name . '="' . htmlspecialchars($value) . '"';
         }
 
