@@ -198,6 +198,22 @@ class View implements IView
 
 
     /**
+     * Vytvori img element
+     * @param   string  url
+     * @param   array   pole s html atributy
+     * @return  string
+     */
+    public function img($url, array $attrs = array())
+    {
+        $app = Application::getInstance();
+        $url = call_user_func_array(array($app->controller, 'url'), (array) $url);
+
+        return $this->html->img($url, $attrs);
+    }
+
+
+
+    /**
      * Ulozi do seznamu promennych pro sablonu
      * Probiha s kontrolou ochrany promenne
      * @param   string  jmeno promenne

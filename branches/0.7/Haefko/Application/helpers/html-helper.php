@@ -84,6 +84,23 @@ class HtmlHelper extends CustomHelper
 
 
 
+    /**
+     * Vytvori HTML obrazek
+     * @param   string  url
+     * @param   array   html stributy
+     * @return  string
+     */
+    public function img($url, array $attrs = array())
+    {
+        $el = Html::element('img');
+        $el->setAttributes($attrs);
+        $el['href'] = $url;
+
+        return $el->render();
+    }
+
+
+
     public function isActive($name)
     {
         return isset($this->conditions[$name]);
