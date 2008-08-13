@@ -13,10 +13,11 @@
 
 
 /**
- * Interface dbDriveru
+ * DbDriver interface
  */
 interface IDbDriver
 {
+
 
 
     public function connect(array $config);
@@ -24,8 +25,10 @@ interface IDbDriver
     public function fetch($type);
     public function quote($string, $type);
     public function escape($string);
-    public function getColumnsMeta();
+    public function affectedRows();
+    public function columnsMeta();
     public function rowCount();
+
 
 
 }

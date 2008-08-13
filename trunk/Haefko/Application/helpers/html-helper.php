@@ -40,8 +40,11 @@ class HtmlHelper extends CustomHelper
 		if (substr($url, 0, 4) == 'www.')
 			$url = "http://$url";
 
-		$el['href'] = $url;
+		if (substr($url, 0, 7) !== 'http://')
+			$url = call_user_func_array(array($this->controller, 'url'), (array) $url);
+
 		$el->setAttributes($attrs);
+		$el['href'] = $url;
 
 		if (is_null($title))
 			$el->setContent($url);
@@ -69,11 +72,18 @@ class HtmlHelper extends CustomHelper
 		$el->setAttributes($attrs);
 		$el->setContent($title, $escape);
 
+		if (substr($url, 0, 4) == 'www.')
+			$url = "http://$url";
+
+		if (substr($url, 0, 7) !== 'http://')
+			$url = call_user_func_array(array($this->controller, 'url'), (array) $url);
+
+
 		$el['type'] = 'button';
 		$el['onclick'] = "document.location.href='$url'";
 
-		if ($confirm !== false && !empty($confirm))
-			$el['onclick'] = "if (confirm('$confirm')) {" . $el['onclick'] . "}";
+		if (!empty($confirm))
+			$el['onclick'] = "if (confirm('$confirm')) { $el[onclick] }";
 
 		return $el->render();
 	}
@@ -86,12 +96,12 @@ class HtmlHelper extends CustomHelper
 	 * @param   string  media
 	 * @return  string
 	 */
-	public function css($name, $media = 'screen')
+	public function css($url, $media = 'screen')
 	{
 		$el = Html::element('link');
 		$el['rel'] = 'stylesheet';
 		$el['type'] = 'text/css';
-		$el['href'] = $this->controller->view->base . $name;
+		$el['href'] = $this->controller->url($url);
 		$el['media'] = $media;
 
 		return $el->render();
@@ -104,11 +114,11 @@ class HtmlHelper extends CustomHelper
 	 * @param   string  relativni cesta vztazmo k aplikaci
 	 * @return  string
 	 */
-	public function js($name)
+	public function js($url)
 	{
 		$el = Html::element('script');
 		$el['type'] = 'text/javascript';
-		$el['src'] = $this->controller->view->base . $name;
+		$el['src'] = $this->controller->url($url);
 
 		return $el->render();
 	}
@@ -139,11 +149,11 @@ class HtmlHelper extends CustomHelper
 	 * @param   string  relativni cesta vztazmo k aplikaci
 	 * @return  string
 	 */
-	public function icon($name)
+	public function icon($url)
 	{
 		$el = Html::element('link');
 		$el['rel'] = 'shortcut icon';
-		$el['href'] = $this->controller->view->base . $name;
+		$el['href'] = $this->controller->url($url);
 
 		return $el->render();
 	}
@@ -193,8 +203,8 @@ class HtmlHelper extends CustomHelper
 	 */
 	public function powered()
 	{
-		echo '<a href="http://haefko.programujte.com">',
-			 '<img src="http://haefko.programujte.com/design/powered.png" style="border: 0;margin: 2px 4px -3px 4px;" alt="Powered by Haefko">',
+		echo '<a href="http://haefko.programujte.com" class="hf-powered">',
+			 '<img src="http://haefko.programujte.com/design/powered.png" alt="Powered by Haefko">',
 			 '</a>';
 	}
 

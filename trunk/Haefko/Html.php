@@ -145,7 +145,10 @@ class Html implements ArrayAccess
      */
     public function render()
     {
-        return $this->renderStart() . $this->getContent() . $this->renderEnd();
+        if ($this->empty)
+            return $this->renderStart();
+        else
+            return $this->renderStart() . $this->getContent() . $this->renderEnd();
     }
 
 
@@ -192,9 +195,11 @@ class Html implements ArrayAccess
      * @param   string  jmeno tridy
      * @return  void
      */
-    public function addClass($name)
+    public function addClass($names)
     {
-        $names = func_get_args();
+        if (!is_array($names))
+            $names = func_get_args();
+
         foreach ($names as $name) {
             if (!empty($name))
                 $this->classes[$name] = true;

@@ -13,13 +13,14 @@
 
 
 require_once dirname(__FILE__) . '/../Event.php';
+require_once dirname(__FILE__) . '/Exceptions.php';
 require_once dirname(__FILE__) . '/DbResult.php';
 require_once dirname(__FILE__) . '/IDbDriver.php';
 
 
 
 /**
- * Trida spojeni s db
+ * Class of dv connection
  */
 class DbConnection
 {
@@ -39,8 +40,8 @@ class DbConnection
 
 
 	/**
-	 * Konstruktor
-	 * @param   array   konfigurace pripojeni
+	 * Constructor
+	 * @param   array   connection configuration
 	 * @return  void
 	 */
 	public function __construct(array $config)
@@ -64,27 +65,22 @@ class DbConnection
 
 
 	/**
-	 * 
+	 * Run sql query
+	 * @param   mixed  Fragments of sql query
+	 * @return  DbResultNode
 	 */
 	public function query($sql)
 	{
 		$this->needConnection();
 
 		$args = func_get_args();
-		$this->query = array(
-			'tables' => array(),
-			'table' => '',
-			'assoc' => '',
-			'sql' => ''
-		);
+		$query = $this->parseSql($args);
 
-		$this->query['sql'] = $this->parseSql($args);
+		Event::invoke('Db.beforeQuery', array(& $query));
+		$query['result'] = new DbResult($this->driver->query($query['sql']), $query);
+		Event::invoke('Db.afterQuery', array(& $query));
 
-		Event::invoke('Db.query', array($this->query));
-		$this->query['result'] = new DbResult($this->driver->query($this->query['sql']), $this->query);
-		Event::invoke('Db.afterQuery', array($this->query));
-
-		return $this->query['result'];
+		return $query['result'];
 	}
 
 
@@ -132,7 +128,7 @@ class DbConnection
 			if ($skip)
 				continue;
 
-			if (preg_match_all('#(%(?:i|s)(?!f))#i', $arg, $match)) {
+			if (preg_match_all('#(%(?:i|s|b|c)(?!f))#i', $arg, $match)) {
 				array_shift($match);
 				foreach ($match as $m)
 					$arg = $this->replace($m[0], $args[++$i], $arg);
@@ -146,14 +142,17 @@ class DbConnection
 			$sql .= $arg;
 		}
 
-		if (preg_match('#from\s+(?:\[(\w+)\]|(\w+))#i', $sql, $m))
-			$this->query['table'] = $m[1];
+		$query = array(
+			'sql' => '',
+			'assoc' => '',
+			'tables' => array()
+		);
 
 		if (preg_match('#select\s+\[(.+)\..+\](?:\s*,\s*\[(.+)\..+\])*#i', $sql, $m) && array_shift($m))
-			$this->query['tables'] = $m;
+			$query['tables'] = $m;
 
-		$sql = preg_replace($replaceKeys, $replaceVals, $sql);
-		return $sql;
+		$query['sql'] = preg_replace($replaceKeys, $replaceVals, $sql);
+		return $query;
 	}
 
 
@@ -166,6 +165,8 @@ class DbConnection
 			$value = (integer) $value;
 		elseif ($kye == '%b')
 			$value == $value ? 1 : 0;
+		elseif ($key == '%c')
+			$value = $this->driver->quote($value, 'column');
 
 		$pos = stripos($string, $key);
 		return substr($string, 0, $pos) . " $value " . substr($string, $pos + strlen($key));
@@ -175,7 +176,9 @@ class DbConnection
 
 	private function quote($string, $type)
 	{
-		if (count(($e = explode('.', $string))) == 2)
+		$e = explode('.', $string);
+
+		if (count($e) == 2)
 			return $this->driver->quote($e[0], 'table') . "." . ($e[1] == '*' ? '*' : $this->driver->quote($e[1], 'column'));
 		elseif ($string !== '*')
 			return $this->driver->quote($string, $type);
@@ -192,12 +195,10 @@ class DbConnection
 			$file = dirname(__FILE__) . '/drivers/' . strtolower($this->config['driver']) . '.php';
 			if (file_exists($file))
 				require_once $file;
-			else
-				throw new Exception("Missing driver $file.");
 
 			$class = "Db{$this->config['driver']}Driver";
-			if (!class_exists($class, false))
-				throw new Exception("Missing class $class.");
+			if (!class_exists($class))
+				throw new DbException("Missing driver class $class.");
 
 			$this->driver = new $class;
 			$this->driver->connect($this->config);

@@ -24,8 +24,8 @@ class Event
 
 
 	/**
-	 * Prida callback
-	 * @param   string        jmeno udalosti
+	 * Add callback
+	 * @param   string        event name
 	 * @param   string|array  callback
 	 * @return  void
 	 */
@@ -42,7 +42,25 @@ class Event
 
 
 	/**
-	 * Zavola callbacky eventu a preda jim potrebne argumentry
+	 * Delete callback
+	 * @param   string        event name
+	 * @param   string|array  callback
+	 * @return  void
+	 */
+	public static function remove($event, $callback)
+	{
+		foreach (self::$events[$event] as $e => $c) {
+			if ($callback == $c) {
+				unset(self::$events[$event][$e]);
+				break;
+			}
+		}
+	}
+
+
+
+	/**
+	 * Call event callbacks with arguments
 	 * @param   string  jmeno eventu
 	 * @param   array   argumenty
 	 * @return  void

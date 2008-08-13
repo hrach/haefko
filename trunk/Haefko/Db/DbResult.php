@@ -42,21 +42,22 @@ class DbResult implements Countable, IteratorAggregate
 
 
 	/**
-	 * Konstruktor
+	 * Constructor
 	 * @param   DbDriver
-	 * @param   array
+	 * @param   array  Information about sql query (used tables, etc.)
 	 * @return  void
 	 */
-	public function __construct($driver, $config)
+	public function __construct($driver, $info)
 	{
 		$this->driver = $driver;
-		$this->withTables = count(array_keys($config['tables'])) > 1;
-		if ($this->withTables && isset($config['table']))
-			$this->assoc = $config['assoc'];
+
+		$this->withTables = count(array_keys($info['tables'])) > 1;
+		if (!empty($info['assoc']))
+			$this->assoc = $info['assoc'];
 
 		if ($this->withTables) {
 			$this->withTables = array();
-			$cols = $this->driver->getColumnsMeta();
+			$cols = $this->driver->columnsMeta();
 			foreach ($cols as $col)
 				$this->withTables[] = array($col['table'], $col['name']);
 		}
@@ -65,21 +66,10 @@ class DbResult implements Countable, IteratorAggregate
 
 
 	/**
-	 * Vrati pocet ovlivnenych radku
-	 * @return  int
-	 */
-	public function affectedRows()
-	{
-		return $this->driver->affectedRows();
-	}
-
-
-
-	/**
-	 * Vrati hodnotu prvniho sloupce zaznamu
+	 * Return value of first filed of db result
 	 * @return  mixed
 	 */
-	final function fetchField()
+	public function fetchField()
 	{
 		if ($this->fetchRow()) {
 			$row = $this->lastRow();
@@ -90,23 +80,12 @@ class DbResult implements Countable, IteratorAggregate
 	}
 
 
+
 	/**
-	 * Vrati pole se vsemi zaznami
-	 * @return  array
+	 * Return one row of result with assocciation $assoc
+	 * @param   array  Association
+	 * @return  DbResultNode
 	 */
-	public function fetchAll()
-	{
-		if (is_null($this->rows)) {
-			$this->rows = array();
-			while (($row = $this->fetch()) !== false)
-				$this->rows[] = $row;
-		}
-
-		return $this->rows;
-	}
-
-
-
 	public function fetch($assoc = array())
 	{
 		$result = $parent = false;
@@ -145,7 +124,7 @@ class DbResult implements Countable, IteratorAggregate
 
 				foreach (get_object_vars($row) as $name => $node) {
 					if ($node instanceof DbResultNode) {
-						if ($name !== $assoc[0] && (!isset($assoc[$name]) || isset($assoc[$name]) && $assoc[$name] != 'hasOne')) {
+						if ($name !== $assoc[0] && (!isset($assoc[$name]) || (isset($assoc[$name]) && $assoc[$name] != 'hasOne'))) {
 							if ($i == 0)
 								$result[$name] = array($node);
 							else
@@ -167,32 +146,31 @@ class DbResult implements Countable, IteratorAggregate
 
 
 	/**
-	 * Magic method
-	 * @return  mixed
+	 * Return array of all (associated) rows
+	 * @param   array  Association
+	 * @return  array
 	 */
-	public function __get($name)
+	public function fetchAll($assoc = array())
 	{
-		if (empty($this->row))
-			$this->row = $this->fetch();
+		if (is_null($this->rows)) {
 
-		if (isset($this->row->$name))
-			return $this->row->$name;
-		else
-			throw new Exception("Undefined field $name");
+			$this->rows = array();
+			while (($row = $this->fetch($assoc)) !== false)
+				$this->rows[] = $row;
+		}
+
+		return $this->rows;
 	}
 
 
 
 	/**
-	 * Magic method
-	 * @return  mixed
+	 * Vrati pocet ovlivnenych radku
+	 * @return  int
 	 */
-	public function __isset($name)
+	public function affectedRows()
 	{
-		if (empty($this->row))
-			$this->row = $this->fetch();
-
-		return isset($this->row->$name);
+		return $this->driver->affectedRows();
 	}
 
 
@@ -209,7 +187,7 @@ class DbResult implements Countable, IteratorAggregate
 
 
 	/**
-	 * Countable interface.
+	 * Countable interface
 	 * @return  int
 	 */
 	public function count()
@@ -220,7 +198,7 @@ class DbResult implements Countable, IteratorAggregate
 
 
 	/**
-	 * Vrati posledni radek zpracovaneho dotazu
+	 * Return last row of db result
 	 * @return  array
 	 */
 	private function lastRow()
@@ -234,12 +212,13 @@ class DbResult implements Countable, IteratorAggregate
 
 
 	/**
-	 * Zpracuje jeden radek z dataze
+	 * Proccess one row of db result
 	 * @return  bool
 	 */
 	private function fetchRow()
 	{
 		if ($this->withTables === false) {
+
 			$row = $this->driver->fetch(true);
 			if (!is_array($row)) {
 				$this->fetched = true;
@@ -248,11 +227,13 @@ class DbResult implements Countable, IteratorAggregate
 
 			$this->result[] = new DbResultNode($row);
 		} else {
+
 			$row = $this->driver->fetch(false);
 			if (!is_array($row)) {
 				$this->fetched = true;
 				return false;
 			}
+
 			$node = array();
 			foreach ($this->withTables as $i => $item) {
 				if (empty($item[0])) {
@@ -284,7 +265,9 @@ class DbResult implements Countable, IteratorAggregate
 }
 
 
-
+/**
+ * Class for db result
+ */
 class DbResultNode implements ArrayAccess
 {
 
@@ -311,12 +294,11 @@ class DbResultNode implements ArrayAccess
 
 	/**
 	 * Magic method
-	 * @throw	Exception
 	 * @return  void
 	 */
 	public function __get($name)
 	{
-		throw new Exception("Undefined field $name");
+		throw new DbResultException("Undefined field '$name'.");
 	}
 
 
@@ -327,6 +309,7 @@ class DbResultNode implements ArrayAccess
 	 */
 	public function offsetSet($key, $value)
 	{
+		throw new DbResultException("You can not set the new value to '$key'.");
 	}
 
 
@@ -351,6 +334,7 @@ class DbResultNode implements ArrayAccess
 	 */
 	public function offsetUnset($key)
 	{
+		throw new DbResultException("You can not unset the '$key'.");
 	}
 
 
@@ -361,9 +345,11 @@ class DbResultNode implements ArrayAccess
 	 */
 	public function offsetExists($key)
 	{
-		//return isset($this->form['elements'][$key]);
+		if (is_int($key))
+			return isset($this->keys[$key]);
+		else
+			return isset($this->{$key});
 	}
-
 
 
 

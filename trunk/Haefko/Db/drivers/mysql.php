@@ -12,7 +12,6 @@
 
 
 
-
 class DbMysqlDriver implements IDbDriver
 {
 
@@ -21,19 +20,33 @@ class DbMysqlDriver implements IDbDriver
 	public function connect(array $config)
 	{
 		$this->resource = @mysql_connect($config['server'], $config['username'], $config['password']);
-		@mysql_select_db($config['database']);
 
-		if (mysql_errno($this->resource))
-			throw new Exception('connect databases faild!');
+		if (!$this->resource)
+			throw new DbException(mysql_error($this->resource));
 
-		@mysql_query("SET NAMES '$config[encoding]'", $this->resource);
+		if (!mysql_select_db($config['database'], $this->resource))
+			throw new DbException(mysql_error($this->resource));
+
+		$this->query("set names '$config[encoding]'");
 	}
 
 
 
-	public function escape($string)
+	public function query($sql)
 	{
-		return mysql_real_escape_string($string, $this->resource);
+		$this->result = @mysql_query($sql, $this->resource);
+
+		if (mysql_errno($this->resource))
+			throw new DbSqlException(mysql_error($this->resource)));
+
+		return clone $this;
+	}
+
+
+
+	public function fetch($type)
+	{
+		return mysql_fetch_array($this->result, $type ? MYSQLI_ASSOC : MYSQLI_NUM);
 	}
 
 
@@ -48,7 +61,21 @@ class DbMysqlDriver implements IDbDriver
 
 
 
-	public function getColumnsMeta()
+	public function escape($string)
+	{
+		return mysql_real_escape_string($string, $this->resource);
+	}
+
+
+
+	public function affectedRows()
+	{
+		return mysql_affected_rows($this->resource);
+	}
+
+
+
+	public function columnsMeta()
 	{
 		$count = mysql_num_fields($this->result);
 
@@ -61,28 +88,9 @@ class DbMysqlDriver implements IDbDriver
 
 
 
-	public function fetch($type)
-	{
-		return mysql_fetch_array($this->result, $type ? MYSQLI_ASSOC : MYSQLI_NUM);
-	}
-
-
-
 	public function rowCount()
 	{
-		return mysqli_num_rows($this->result);
-	}
-
-
-
-	public function query($sql)
-	{
-		$this->result = mysql_query($sql, $this->resource);
-
-		if (mysql_errno($this->resource))
-			throw new Exception('Query error!');
-
-		return clone $this;
+		return mysql_num_rows($this->result);
 	}
 
 

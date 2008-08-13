@@ -181,18 +181,24 @@ class View implements IView
 
 	/**
 	 * Vytvori odkaz v zavislosti na systemovem routingu
-	 * @param   string  url
-	 * @param   string  text odkazu
-	 * @param   array   pole s html atributy
-	 * @param   bool    je text odkazu html?
 	 * @return  string
 	 */
 	public function link($url, $title, array $attrs = array(), $html = false)
 	{
-		$app = Application::getInstance();
-		$url = call_user_func_array(array($app->controller, 'url'), (array) $url);
-
+		trigger_error('View::link() is deprecated, use Html helper $html->link().', E_WARNING);
 		return $this->html->link($url, $title, $attrs, $html);
+	}
+
+
+
+	/**
+	 * Vytvori tlacitko v zavislosti na systemovem routingu s moznosti js potvrzeni
+	 * @return  string
+	 */
+	public function button($url, $title, $confirm = false, array $attrs = array(), $html = false)
+	{
+		trigger_error('View::button() is deprecated, use Html helper $html->button().', E_WARNING);
+		return $this->html->button($url, $title, $confirm, $attrs, $html);
 	}
 
 
@@ -332,31 +338,30 @@ class View implements IView
 			if ($this->controller->ajax) {
 				$ajaxView = Inflector::viewFile("ajax.{$this->ext}", $this->viewName, Router::$namespace, $this->themeName, Router::$controller, !empty(Router::$service));
 
-				if (file_exists($app->path . $ajaxView))
-					return $app->path . $ajaxView;
+				if (file_exists("{$app->path}/$ajaxView"))
+					return "{$app->path}/$ajaxView";
 				else
 					return false;
 			} else {
 				$view = Inflector::viewFile($this->ext, $this->viewName, Router::$namespace, $this->themeName, Router::$controller, !empty(Router::$service));
 
-				if (file_exists($app->path . $view))
-					return $app->path . $view;
+				if (file_exists("{$app->path}/$view"))
+					return "{$app->path}/$view";
 				else
 					throw new ApplicationException('missing-view', $view);
 			}
 
 		} else {
 
-			$appView = $app->path . Inflector::errorViewFile($this->ext, $this->viewName, '');
-			$coreView = $app->corePath . 'Application/' . Inflector::errorViewFile('phtml', $this->viewName, '');
+			$appView = "{$app->path}/" . Inflector::errorViewFile($this->ext, $this->viewName, '');
+			$coreView = "{$app->corePath}/Application/" . Inflector::errorViewFile('phtml', $this->viewName, '');
 
 			if (file_exists($appView))
 				return $appView;
 			elseif (file_exists($coreView))
 				return $coreView;
 			else
-				die("Haefko: chyby systemovy soubor $coreView!");
-
+				throw new Exception("Missing core file '$coreView'");
 		}
 	}
 

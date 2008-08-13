@@ -6,16 +6,15 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.7
+ * @version     0.8
  * @package     Haefko
  */
 
 
 
-require_once dirname(__FILE__) . '/Form/Items.php';
-require_once dirname(__FILE__) . '/Form/MultiItems.php';
-require_once dirname(__FILE__) . '/Form/Condition.php';
 require_once dirname(__FILE__) . '/Html.php';
+require_once dirname(__FILE__) . '/Form/Controls.php';
+require_once dirname(__FILE__) . '/Form/Condition.php';
 
 
 
@@ -25,566 +24,515 @@ require_once dirname(__FILE__) . '/Html.php';
 class Form implements ArrayAccess
 {
 
-    const
-        EQUAL      = 'equal',
-        FILLED     = 'filled',
-        NOTFILLED  = 'notfilled',
-        URL        = 'url',
-        EMAIL      = 'email',
-        NUMERIC    = 'numeric',
-        LENGTH     = 'length',
-        MINLENGTH  = 'minlength',
-        MAXLENGTH  = 'maxlength',
-        INARRAY    = 'inarray',
-        NOTINARRAY = 'notinarray';
-
-    /** @var int */
-    public static $counter = 0;
-
-    /** @var bool Zapnout javascriptovou validaci? */
-    public $js = true;
-
-    /** @var array Odeslans data */
-    public $data;
-
-    /** @var string Jmeno formulare */
-    public $name;
-
-    /** @var string Jmeno tlacitka, pomoci ktereho byl odeslan formular */
-    public $submitBy;
-
-    /** @var Html */
-    private $el;
-
-    /** @var array Konfigurace formulare */
-    private $form = array();
-
-    /** @var array Chyby vstupu */
-    private $errors = array();
-
-    /** @var string */
-    private $rawValidation;
-
-
-
-    /**
-     * Kontruktor
-     * @param   string  url formulare
-     * @param   boole   jedna se o interni url
-     * @return  void
-     */
-    public function __construct($url = null, $internalUrl = true, $name = 'form')
-    {
-        if ($internalUrl === true)
-            $url = Application::getInstance()->controller->url($url);
-
-        if ($name == 'form' && self::$counter++ == 0)
-            $this->name = 'form';
-        elseif ($name == 'form')
-            $this->name = 'form' . self::$counter++;
-        else
-            $this->name = $name;
-
-        $this->form['url'] = $url;
-    }
-
-
-
-    /**
-     * Prida textove vtupni pole
-     * @param   string  jmeno elementu
-     * @param   bool    viceradkove vstupni pole
-     * @return  Form
-     */
-    public function addText($name, $multiLine = false)
-    {
-        if ($multiLine)
-            $this->form['elements'][$name] = new FormTextareaItem($this, $name);
-        else
-            $this->form['elements'][$name] = new FormTextItem($this, $name);
-
-        return $this;
-    }
-
-
-
-    /**
-     * Prida chranene textove vstupni pole
-     * @param   string  jmeno elementu
-     * @return  Form
-     */
-    public function addPassword($name)
-    {
-        $this->form['elements'][$name] = new FormTextPasswordItem($this, $name);
-
-        return $this;
-    }
-
-
-
-    /**
-     * Prida vstupni pole pro soubor
-     * @param   string  jmeno elementu
-     * @return  Form
-     */
-    public function addFile($name)
-    {
-        $this->form['enctype'] = 'multipart/form-data'; 
-        $this->form['elements'][$name] = new FormFileItem($this, $name);
-
-        return $this;
-    }
-
-
-
-    /**
-     * Prida skryte textove vstupni pole
-     * @param   string  jmeno elementu
-     * @return  Form
-     */
-    public function addHidden($name)
-    {
-        $this->form['elements'][$name] = new FormTextHiddenItem($this, $name);
-
-        return $this;
-    }
-
-
-
-    /**
-     * Prida select vstupni pole
-     * @param   string  jmeno elementu
-     * @param   array   options
-     * @return  Form
-     */
-    public function addSelect($name, array $options)
-    {
-        $this->form['elements'][$name] = new FormSelectItem($this, $name, $options);
-
-        return $this;
-    }
-
-
-
-    /**
-     * Prida multiple-select vstupni pole
-     * @param   string  jmeno elementu
-     * @param   array   options
-     * @return  Form
-     */
-    public function addMultiSelect($name, array $options)
-    {
-        $this->form['elements'][$name] = new FormMultiSelectItem($this, $name, $options);
-
-        return $this;
-    }
-
-
-
-    /**
-     * Prida zaskrtavaci vstupni pole
-     * @param   string  jmeno elementu
-     * @return  Form
-     */
-    public function addCheckbox($name)
-    {
-        $this->form['elements'][$name] = new FormCheckboxItem($this, $name);
-
-        return $this;
-    }
-
-
-
-    /**
-     * Prida zaskrtavaci vstupni pole
-     * @param   string  jmeno elementu
-     * @param   array   options
-     * @return  Form
-     */
-    public function addMultiCheckbox($name, array $options)
-    {
-        $this->form['elements'][$name] = new FormMultiCheckboxItem($this, $name, $options);
-
-        return $this;
-    }
-
-
-
-    /**
-     * Prida radio vstupni pole
-     * @param   string  jmeno elementu
-     * @param   array   options
-     * @return  Form
-     */
-    public function addRadio($name, array $options)
-    {
-        $this->form['elements'][$name] = new FormRadioItem($this, $name, $options);
-
-        return $this;
-    }
-
-
-
-    /**
-     * Prida odesilaci tlacitko
-     * @param   string  jmeno elementu
-     * @return  Form
-     */
-    public function addSubmit($name = 'submit')
-    {
-        $this->form['elements'][$name] = new FormSubmitItem($this, $name);
-
-        return $this;
-    }
-
-
-
-    /**
-     * Prida tlacitko reset
-     * @param   string  jmeno elementu
-     * @return  Form
-     */
-    public function addReset($name = 'reset')
-    {
-        $this->form['elements'][$name] = new FormResetItem($this, $name);
-
-        return $this;
-    }
-
-
-
-    /**
-     * Prida sury js kod do js validacni funkce
-     * @param   string  js kod
-     */
-    public function setRawValidation($js)
-    {
-        $this->rawValidation = $js;
-    }
-
-
-
-    /**
-     * Vyrenderuje pocatecni tag formulare
-     * @param   array   atributy tagu
-     * @return  string
-     */
-    public function start($attrs = array())
-    {
-        $jsValidation       = null;
-        $this->el           = Html::element('form');
-        $this->el['id']     = $this->name;
-        $this->el['action'] = $this->form['url'];
-        $this->el['method'] = 'post';
-
-        if (isset($this->form['enctype']))
-            $this->el['enctype'] = $this->form['enctype'];
-
-        if ($this->js) {
-            $this->el['onsubmit'] = "return validate{$this->name}();";
-
-            $jsValidation = "function validate{$this->name}() {\n"
-                          . "$('#{$this->name} label[generated=true]').empty().hide();\n"
-                          . $this->rawValidation
-                          . "var valid = true;\n";
-
-            foreach ($this->form['elements'] as $item) {
-                foreach ($item->conditions as $condition)
-                    $jsValidation .= $condition->js();
-            }
-
-            $jsValidation .= "return valid;\n}";
-            $jsValidation = "<script type=\"text/javascript\">\n//<![CDATA[\n$jsValidation\n//]]>\n</script>\n";
-
-            if (class_exists('Application', false))
-                Application::getInstance()->controller->view->helper('js')->need('hfvalidate');
-        }
-
-        $this->el->setAttributes($attrs);
-
-        return $jsValidation . $this->el->renderStart();
-    }
-
-
-
-    /**
-     * Vyrenderuje uzavirajici tag formulare
-     * @return  string
-     */
-    public function end()
-    {
-        $hidden = null;
-
-        foreach ($this->form['elements'] as $item) {
-            if ($item instanceof FormTextHiddenItem)
-                $hidden .= $item->element();
-        }
-
-        return $hidden . $this->el->renderEnd();
-    }
-
-
-
-    /**
-     * Zjisti, zda byl formular odeslan skrze $button
-     * @param   string  jmeno odesilaciho tlacika
-     * @return  bool
-     */
-    public function isSubmit()
-    {
-        static $dataLoaded = false;
-
-        if (!$dataLoaded) {
-            $dataLoaded = true;
-            $this->dataLoaded();
-        }
-
-        $buttons = func_get_args();
-        if (empty($buttons))
-            $buttons = array('submit');
-
-        return in_array($this->submitBy, $buttons);
-    }
-
-
-
-    /**
-     * Zjisti, zda je formaluar validni
-     * @return  bool
-     */
-    public function isValid()
-    {
-        $return = true;
-
-        foreach ($this->form['elements'] as $item) {
-            if (!$item->isValid())
-                $return = false;
-        }
-
-        return $return;
-    }
-
-
-
-
-    /**
-     * Vrati odeslana formularova data
-     * @return  array
-     */
-    public function getData()
-    {
-        return $this->data;
-    }
-
-
-
-    /**
-     * Nastavi vstupnim polim vychozi hodnoty
-     * @param   array   pole: array($fieldName => $value);
-     * @return  void
-     */
-    public function setDefaults(array $defaults)
-    {
-        foreach ($defaults as $name => $value) {
-            if (isset($this->form['elements'][$name]))
-                $this->form['elements'][$name]->setValue($value);
-        }
-    }
-
-
-
-    /**
-     * Vrati url formulare
-     * @return  string
-     */
-    public function getUrl()
-    {
-        return $this->form['url'];
-    }
-
-
-
-    /**
-     * Prida chybovou zpravu
-     * @param   string  zprava
-     * @return  void
-     */
-    public function addError($message, $name = null)
-    {
-        $this->errors[] = array($name, $message);
-    }
-
-
-
-    /**
-     * Ma formular nejake chyby
-     * @return  bool
-     */
-    public function hasErrors()
-    {
-        return count($this->errors) > 0;
-    }
-
-
-
-    /**
-     * Vrati pole s chybovymi zpravami
-     * @return  array
-     */
-    public function getErrors()
-    {
-        return $this->errors;
-    }
-
-
-
-    /**
-     * Vygeneruje seznam s chybovymi zpravami
-     * @return  string
-     */
-    public function getErrorsList()
-    {
-        if (!$this->hasErrors()) return;
-
-        $list = "<ul class=\"errors\">\n";
-        foreach ($this->errors as $error) {
-            if (!empty($error[0]))
-                $list .= "<li><label class=\"error\" for=\"$this->name-$error[0]\">$error[1]</label></li>\n";
-            else
-                $list .= "<li><label class=\"error\">$error[1]</label></li>\n";
-        }
-        $list .= "</ul>\n";
-
-        return $list;
-    }
-
-
-
-    /**
-     * Vyrenderuje zakladni jednoduchou kostru formulare
-     * @return  string
-     */
-    public function renderForm()
-    {
-        $form = $this->start() . "\n<table>";
-
-        foreach ($this->form['elements'] as $name => $el) {
-            if ($el instanceof FormTextHiddenItem)
-                continue;
-
-            $form .= "\n<tr><td>";
-
-            if ($el instanceof FormSubmitItem || $el instanceof FormResetItem)
-                $form .= '</td><td>' . $el->element(ucfirst($name));
-            elseif ($el instanceof FormCheckboxItem)
-                $form .= '</td><td>' . $el->element() . ' ' . $el->label(ucfirst($name));
-            elseif ($el instanceof FormMultiCheckboxItem || $el instanceof FormRadioItem)
-                $form .= '</td><td>' . $el->render();
-            else
-                $form .= $el->label(ucfirst($name)) . '</td><td>' . $el->element();
-
-            $form .= '</td></tr>';
-        }
-
-        return $form . "\n</table>" . $this->end();
-    }
-
-
-
-    /**
-     * Array-access pro ulozeni objektu vstupniho pole
-     * @return  void
-     */
-    public function offsetSet($key, $value)
-    {
-        $this->form['elements'][$key] = $value;
-    }
-
-
-
-    /**
-     * Array-access pro cteni objektu vstupniho pole
-     * @return  FormItem
-     */
-    public function offsetGet($key)
-    {
-        if (isset($this->form['elements'][$key]))
-            return $this->form['elements'][$key];
-    }
-
-
-
-    /**
-     * Array-access pro zruseni objektu vstupniho pole
-     * @return  void
-     */
-    public function offsetUnset($key)
-    {
-        if (isset($this->form['elements'][$key]))
-            unset($this->form['elements'][$key]);
-    }
-
-
-
-    /**
-     * Array-access pro zjiteni existence objektu vstupniho pole
-     * @return  void
-     */
-    public function offsetExists($key)
-    {
-        return isset($this->form['elements'][$key]);
-    }
-
-
-
-    /**
-     * Automaticky render pri pokusu vypsat objekt
-     * @return  string
-     */
-    public function __toString()
-    {
-        return $this->renderForm();
-    }
-
-
-
-    /**
-     * Ziska dat uploadnuteho souboru
-     * @param   string  name
-     * @return  array
-     */
-    private function getFileData($name)
-    {
-        $files = & $_FILES[$this->name];
-        return array(
-            'name' => $files['name'][$name],
-            'type' => $files['type'][$name],
-            'size' => $files['size'][$name],
-            'tmp_name' => $files['tmp_name'][$name],
-            'error' => $files['error'][$name]
-        );
-    }
-
-
-
-    /**
-     * Nacte zaslana data
-     * @return  void
-     */
-    private function dataLoaded()
-    {
-        foreach ($this->form['elements'] as $name => $item) {
-            if ($item instanceof FormFileItem && isset($_FILES[$this->name]['name'][$name]) && $_FILES[$this->name]['error'][$name] != 4) {
-                $this->data[$name] = $this->getFileData($name);
-                $this->value = & $this->data[$name]['name'];
-            } elseif ($item instanceof FormSubmitItem && isset($_POST[$this->name][$name])) {
-                $this->submitBy = $name;
-            } elseif (isset($_POST[$this->name][$name])) {
-                $item->setValue($_POST[$this->name][$name]);
-                $this->data[$name] = $item->getvalue();
-            }
-        }
-    }
+	/** @var int */
+	private static $counter = 0;
+
+	/** @var array Submitted data */
+	public $data;
+
+	/** @var string Jmeno formulare */
+	public $name;
+
+	/** @var Html */
+	private $form;
+
+	/** @var bool|string Has been form submited? */
+	private $submitBy = false;
+
+	/** @var array */
+	private $controls = array();
+
+	/** @var array */
+	private $errors = array();
+
+
+
+
+	/**
+	 * Validate $value by $rule with $arg
+	 * @param   string|callback  rule
+	 * @param   mixed            value
+	 * @param   mixed            additional valdiate argument
+	 * @return  bool
+	 */
+	public static function validate($rule, $value, $argument = null)
+	{
+		static $rules = array('equal', 'filled', 'numeric', 'length', 'range', 'array', 'email', 'url', 'alfanumeric');
+
+		if (is_string($rule))
+			$rule = strtolower($rule);
+
+		if ((is_string($rule) && !in_array($rule, $rules)) || is_callable($rule))
+			return call_user_func_array($rule, array($value, $argument));
+
+		switch ($rule) {
+			case 'equal':
+				return $value == $argument;
+			case 'filled':
+				return ($value === '0') ? true : !empty($value);
+			case 'numeric':
+				return is_numeric($value);
+			case 'length':
+				return strlen($value) == $argument;
+			case 'range':
+				if (is_string($value))
+					$value = strlen($value);
+				return $value >= $argument[0] && $value <= $argument[1];
+			case 'array':
+				return in_array($value, (array) $argument);
+			case 'email':
+				return preg_match('#^[^@]+@[^@]+\.[a-z]{2,6}$#i', $value);
+			case 'url':
+				return preg_match('#^.+\.[a-z]{2,6}(\\/.*)?$#i', $value);
+			case 'alfanumeric':
+				return preg_match('#^[a-z0-9]+$#i', $value);
+			default:
+				throw new Exception("Unsupported validation rule $rule.");
+		}
+	}
+
+
+
+	/**
+	 * Constructor
+	 * @param   string  action - url
+	 * @param   string  form name
+	 * @return  string  form name
+	 */
+	public function __construct($url = null, $name = 'form')
+	{
+		if ($name == 'form' && self::$counter++ == 0)
+			$this->name = 'form';
+		elseif ($name == 'form')
+			$this->name = 'form' . self::$counter++;
+		else
+			$this->name = $name;
+
+		$this->form = Html::element('form');
+		$this->form['name'] = $this->name;
+		$this->form['method'] = 'post';
+
+		if (!empty($url))
+			$this->form['action'] = $url;
+
+		return $this->name;
+	}
+
+
+
+	/**
+	 * Add text input
+	 * @param   string  control name
+	 * @param   string  control label
+	 * @return  Form    return $this
+	 */
+	public function addText($control, $label = null)
+	{
+		$this->controls[$control] = new FormTextControl($this, $control, $label);
+		return $this;
+	}
+
+
+
+	/**
+	 * Add textarea input
+	 * @param   string  control name
+	 * @param   string  control label
+	 * @return  Form    return $this
+	 */
+	public function addTextarea($control, $label = null)
+	{
+		$this->controls[$control] = new FormTextareaControl($this, $control, $label);
+		return $this;
+	}
+
+
+
+	/**
+	 * Add password input
+	 * @param   string  control name
+	 * @param   string  control label
+	 * @return  Form    return $this
+	 */
+	public function addPassword($control, $label = null)
+	{
+		$this->controls[$control] = new FormPasswordControl($this, $control, $label);
+		return $this;
+	}
+
+
+
+	/**
+	 * Add file input
+	 * @param   string  control name
+	 * @param   string  control label
+	 * @return  Form    return $this
+	 */
+	public function addFile($control, $label = null)
+	{
+		$this->form['enctype'] = 'multipart/form-data'; 
+		$this->controls[$control] = new FormFileControl($this, $control, $label);
+		return $this;
+	}
+
+
+
+	/**
+	 * Add hidden input
+	 * @param   string  control name
+	 * @return  Form    return $this
+	 */
+	public function addHidden($control)
+	{
+		$this->controls[$control] = new FormHiddenControl($this, $control);
+		return $this;
+	}
+
+
+
+	/**
+	 * Add select input
+	 * @param   string  control name
+	 * @param   array   options
+	 * @param   string  control label
+	 * @return  Form    return $this
+	 */
+	public function addSelect($control, $options, $label = null)
+	{
+		$this->controls[$control] = new FormSelectControl($this, $control, $options, $label, false);
+		return $this;
+	}
+
+
+
+	/**
+	 * Add multiple-select input
+	 * @param   string  control name
+	 * @param   array   options
+	 * @param   string  control label
+	 * @return  Form    return $this
+	 */
+	public function addMultiSelect($control, $options, $label = null)
+	{
+		$this->controls[$control] = new FormSelectControl($this, $control, $options, $label, true);
+		return $this;
+	}
+
+
+
+	/**
+	 * Add single checkbox input
+	 * @param   string  control name
+	 * @param   string  control label
+	 * @return  Form    return $this
+	 */
+	public function addSingleCheckbox($control, $label = null)
+	{
+		$this->controls[$control] = new FormSingleCheckboxControl($this, $control, $label);
+		return $this;
+	}
+
+
+
+	/**
+	 * Add checkbox inputs
+	 * @param   string  control name
+	 * @param   array   options
+	 * @param   string  control label
+	 * @return  Form    return $this
+	 */
+	public function addCheckbox($control, $options, $label = null)
+	{
+		$this->controls[$control] = new FormCheckboxControl($this, $control, $options, $label);
+		return $this;
+	}
+
+
+
+	/**
+	 * Add radion inputs
+	 * @param   string  control name
+	 * @param   array   options
+	 * @param   string  control label
+	 * @return  Form    return $this
+	 */
+	public function addRadio($control, $options, $label = null)
+	{
+		$this->controls[$control] = new FormRadioControl($this, $control, $options, $label);
+		return $this;
+	}
+
+
+
+	/**
+	 * Add submit button
+	 * @param   string  control label
+	 * @param   string  control name
+	 * @return  Form    return $this
+	 */
+	public function addSubmit($label = null, $control = 'submit')
+	{
+		$this->controls[$control] = new FormSubmitControl($this, $control, $label);
+		return $this;
+	}
+
+
+
+	/**
+	 * Add reset button
+	 * @param   string  control label
+	 * @param   string  control name
+	 * @return  Form    return $this
+	 */
+	public function addReset($label = null, $control = 'reset')
+	{
+		$this->controls[$control] = new FormResetControl($this, $control, $label);
+		return $this;
+	}
+
+
+
+	/**
+	 * Render form html start tag
+	 * @param   bool    render js validation?
+	 * @param   array   attributes
+	 * @return  string
+	 */
+	public function start($js = true, $attributes = array())
+	{
+		$render = '';
+
+		if ($js) {
+			$js = $this->name . ' = ' . json_encode($this->validation);
+			$render .= "<script type=\"text/javascript\">\n//<![CDATA[\n$js\n//]]>\n</script>";
+			$this->form['onsubmit'] = "return formValidate({$this->name});";
+
+			if (class_exists('Application', false))
+				Application::getInstance()->controller->view->helper('js')->need('hfvalidate');
+		}
+
+		$this->form->setAttributes($attributes);
+		return $this->form->renderStart();
+	}
+
+
+
+	/**
+	 * Render form end tag with hidden inputs
+	 * @return  string
+	 */
+	public function end()
+	{
+		$render = '';
+		foreach ($this->controls as $Control) {
+			if ($Control instanceof FormHiddenControl)
+				$render .= $Control->block();
+		}
+
+		$render .= $this->form->renderEnd();
+		return $render;
+	}
+
+
+
+	/**
+	 * 
+	 * @param   string  jmeno odesilaciho tlacika
+	 * @return  bool
+	 */
+	public function isSubmit()
+	{
+		if (empty($this->data))
+			$this->loadData();
+
+		$buttons = func_get_args();
+		if (empty($buttons))
+			return (bool) $this->submitBy;
+		else
+			return in_array($this->submitBy, $buttons);
+	}
+
+
+
+	/**
+	 * Zjisti, zda je formaluar validni
+	 * @return  bool
+	 */
+	public function isValid()
+	{
+		$valid = true;
+		foreach ($this->controls as $control) {
+			foreach ($control->rules as $rule) {
+				if (!$rule->isValid())
+					$valid = false;
+			}
+		}
+
+		return $valid;
+	}
+
+
+
+	/**
+	 * Set default values
+	 * @param   array   array $fieldName => $value
+	 * @return  void
+	 */
+	public function setDefaults(array $defaults)
+	{
+		foreach ($defaults as $id => $value) {
+			if (isset($this->controls[$id]))
+				$this->controls[$id]->setValue($value);
+		}
+	}
+
+
+
+
+	/**
+	 * Vrati url formulare
+	 * @return  string
+	 */
+	public function getUrl()
+	{
+		return $this->form['url'];
+	}
+
+
+
+	/**
+	 * Add error message
+	 * @param   string  input name
+	 * @param   string  error message
+	 * @return  void
+	 */
+	public function addError($id, $message)
+	{
+		$this->errors[] = array($id, $message);
+	}
+
+
+
+	/**
+	 * Has form any errors?
+	 * @return  bool
+	 */
+	public function hasErrors()
+	{
+		return count($this->errors) > 0;
+	}
+
+
+
+	/**
+	 * Return array of errors
+	 * @return  array
+	 */
+	public function getErrors()
+	{
+		return $this->errors;
+	}
+
+
+
+	/**
+	 * Render error list
+	 * @return  string
+	 */
+	public function errorList()
+	{
+		if (!$this->hasErrors()) return;
+
+		$list = "<ul class=\"errors\">\n";
+		foreach ($this->errors as $error) {
+			if (!empty($error[0]))
+				$list .= "<li><label class=\"error\" for=\"$this->name-$error[0]\">$error[1]</label></li>\n";
+			else
+				$list .= "<li><label class=\"error\">$error[1]</label></li>\n";
+		}
+		$list .= "</ul>\n";
+
+		return $list;
+	}
+
+
+
+	/**
+	 * Vyrenderuje zakladni jednoduchou kostru formulare
+	 * @return  string
+	 */
+	public function renderForm()
+	{
+		echo 'TODO';
+	}
+
+
+
+	/**
+	 * Array-access
+	 * @return  void
+	 */
+	public function offsetSet($id, $value)
+	{
+		throw new Exception("Unsupported method for set the form input Control '$id'.");
+	}
+
+
+
+	/**
+	 * Array-access
+	 * @return  FormControl
+	 */
+	public function offsetGet($id)
+	{
+		if (isset($this->controls[$id]))
+			return $this->controls[$id];
+	}
+
+
+
+	/**
+	 * Array-access
+	 * @return  void
+	 */
+	public function offsetUnset($id)
+	{
+		if (isset($this->controls[$id]))
+			unset($this->controls[$id]);
+	}
+
+
+
+	/**
+	 * Array-access
+	 * @return  bool
+	 */
+	public function offsetExists($id)
+	{
+		return isset($this->controls[$id]);
+	}
+
+
+
+	/**
+	 * Load submited data
+	 * @return  void
+	 */
+	private function loadData()
+	{
+		foreach ($this->controls as $id => $control) {
+			if ($control instanceof FormFileControl) {
+				$this->data[$id] = new FormUploadedFile($control);
+			} elseif (isset($_POST[$this->name][$name])) {
+				if ($control instanceof FormSubmitControl) {
+					$this->submitBy = $name;
+				} else {
+					$control->setValue($_POST[$this->name][$name]);
+					$this->data[$name] = $control->getvalue();
+				}
+			}
+		}
+	}
 
 
 

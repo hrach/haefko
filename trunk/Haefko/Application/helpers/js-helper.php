@@ -23,7 +23,7 @@ class JsHelper extends CustomHelper
 {
 
 	/** @var string Cesta k js a css scriptum */
-	public $path  = 'design/jsTools/';
+	public $path  = '/design/jsTools/';
 
 	/** @var string Javasriptovy kod */
 	protected $js;

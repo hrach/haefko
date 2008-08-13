@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Haefko - your php5 framework
+ *
+ * @author      Jan Skrasek <skrasek.jan@gmail.com>
+ * @copyright   Copyright (c) 2008, Jan Skrasek
+ * @link        http://haefko.programujte.com
+ * @version     0.8
+ * @package     Haefko
+ */
+
+
 
 class DbMysqliDriver implements IDbDriver
 {
@@ -8,24 +19,31 @@ class DbMysqliDriver implements IDbDriver
 
 	public function connect(array $config)
 	{
-		$this->resource = new mysqli($config['server'], $config['username'], $config['password'], $config['database']);
+		$this->resource = @new mysqli($config['server'], $config['username'], $config['password'], $config['database']);
 
-		if(mysqli_connect_errno())
-			throw new Exception('connect databases faild!');
+		if (mysqli_connect_errno())
+			throw new DbException(mysqli_connect_error());
 
 		$this->resource->set_charset($config['encoding']);
 	}
 
 
-	public function affectedRows()
+
+	public function query($sql)
 	{
-		return $this->resource->affected_rows;
+		$this->result = $this->resource->query($sql);
+
+		if ($this->resource->errno)
+			throw new DbSqlException($this->resource->error);
+
+		return clone $this;
 	}
 
 
-	public function escape($string)
+
+	public function fetch($type)
 	{
-		return $this->resource->escape_string($string);
+		return $this->result->fetch_array($type ? MYSQLI_ASSOC : MYSQLI_NUM);
 	}
 
 
@@ -40,7 +58,21 @@ class DbMysqliDriver implements IDbDriver
 
 
 
-	public function getColumnsMeta()
+	public function escape($string)
+	{
+		return $this->resource->escape_string($string);
+	}
+
+
+
+	public function affectedRows()
+	{
+		return $this->resource->affected_rows;
+	}
+
+
+
+	public function columnsMeta()
 	{
 		$count = $this->result->field_count;
 
@@ -52,24 +84,10 @@ class DbMysqliDriver implements IDbDriver
 	}
 
 
-	public function fetch($type)
-	{
-		return $this->result->fetch_array($type ? MYSQLI_ASSOC : MYSQLI_NUM);
-	}
 
 	public function rowCount()
 	{
-		return mysqli_num_rows($this->result);
-	}
-
-	public function query($sql)
-	{
-		$this->result = $this->resource->query($sql);
-
-		if ($this->resource->errno)
-			throw new Exception('Query error!' . $this->resource->error);
-
-		return $this;
+		return $this->result->num_rows;
 	}
 
 

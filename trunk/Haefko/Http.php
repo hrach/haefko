@@ -211,9 +211,9 @@ class Http
         $base = trim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
 
         if (empty($base))
-            return '/';
+            return '';
         else
-            return "/$base/";
+            return "/$base";
     }
 
 

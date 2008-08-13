@@ -37,7 +37,7 @@ class Debug
 
         $sql = self::$sqls;
 
-        require_once $app->corePath . 'Templates/debugToolbar.phtml';
+        require_once $app->corePath . '/Templates/debugToolbar.phtml';
     }
 
 
@@ -74,7 +74,7 @@ class Debug
     {
         //@ob_clean();
         $app = Application::getInstance();
-        require_once $app->corePath . 'Templates/debugException.phtml';
+        require_once $app->corePath . '/Templates/debugException.phtml';
     }
 
 
@@ -91,14 +91,6 @@ class Debug
 
 
     /**
-     * Compatibility for Dibi
-     */
-    public static function addColophon()
-    {}
-
-
-
-    /**
      * Prevede pole do html reprezentace
      * @param   array   pole pro prevod
      * @return  string
@@ -109,7 +101,7 @@ class Debug
         $tab = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $indent);
 
         foreach ($array as $key => $val) {
-            if (preg_match('#(pass(ord)?|passw)#i', $key))
+            if (preg_match('#(pass(ord)?|passwd?|pin|cc)#i', $key))
                 continue;
 
             $ret .= "$tab$key: ";
@@ -130,4 +122,5 @@ class Debug
 
 
 Debug::$startTime = microtime(true);
-Event::add('Db.afterQuery', array('Debug', 'queryHandler'));
+if (class_exists('Event', false))
+    Event::add('Db.afterQuery', array('Debug', 'queryHandler'));

@@ -82,6 +82,9 @@ class Config
      */
     public static function load($fileName)
     {
+        if (!is_file($fileName))
+            throw new Exception("Missing configuration file '$fileName'.");
+
         self::multiWrite(self::parseFile($fileName));
     }
 

@@ -64,7 +64,6 @@ abstract class CustomController
 
 		// Nacteni modelu
 
-		
 		if (!$this->app->loadFrameworkFile(Inflector::modelFile('Model'), false)) {
 			if (!class_exists('Model')) {
 				$eval = true;
@@ -170,7 +169,7 @@ abstract class CustomController
 		$url = preg_replace('#\{\:(\w+)\}#e', 'isset(Router::$args["\\1"]) ? Router::$args["\\1"] : "\\0"', $url);
 		$url = preg_replace('#\{args\}#e', 'implode("/", Router::$args)', $url);
 		$url = preg_replace_callback('#\{args!(.+)\}#', array($this, 'urlArgs'), $url);
-		$url = strSanitizeUrl($url);
+		$url = '/' . strSanitizeUrl($url);
 
 		if ($absolute)
 			return Http::$serverUri . Http::$baseUri . $url;
@@ -216,9 +215,10 @@ abstract class CustomController
 
 		$exists = method_exists(get_class($this), $method);
 
-		if ($exists)
+		if ($exists && $this->view->getView() == '')
 			$this->view->view(Router::$action);
-		elseif (!$this->app->error)
+
+		if (!$exists && !$this->app->error)
 			throw new ApplicationException('missing-method', $method);
 
 		$this->view->loadHelpers();

@@ -75,25 +75,6 @@ class LayoutView extends View
 
 
 	/**
-	 * Vytvori tlacitko v zavislosti na systemovem routingu s moznosti js potvrzeni
-	 * @param   string  url
-	 * @param   string  text odkazu
-	 * @param   bool    js potvrzeni
-	 * @param   array   pole s html atributy
-	 * @param   bool    je text tlacitka html
-	 * @return  string
-	 */
-	public function button($url, $title, $confirm = false, array $attrs = array(), $html = false)
-	{
-		$app = Application::getInstance();
-		$url = call_user_func_array(array($app->controller, 'url'), (array) $url);
-
-		return $this->html->button($url, $title, $confirm, $attrs, $html);
-	}
-
-
-
-	/**
 	 * Vyrenderuje stranku z view a layoutu
 	 * @return  void
 	 */
@@ -121,10 +102,10 @@ class LayoutView extends View
 		$app = Application::getInstance();
 
 		$layouts = array(
-			$app->path . Inflector::layoutFile($this->ext, $this->layoutName, Router::$namespace, $this->themeName),
-			$app->path . Inflector::layoutFile($this->ext, $this->layoutName, '', ''),
-			$app->corePath . 'Application/' . Inflector::layoutFile($this->ext, $this->layoutName, '', ''),
-			$app->corePath . 'Application/' . Inflector::layoutFile('phtml', 'layout', '', ''),
+			"{$app->path}/" . Inflector::layoutFile($this->ext, $this->layoutName, Router::$namespace, $this->themeName),
+			"{$app->path}/" . Inflector::layoutFile($this->ext, $this->layoutName, '', ''),
+			"{$app->corePath}/Application/" . Inflector::layoutFile($this->ext, $this->layoutName, '', ''),
+			"{$app->corePath}/Application/" . Inflector::layoutFile('phtml', 'layout', '', ''),
 		);
 
 		foreach ($layouts as $layout) {

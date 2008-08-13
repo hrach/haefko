@@ -31,8 +31,8 @@ class Db
 
 	/**
 	 * Pripoji se k databazi
-	 * Pokud neni predan jako parametr pole pripojeni, je nacteno z konfiguracni direktivy 'Db.connection'
-	 * Priklad pro rozdilnou serverovou konfiguraci naleznete v manualu
+	 * Pokud neni predano konfiguracni pole pripojeni, je nacteno z konfiguracni direktivy 'Db.connection'
+	 * @example http://haefko.programujte.com/manual
 	 * @param   array   nastaveni pripojeni
 	 * @param   array   jmeno pripojeni
 	 * @return  void
@@ -50,16 +50,43 @@ class Db
 	}
 
 
+
+	/**
+	 * Aktivuje pripojeni $name za vyhozi
+	 * @param   string  jmeno pripojeni
+	 * @return  void
+	 */
+	public static function active($name)
+	{
+		if (isset(self::$connections[$name]))
+			self::$active = $name;
+		else
+			throw new DbException("Db: Connetion '$name' doesn't exists!");
+	}
+
+
+	/**
+	 * Provede dotaz na aktivni pripojeni
+	 * @param   string  sql dotaz
+	 * @return  DbResult
+	 */
 	public static function query($sql)
 	{
+		self::checkConnection();
 		$args = func_get_args();
 		return call_user_func_array(array(self::$connections[self::$active], 'query'), $args);
 	}
 
 
 
+	/**
+	 * Provede dotaz na aktivni pripojeni a vrati prvni pole prvniho zaznamu
+	 * @param   string  sql dotaz
+	 * @return  mixed
+	 */
 	public static function fetchField($sql)
 	{
+		self::checkConnection();
 		$args = func_get_args();
 		$result = call_user_func_array(array(self::$connections[self::$active], 'query'), $args);
 		return $result->fetchField();
@@ -67,29 +94,46 @@ class Db
 
 
 
+	/**
+	 * Provede dotaz na aktivni pripojeni a vrati jeho prvni radek
+	 * @param   string  sql dotaz
+	 * @return  DbResultNode
+	 */
+	public static function fetch($sql)
+	{
+		self::checkConnection();
+		$args = func_get_args();
+		$result = call_user_func_array(array(self::$connections[self::$active], 'query'), $args);
+		return $result->fetch();
+	}
+
+
 
 	/**
-	 * Handler pro debug sql
-	 * @param   DibiConnection  pripojeni
-	 * @param   DibiEvent       zprava
-	 * @param	mixed           argument
-	 * @return  void
+	 * Provede dotaz na aktivni pripojeni a vrati pole s jednolitvymi radky
+	 * @param   string  sql dotaz
+	 * @return  array   pole s DbResultNode
 	 */
-	public static function sqlHandler($connection, $event, $arg)
+	public static function fetchAll($sql)
 	{
-		if ($event == 'afterQuery')
-			self::$sqls[] = array(
-				'sql' => htmlspecialchars(dibi::$sql),
-				'time' => dibi::$elapsedTime,
-				'rows' => dibi::affectedRows(),
-			);
+		self::checkConnection();
+		$args = func_get_args();
+		$result = call_user_func_array(array(self::$connections[self::$active], 'query'), $args);
+		return $result->fetchAll();
+	}
+
+
+
+	/**
+	 * Zkontroluje, zda existuje spojeni s databazi
+	 * return  void
+	 */
+	private static function checkConnection()
+	{
+		if (empty(self::$active) || !isset(self::$connections[self::$active]))
+			throw new DbException('No connetion to database!');
 	}
 
 
 
 }
-
-
-
-//if (Config::read('Core.debug', 0) > 1)
-//	dibi::addHandler(array('Db', 'sqlHandler'));

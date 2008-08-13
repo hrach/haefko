@@ -13,6 +13,7 @@
 
 
 require_once dirname(__FILE__) . '/../Db.php';
+require_once dirname(__FILE__) . '/models/behaviours/paginate.php';
 
 
 
@@ -30,6 +31,9 @@ abstract class CustomModel
 
 	/** @var string Jmeno primarniho klice */
 	protected $primaryKey = 'id';
+
+	/** @var array Behaveiours */
+	private $behaviours = array();
 
 
 
@@ -70,6 +74,16 @@ abstract class CustomModel
 	 */
 	public function prepareLayout()
 	{}
+
+
+
+	public function __call($name, $args)
+	{
+		if (!isset($this->behaviours[$name]))
+			$this->behaviours[$name] = new $name;
+
+		return call_user_func_array(array($this->behaviours[$name], 'config'), $args);
+	}
 
 
 
