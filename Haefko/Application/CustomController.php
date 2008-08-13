@@ -220,9 +220,10 @@ abstract class CustomController
 
         $exists = method_exists(get_class($this), $method);
 
-        if ($exists)
+        if ($exists && $this->view->getView() == '')
             $this->view->view(Router::$action);
-        elseif (!$this->app->error)
+
+        if (!$exists && !$this->app->error)
             throw new ApplicationException('missing-method', $method);
 
         $this->view->loadHelpers();

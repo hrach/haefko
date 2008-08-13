@@ -208,7 +208,7 @@ final class Application
         $this->controller = new $class;
         $this->controller->render();
 
-        if (Config::read('Core.debug', 0) > 1)
+        if (Config::read('Core.debug', 0) > 1 && !$this->controller->ajax)
             Debug::debugToolbar();
     }
 
