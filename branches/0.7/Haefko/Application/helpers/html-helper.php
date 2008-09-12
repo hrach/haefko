@@ -94,7 +94,7 @@ class HtmlHelper extends CustomHelper
     {
         $el = Html::element('img');
         $el->setAttributes($attrs);
-        $el['href'] = $url;
+        $el['src'] = $url;
 
         return $el->render();
     }
