@@ -44,11 +44,11 @@ class RssFeedView extends View implements IView
 		'link' => null
 	);
 
+	/** @var int Rss verze */
+	public $version = 2;
+
 	/** @var array Rss item */
 	protected $ext = 'rss.php';
-
-	/** @var int Rss verze */
-	protected $version = 2;
 
 	/** @var array Rss item */
 	protected $items = array();

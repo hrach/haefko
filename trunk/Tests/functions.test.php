@@ -2,14 +2,14 @@
 
 require_once('simpletest/unit_tester.php');
 require_once('simpletest/reporter.php');
-require_once('Haefko/functions.php');
+require_once('../Haefko/functions.php');
 
 
-class StringsTest extends UnitTestCase
+class FunctionsTest extends UnitTestCase
 {
 
 	function __construct() {
-		$this->UnitTestCase('Strings Test');
+		$this->UnitTestCase('Functions Test');
 	}
 
 
@@ -124,7 +124,17 @@ class StringsTest extends UnitTestCase
 		$this->assertEqual($name, 'test');
 	}
 
+
+	function testArrays()
+	{
+		$val = a('one', 4, 5.9, 'test');
+		$this->assertEqual($val, array('one', 4, 5.9, 'test'));
+
+		$val = aa('key', 'val', 'skey', 'sval');
+		$this->assertEqual($val, array('key' => 'val', 'skey' => 'sval'));
+	}
+
 }
 
-$test = new StringsTest();
+$test = new FunctionsTest();
 $test->run(new HtmlReporter());

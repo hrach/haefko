@@ -27,7 +27,7 @@ class View implements IView
 	public $base;
 
 	/** @var CustomController */
-	protected $controller;
+	public $controller;
 
 	/** @var string Pripona view */
 	protected $ext = 'phtml';
@@ -185,7 +185,7 @@ class View implements IView
 	 */
 	public function link($url, $title, array $attrs = array(), $html = false)
 	{
-		trigger_error('View::link() is deprecated, use Html helper $html->link().', E_WARNING);
+		trigger_error('View::link() is deprecated, use Html helper $html->link().', E_USER_WARNING);
 		return $this->html->link($url, $title, $attrs, $html);
 	}
 
@@ -197,7 +197,7 @@ class View implements IView
 	 */
 	public function button($url, $title, $confirm = false, array $attrs = array(), $html = false)
 	{
-		trigger_error('View::button() is deprecated, use Html helper $html->button().', E_WARNING);
+		trigger_error('View::button() is deprecated, use Html helper $html->button().', E_USER_WARNING);
 		return $this->html->button($url, $title, $confirm, $attrs, $html);
 	}
 

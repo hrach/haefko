@@ -6,268 +6,204 @@
  * @author      Jan Skrasek <skrasek.jan@gmail.com>
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.7
+ * @version     0.8
  * @package     Haefko
  */
 
 
-
-class Html implements ArrayAccess
+final class Html
 {
 
 
-
-    public static $emptyElements = array('img', 'meta', 'input', 'meta',
-                                         'area', 'base', 'col', 'link',
-                                         'param', 'frame', 'embed');
-
-
-
-    /**
-     * Vrati instanci Html
-     * @param   string  tag
-     * @return  Html
-     */
-    public static function element($tag)
-    {
-        $el = new Html();
-        $el->setTag($tag);
-
-        return $el;
-    }
-
-
-    private $name;
-    private $attrs = array();
-    private $content;
-    private $empty;
-    private $classes = array();
-
-
-
-    /**
-     * Nastavi tag
-     * @param   string  tag
-     * @param   bool    je tag neparovy
-     * @return  void
-     */
-    public function setTag($elementName, $empty = null)
-    {
-        $this->name = $elementName;
-        $this->empty = is_null($empty) ? in_array($elementName, self::$emptyElements) : (bool) $empty;
-    }
-
-
-
-    /**
-     * Vrati jmeno tagu
-     * @return  string
-     */
-    public function getTag()
-    {
-        return $this->name;
-    }
-
-
-
-    /**
-     * Nastavi atribut
-     * @param   string  jmeno atributu
-     * @param   string  hodnota
-     * @return  void
-     */
-    public function setAttribute($name, $value)
-    {
-        $this->attrs[$name] = $value;
-    }
-
-
-
-    /**
-     * Nastavi hromadne atributy
-     * @param   array   pole s atributy $name => $value
-     * @return  void
-     */
-    public function setAttributes(array $attrs)
-    {
-        foreach ($attrs as $name => $value) {
-            if ($name == 'class')
-                $this->addClass($value);
-            else
-                $this->attrs[$name] = $value;
-        }
-    }
-
-
-
-    /**
-     * Vrati hondotu atributu $name
-     * @param   string  jmeno atributu
-     * @return  string
-     */
-    public function getAttribute($name)
-    {
-        return $this->attrs[$name];
-    }
-
-
-
-    /**
-     * Nastavi obsah elementu
-     * @param   string  obsah
-     * @param   bool    escapovat obsah
-     * @return  void
-     */
-    public function setContent($value, $escape = false)
-    {
-        if (!$escape)
-            $this->content = htmlspecialchars($value);
-        else
-            $this->content = $value;
-    }
-
-
-
-    /**
-     * Vrati obsah elementu
-     * @return  string
-     */
-    public function getContent()
-    {
-        return $this->content;
-    }
-
-
-
-    /**
-     * Vyrenderuje cely element
-     * @return  string
-     */
-    public function render()
-    {
-        if ($this->empty)
-            return $this->renderStart();
-        else
-            return $this->renderStart() . $this->getContent() . $this->renderEnd();
-    }
-
-
-
-    /**
-     * Vygeneruje pocatecni tag
-     * @return  string
-     */
-    public function renderStart()
-    {
-        $string = "<{$this->name}";
-
-        $this->attrs['class'] = $this->getClasses();
-
-        foreach ($this->attrs as $name => $value) {
-            if (!empty($value) || $value == '0')
-                $string .= ' ' . $name . '="' . htmlspecialchars($value) . '"';
-        }
-
-        if ($this->empty)
-            $string .= "/>\n";
-        else
-            $string .= '>';
-
-        return $string;
-    }
-
-
-
-    /**
-     * Vyrenderuje koncovy tag (pouze pokud je element parovy)
-     * @return  string
-     */
-    public function renderEnd()
-    {
-        if (!$this->empty)
-            return "</{$this->name}>" . ($this->name == 'a' ? '' : "\n");
-    }
-
-
-
-    /**
-     * Prida tridu
-     * @param   string  jmeno tridy
-     * @return  void
-     */
-    public function addClass($names)
-    {
-        if (!is_array($names))
-            $names = func_get_args();
-
-        foreach ($names as $name) {
-            if (!empty($name))
-                $this->classes[$name] = true;
-        }
-    }
-
-
-
-    /**
-     * Odebere tridu
-     * @param   string  jmeno tridy
-     * @return  void
-     */
-    public function removeClass($name)
-    {
-        unset($this->classes[$name]);
-    }
-
-
-
-    /**
-     * Vrati tridy
-     * @return  string
-     */
-    public function getClasses()
-    {
-        return implode(' ', array_keys($this->classes));
-    }
-
-
-
-    public function offsetSet($key, $value)
-    {
-        $this->attrs[$key] = $value;
-    }
-
-
-
-    public function offsetGet($key)
-    {
-        if (isset($this->attrs[$key]))
-            return $this->attrs[$key];
-
-        return false;
-    }
-
-
-
-    public function offsetUnset($key)
-    {
-        if (isset($this->attrs[$key]))
-            unset($this->attrs[$key]);
-    }
-
-
-
-    public function offsetExists($key)
-    {
-        return isset($this->attrs[$key]);
-    }
-
-
-
-    public function __toString()
-    {
-        return $this->render();
-    }
-
+	/** @var string */
+	public $tag;
+
+	/** @var bool */
+	public $isEmpty = false;
+
+	/** @var mixed */
+	private $content;
+
+	/** @var array */
+	private $attrs = array();
+
+	/** @var array Empty tags */
+	private static $emptyElements = array(
+		'img', 'meta', 'input', 'meta', 'area', 'base',
+		'col', 'link', 'param', 'frame', 'embed'
+	);
+
+
+	/**
+	 * Return Html object
+	 * @param   string         tag name
+	 * @param   array|string   attributes|content
+	 * @return  Html
+	 */
+	public static function el($tag, $attrs = null)
+	{
+		$el = new Html();
+		$el->tag = strtolower($tag);
+		$el->isEmpty = in_array($el->tag, self::$emptyElements);
+
+		if (is_array($attrs))
+			$el->setAttributes($attrs);
+		elseif (!empty($attrs))
+			$el->setContent($attrs);
+
+		return $el;
+	}
+
+
+	/**
+	 * Set the array of attributes
+	 * @param   array   attributes: $key => $value
+	 * @return  void
+	 */
+	public function setAttributes($attrs)
+	{
+		foreach ($attrs as $name => $value) {
+			if ($name == 'class') {
+				if (is_array($value))
+					$this->attrs['class'] = array_merge((array) $this->attrs['class'], $value);
+				else
+					$this->attrs['class'][] = $value;
+			} else {
+				$this->attrs[$name] = $value;
+			}
+		}
+	}
+
+
+	/**
+	 * Set the content
+	 * @param   string  content
+	 * @param   bool    escape content
+	 * @param   bool    escape content
+	 * @return  void
+	 */
+	public function setContent($value, $escape = true, $append = false)
+	{
+		if ($escape)
+			$value = htmlspecialchars($value);
+
+		if ($append)
+			$this->content .= $value;
+		else
+			$this->content = $value;
+	}
+
+
+	/**
+	 * Return content
+	 * @return  string
+	 */
+	public function getContent()
+	{
+		return $this->content;
+	}
+
+
+	/**
+	 * Render start tag + content + end tag
+	 * @param   int     tag's indent
+	 * @return  string
+	 */
+	public function render($indent = 0)
+	{
+		$render = $this->startTag();
+
+		if ($this->isEmpty)
+			return $render;
+
+		$render .= $this->getContent()
+		        .  $this->endTag();
+
+		return str_repeat("\t", $indent) . $render;
+	}
+
+
+	/**
+	 * Render start tag
+	 * @return  string
+	 */
+	public function startTag()
+	{
+		$tag = "<{$this->tag}";
+
+		foreach ($this->attrs as $name => $value) {
+			if ($value === null || $value === false)
+				continue;
+
+			if (is_array($value))
+				$value = implode(' ', $value);
+
+			$tag .= " $name=\"" . htmlspecialchars($value) . '"';
+		}
+
+		if ($this->isEmpty)
+			return $tag . "/>\n";
+		else
+			return $tag . '>';
+	}
+
+
+	/**
+	 * Render end tag
+	 * @return  string
+	 */
+	public function endTag()
+	{
+		return "</{$this->tag}>\n";
+	}
+
+
+	/**
+	 * Magic method
+	 */
+	public function __set($key, $value)
+	{
+		$this->attrs[$key] = $value;
+	}
+
+
+	/**
+	 * Magic method
+	 */
+	public function __get($key)
+	{
+		if (!isset($this->attrs[$key]))
+			return null;
+
+		return $this->attrs[$key];
+	}
+
+
+	/**
+	 * Magic method
+	 */
+	public function __unset($key)
+	{
+		unset($this->attrs[$key]);
+	}
+
+
+	/**
+	 * Magic method
+	 */
+	public function __isset($key)
+	{
+		return isset($this->attrs[$key]);
+	}
+
+
+	/**
+	 * Magic method
+	 */
+	public function __toString()
+	{
+		return $this->render();
+	}
 
 
 }

@@ -267,9 +267,9 @@ class Application
 			'Cookie' => 'Cookie',
 			'Session' => 'Session',
 			'Debug' => 'Debug',
-			'Form' => 'Form',
 			'Html' => 'Html',
 			'Db' => 'Db',
+			'AppForm' => 'Application/AppForm',
 			'L10n' => 'Application/L10n',
 			'LayoutView' => 'Application/LayoutView',
 			'RssFeedView' => 'Application/RssFeedView'

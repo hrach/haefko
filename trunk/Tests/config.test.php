@@ -2,7 +2,7 @@
 
 require_once('simpletest/unit_tester.php');
 require_once('simpletest/reporter.php');
-require_once('Haefko/Config.php');
+require_once('../Haefko/Config.php');
 
 
 class ConfigTest extends UnitTestCase

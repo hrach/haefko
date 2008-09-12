@@ -11,11 +11,8 @@
  */
 
 
-
 class DbMysqliDriver implements IDbDriver
 {
-
-
 
 	public function connect(array $config)
 	{
@@ -26,7 +23,6 @@ class DbMysqliDriver implements IDbDriver
 
 		$this->resource->set_charset($config['encoding']);
 	}
-
 
 
 	public function query($sql)
@@ -40,36 +36,25 @@ class DbMysqliDriver implements IDbDriver
 	}
 
 
-
-	public function fetch($type)
+	public function fetch($assoc)
 	{
-		return $this->result->fetch_array($type ? MYSQLI_ASSOC : MYSQLI_NUM);
+		return $this->result->fetch_array($assoc ? MYSQLI_ASSOC : MYSQLI_NUM);
 	}
 
 
-
-	public function quote($string, $type)
+	public function escape($value, $type)
 	{
-		if ($type == 'value') 
-			return "'$string'";
-		else
-			return "`$string`";
+		switch ($type) {
+		case 'identifier':     return "`$value`";
+		case 'text':           return "'" . $this->resource->escape_string($value) . "'";
+		}
 	}
-
-
-
-	public function escape($string)
-	{
-		return $this->resource->escape_string($string);
-	}
-
 
 
 	public function affectedRows()
 	{
 		return $this->resource->affected_rows;
 	}
-
 
 
 	public function columnsMeta()
@@ -84,12 +69,10 @@ class DbMysqliDriver implements IDbDriver
 	}
 
 
-
 	public function rowCount()
 	{
 		return $this->result->num_rows;
 	}
-
 
 
 }

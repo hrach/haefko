@@ -76,6 +76,14 @@ abstract class CustomModel
 	{}
 
 
+	public function query() {
+		$sqls = func_get_args();
+		return call_user_func_array('Db::query', $sqls);
+	}
+
+
+
+
 
 	public function __call($name, $args)
 	{

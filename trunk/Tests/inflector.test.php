@@ -2,8 +2,8 @@
 
 require_once('simpletest/unit_tester.php');
 require_once('simpletest/reporter.php');
-require_once('Haefko/functions.php');
-require_once('Haefko/Application/Inflector.php');
+require_once('../Haefko/functions.php');
+require_once('../Haefko/Application/Inflector.php');
 
 
 class InflectorTest extends UnitTestCase
@@ -86,15 +86,6 @@ class InflectorTest extends UnitTestCase
 		$this->assertEqual($name, 'helpers/rss-feed-helper.php');
 	}
 
-	function testActionName()
-	{
-		$name = Inflector::actionName('show');
-		$this->assertEqual($name, 'Show');
-
-		$name = Inflector::actionName('get-rating');
-		$this->assertEqual($name, 'GetRating');
-	}
-
 	function testViewFile()
 	{
 		$name = Inflector::viewFile('phtml', 'show', '', '', 'posts', '');
@@ -149,12 +140,12 @@ class InflectorTest extends UnitTestCase
 		$this->assertEqual($name, 'views/green/errors/e404.phtml');
 	}
 
-	function testElementFile()
+	function testSnippetFile()
 	{
-		$name = Inflector::elementFile('phtml', 'rating');
+		$name = Inflector::snippetViewFile('phtml', 'rating');
 		$this->assertEqual($name, 'views/rating.phtml');
 
-		$name = Inflector::elementFile('phtml', '/_elements//rating');
+		$name = Inflector::snippetViewFile('phtml', '/_elements//rating');
 		$this->assertEqual($name, 'views/_elements/rating.phtml');
 	}
 

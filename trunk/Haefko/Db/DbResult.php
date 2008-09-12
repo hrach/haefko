@@ -11,138 +11,154 @@
  */
 
 
-
-/**
- * Trida s rozparsovanym vysledekem dotazu
- */
 class DbResult implements Countable, IteratorAggregate
 {
+
 
 	/** @var DbDriver */
 	private $driver;
 
-	/** @var array|bool */
-	private $widthTables = false;
-
 	/** @var array */
-	private $result = array();
-
-	/** @var DbResultNode */
-	private $row;
-
-	/** @var DbResultNode */
-	private $rows;
+	private $cols = array();
 
 	/** @var bool */
-	private $fetched = false;
+	private $tables = false;
 
-	/** @var array */
-	private $assoc;
+	/** @var null|array Stored rows */
+	private $rows;
 
+	/** @var null|array Stored row */
+	private $stored;
 
 
 	/**
 	 * Constructor
 	 * @param   DbDriver
-	 * @param   array  Information about sql query (used tables, etc.)
 	 * @return  void
 	 */
-	public function __construct($driver, $info)
+	public function __construct($driver)
 	{
 		$this->driver = $driver;
 
-		$this->withTables = count(array_keys($info['tables'])) > 1;
-		if (!empty($info['assoc']))
-			$this->assoc = $info['assoc'];
-
-		if ($this->withTables) {
-			$this->withTables = array();
-			$cols = $this->driver->columnsMeta();
-			foreach ($cols as $col)
-				$this->withTables[] = array($col['table'], $col['name']);
+		$tables = array();
+		foreach ($this->driver->columnsMeta() as $col) {
+			$this->cols[] = array($col['table'], $col['name']);
+			$tables[$col['table']] = true;
 		}
+
+		$this->tables = $tables = count($tables) > 1;
 	}
 
 
-
 	/**
-	 * Return value of first filed of db result
+	 * Return value of the first field
 	 * @return  mixed
 	 */
 	public function fetchField()
 	{
-		if ($this->fetchRow()) {
-			$row = $this->lastRow();
-			return $row[0];
-		}
+		if (is_null($this->rows))
+			$this->rows = array($this->fetch());
 
-		return false;
+		if (isset($this->rows[0][0]))
+			return $this->rows[0][0];
+		else
+			return null; // TODO throw Exception
 	}
 
+
+	public function fetchPairs()
+	{
+		$array = array();
+		foreach ($this->fetchAll() as $row) {
+			if (!isset($row[1]))
+				$array[] = $row[0];
+			else
+				$array[$row[0]] = $row[1];
+		}
+		return $array;
+	}
 
 
 	/**
 	 * Return one row of result with assocciation $assoc
-	 * @param   array  Association
+	 * @param   array         Association
 	 * @return  DbResultNode
 	 */
-	public function fetch($assoc = array())
+	public function fetch($assoc = null)
 	{
-		$result = $parent = false;
-		if (empty($assoc))
-			$assoc = $this->assoc;
+		$assoc = func_get_args();
+		$row = $this->getRow(!$this->tables);
+			if (is_null($row))
+				return null;
 
-		if (empty($assoc)) {
-			if (!$this->fetched && $this->fetchRow())
-				return new DbResultNode($this->lastRow());
-			else
-				return false;
-		} else {
+		if ($this->tables) {
 
-			if (!$this->fetched && $this->lastRow() !== false)
-				$data = array(end($this->result));
-			else
-				$data = array();
+			$row = $this->combineColumns($row);
 
-			while ($this->fetchRow()) {
-				$row = $this->lastRow();
-				if (!$parent)
-					$parent = $row->{$assoc[0]};
 
-				if ($parent != $row->{$assoc[0]})
-					break;
-				else
-					$data[] = $row;
-			}
+			// association
+			if (!empty($assoc)) {
+				while (($newRow = $this->getRow(false)) !== null) {
+					$this->stored = $newRow;
+					$newRow = $this->combineColumns($newRow);
 
-			if (empty($data))
-				return false;
+					if (strpos($assoc[0], '.') !== false) { // compare table and column
+						list($t, $c) = explode('.', $assoc[0]);
+						if ($row[$t][$c] != $newRow[$t][$c])
+							break;
 
-			foreach ($data as $i => $row) {
-				if (!is_object($row))
-					continue;
+						$this->stored = null;
+						unset($newRow[$t]);
+					} else { // compare table
+						if ($row[$assoc[0]] != $newRow[$assoc[0]])
+							break;
 
-				foreach (get_object_vars($row) as $name => $node) {
-					if ($node instanceof DbResultNode) {
-						if ($name !== $assoc[0] && (!isset($assoc[$name]) || (isset($assoc[$name]) && $assoc[$name] != 'hasOne'))) {
-							if ($i == 0)
-								$result[$name] = array($node);
-							else
-								$result[$name][] = $node;
-						} elseif ($i == 0) {
-							$result[$name] = $node;
-						}
-					} else {
-						$result[$name] = $node;
+						$this->stored = null;
+						unset($newRow[$assoc[0]]);
 					}
+
+					// copy tables
+					foreach ($newRow as $table => $data)
+						if (in_array($table, (array) $assoc[1])) {
+							if (!isset($row[$table]))
+								$row[$table] = $data;
+						} else {
+							if(!is_array($row[$table]))
+								$row[$table] = array();
+
+							$row[$table][] = $data;
+						}
 				}
 			}
 
-			unset($data);
-			return new DbResultNode($result);
 		}
+
+		return new DbResultNode($row);
 	}
 
+
+	/*
+	 * Combine tables with columns and values
+	 * @param   array   table row
+	 * @return  array
+	 */
+	private function combineColumns($row)
+	{
+		$i = 0;
+		foreach ($this->cols as $col) {
+			if (empty($col[0]))
+				$r[$col[1]] = $row[$i++];
+			else
+				$r[$col[0]][$col[1]] = $row[$i++];
+		}
+
+		foreach ($r as & $data) {
+			if (is_array($data))
+				$data = new DbResultNode($data);
+		}
+
+		return $r;
+	}
 
 
 	/**
@@ -150,29 +166,23 @@ class DbResult implements Countable, IteratorAggregate
 	 * @param   array  Association
 	 * @return  array
 	 */
-	public function fetchAll($assoc = array())
+	public function fetchAll($assoc = null)
 	{
-		if (is_null($this->rows)) {
-
-			$this->rows = array();
-			while (($row = $this->fetch($assoc)) !== false)
-				$this->rows[] = $row;
-		}
+		while (($row = $this->fetch($assoc)) !== null)
+			$this->rows[] = $row;
 
 		return $this->rows;
 	}
 
 
-
 	/**
-	 * Vrati pocet ovlivnenych radku
+	 * Retrun number of affected rows
 	 * @return  int
 	 */
 	public function affectedRows()
 	{
 		return $this->driver->affectedRows();
 	}
-
 
 
 	/**
@@ -185,7 +195,6 @@ class DbResult implements Countable, IteratorAggregate
 	}
 
 
-
 	/**
 	 * Countable interface
 	 * @return  int
@@ -196,161 +205,39 @@ class DbResult implements Countable, IteratorAggregate
 	}
 
 
-
-	/**
-	 * Return last row of db result
-	 * @return  array
-	 */
-	private function lastRow()
-	{
-		if (empty($this->result))
-			return false;
-		else
-			return end($this->result);
-	}
-
-
-
 	/**
 	 * Proccess one row of db result
 	 * @return  bool
 	 */
-	private function fetchRow()
+	private function getRow($assoc)
 	{
-		if ($this->withTables === false) {
-
-			$row = $this->driver->fetch(true);
-			if (!is_array($row)) {
-				$this->fetched = true;
-				return false;
-			}
-
-			$this->result[] = new DbResultNode($row);
+		if (!empty($this->stored)) {
+			$stored = $this->stored;
+			$this->stored = null;
+			return $stored;
 		} else {
-
-			$row = $this->driver->fetch(false);
-			if (!is_array($row)) {
-				$this->fetched = true;
-				return false;
-			}
-
-			$node = array();
-			foreach ($this->withTables as $i => $item) {
-				if (empty($item[0])) {
-					$node[$item[1]] = $row[$i];
-				} else {
-					if (!isset($node[$item[0]]))
-						$node[$item[0]] = array();
-
-					$node[$item[0]][$item[1]] = $row[$i];
-				}
-			}
-
-			foreach ($node as $x => $n) {
-				if (is_array($n)) {
-					if (implode('', $n) == '')
-						$node[$x] = array();
-					else
-						$node[$x] = new DbResultNode($n);
-				}
-			}
-
-			$this->result[] = new DbResultNode($node);
-		}
-		return true;
-	}
-
-
-
-}
-
-
-/**
- * Class for db result
- */
-class DbResultNode implements ArrayAccess
-{
-
-	/** @var array */
-	private $keys = array();
-
-
-
-	/**
-	 * Konstruktor
-	 * @param   array   Pole s daty
-	 * @return  void
-	 */
-	public function __construct($data)
-	{
-		$i = 0;
-		foreach ($data as $key => $val) {
-			$this->$key = $val;
-			$this->keys[$i++] = $key;
+			return $this->driver->fetch($assoc);
 		}
 	}
 
 
-
-	/**
-	 * Magic method
-	 * @return  void
-	 */
-	public function __get($name)
+	public function dump()
 	{
-		throw new DbResultException("Undefined field '$name'.");
+		$r = '<table>';
+		foreach ($this->fetchAll() as $row) {
+			$r .= '<tr>';
+			foreach ($row as $field) {
+				if (is_object($field))
+					$r .= '<td>' . print_r($field, true) . '</td>';
+						
+				else
+					$r .= '<td>' . $field . '</td>';
+			}
+			$r .= '</tr>';
+		}
+		$r .= '</table>';
+		return $r;
 	}
-
-
-
-	/**
-	 * Array-access
-	 * @return  void
-	 */
-	public function offsetSet($key, $value)
-	{
-		throw new DbResultException("You can not set the new value to '$key'.");
-	}
-
-
-
-	/**
-	 * Array-access
-	 * @return  FormItem
-	 */
-	public function offsetGet($key)
-	{
-		if (is_int($key) && isset($this->keys[$key]))
-			return $this->{$this->keys[$key]};
-		else
-			return $this->{$key};
-	}
-
-
-
-	/**
-	 * Array-access
-	 * @return  void
-	 */
-	public function offsetUnset($key)
-	{
-		throw new DbResultException("You can not unset the '$key'.");
-	}
-
-
-
-	/**
-	 * Array-access
-	 * @return  void
-	 */
-	public function offsetExists($key)
-	{
-		if (is_int($key))
-			return isset($this->keys[$key]);
-		else
-			return isset($this->{$key});
-	}
-
 
 
 }

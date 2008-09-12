@@ -35,7 +35,7 @@ class HtmlHelper extends CustomHelper
 	 */
 	public function link($url, $title = null, array $attrs = array(), $escape = false)
 	{
-		$el = Html::element('a');
+		$el = Html::el('a');
 
 		if (substr($url, 0, 4) == 'www.')
 			$url = "http://$url";
@@ -44,7 +44,7 @@ class HtmlHelper extends CustomHelper
 			$url = call_user_func_array(array($this->controller, 'url'), (array) $url);
 
 		$el->setAttributes($attrs);
-		$el['href'] = $url;
+		$el->href = $url;
 
 		if (is_null($title))
 			$el->setContent($url);
@@ -66,9 +66,9 @@ class HtmlHelper extends CustomHelper
 	 * @param   bool    je text tlacitka html
 	 * @return  string
 	 */
-	public function button($url, $title, $confirm = false, array $attrs = array(), $escape = false)
+	public function button($url, $title, $confirm = false, $attrs = array(), $escape = false)
 	{
-		$el = Html::element('button');
+		$el = Html::el('button');
 		$el->setAttributes($attrs);
 		$el->setContent($title, $escape);
 
@@ -79,15 +79,24 @@ class HtmlHelper extends CustomHelper
 			$url = call_user_func_array(array($this->controller, 'url'), (array) $url);
 
 
-		$el['type'] = 'button';
-		$el['onclick'] = "document.location.href='$url'";
+		$el->type = 'button';
+		$el->onclick = "document.location.href='$url'";
 
 		if (!empty($confirm))
-			$el['onclick'] = "if (confirm('$confirm')) { $el[onclick] }";
+			$el->onclick = "if (confirm('$confirm')) { $el[onclick] }";
 
 		return $el->render();
 	}
 
+
+	public function img($url, $attrs = array())
+	{
+		$el = Html::el('img');
+		$el->src = call_user_func_array(array($this->controller, 'url'), (array) $url);
+		$el->setAttributes($attrs);
+
+		return $el->render();
+	}
 
 
 	/**
@@ -98,11 +107,11 @@ class HtmlHelper extends CustomHelper
 	 */
 	public function css($url, $media = 'screen')
 	{
-		$el = Html::element('link');
-		$el['rel'] = 'stylesheet';
-		$el['type'] = 'text/css';
-		$el['href'] = $this->controller->url($url);
-		$el['media'] = $media;
+		$el = Html::el('link');
+		$el->rel = 'stylesheet';
+		$el->type = 'text/css';
+		$el->href = $this->controller->url($url);
+		$el->media = $media;
 
 		return $el->render();
 	}
@@ -116,9 +125,9 @@ class HtmlHelper extends CustomHelper
 	 */
 	public function js($url)
 	{
-		$el = Html::element('script');
-		$el['type'] = 'text/javascript';
-		$el['src'] = $this->controller->url($url);
+		$el = Html::el('script');
+		$el->type = 'text/javascript';
+		$el->src = $this->controller->url($url);
 
 		return $el->render();
 	}
@@ -133,11 +142,11 @@ class HtmlHelper extends CustomHelper
 	 */
 	public function rss($url, $title = 'RSS')
 	{
-		$el = Html::element('link');
-		$el['rel'] = 'alternate';
-		$el['type'] = 'application/rss+xml';
-		$el['href'] = $this->controller->url($url);
-		$el['title'] = $title;
+		$el = Html::el('link');
+		$el->rel = 'alternate';
+		$el->type = 'application/rss+xml';
+		$el->href = $this->controller->url($url);
+		$el->title = $title;
 
 		return $el->render();
 	}
@@ -151,9 +160,9 @@ class HtmlHelper extends CustomHelper
 	 */
 	public function icon($url)
 	{
-		$el = Html::element('link');
-		$el['rel'] = 'shortcut icon';
-		$el['href'] = $this->controller->url($url);
+		$el = Html::el('link');
+		$el->rel = 'shortcut icon';
+		$el->href = $this->controller->url($url);
 
 		return $el->render();
 	}
@@ -168,9 +177,9 @@ class HtmlHelper extends CustomHelper
 	 */
 	public function encoding($code = 'UTF-8')
 	{
-		$el = Html::element('meta');
-		$el['http-equiv'] = 'Content-type';
-		$el['content'] = "text/html; charset=$code";
+		$el = Html::el('meta');
+		$el->{'http-equiv'} = 'Content-type';
+		$el->content = "text/html; charset=$code";
 
 		return $el->render();
 	}
@@ -186,7 +195,7 @@ class HtmlHelper extends CustomHelper
 	 */
 	public function title($title = null, $suffix = null)
 	{
-		$el = Html::element('title');
+		$el = Html::el('title');
 		if (is_null($title))
 			$el->setContent($this->controller->view->title . $suffix);
 		else
@@ -194,20 +203,6 @@ class HtmlHelper extends CustomHelper
 
 		return $el->render();
 	}
-
-
-
-	/**
-	 * Vypise html podpis frameworku
-	 * @return  string
-	 */
-	public function powered()
-	{
-		echo '<a href="http://haefko.programujte.com" class="hf-powered">',
-			 '<img src="http://haefko.programujte.com/design/powered.png" alt="Powered by Haefko">',
-			 '</a>';
-	}
-
 
 
 }

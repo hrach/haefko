@@ -11,11 +11,16 @@
  */
 
 
-
+require_once dirname(__FILE__) . '/functions.php';
 require_once dirname(__FILE__) . '/Html.php';
-require_once dirname(__FILE__) . '/Form/Controls.php';
+
+require_once dirname(__FILE__) . '/Form/Rule.php';
 require_once dirname(__FILE__) . '/Form/Condition.php';
 
+require_once dirname(__FILE__) . '/Form/Controls/FormControl.php';
+require_once dirname(__FILE__) . '/Form/Controls/Controls.php';
+require_once dirname(__FILE__) . '/Form/Controls/ContaineredControls.php';
+require_once dirname(__FILE__) . '/Form/Controls/MultiControls.php';
 
 
 /**
@@ -24,19 +29,30 @@ require_once dirname(__FILE__) . '/Form/Condition.php';
 class Form implements ArrayAccess
 {
 
+
 	/** @var int */
-	private static $counter = 0;
+	const
+		EQUAL        = 'equal',
+		FILLED       = 'filled',
+		NUMERIC      = 'numeric',
+		LENGTH       = 'length',
+		RANGE        = 'range',
+		INARRAY      = 'inarray',
+		REGEXP       = 'regexp',
+		URL          = 'url',
+		EMAIL        = 'email',
+		ALFANUMERIC  = 'alfanumeric';
 
 	/** @var array Submitted data */
 	public $data;
 
-	/** @var string Jmeno formulare */
+	/** @var string Form name */
 	public $name;
 
 	/** @var Html */
 	private $form;
 
-	/** @var bool|string Has been form submited? */
+	/** @var bool|string Submit button name */
 	private $submitBy = false;
 
 	/** @var array */
@@ -46,135 +62,131 @@ class Form implements ArrayAccess
 	private $errors = array();
 
 
-
-
-	/**
-	 * Validate $value by $rule with $arg
-	 * @param   string|callback  rule
-	 * @param   mixed            value
-	 * @param   mixed            additional valdiate argument
-	 * @return  bool
-	 */
-	public static function validate($rule, $value, $argument = null)
-	{
-		static $rules = array('equal', 'filled', 'numeric', 'length', 'range', 'array', 'email', 'url', 'alfanumeric');
-
-		if (is_string($rule))
-			$rule = strtolower($rule);
-
-		if ((is_string($rule) && !in_array($rule, $rules)) || is_callable($rule))
-			return call_user_func_array($rule, array($value, $argument));
-
-		switch ($rule) {
-			case 'equal':
-				return $value == $argument;
-			case 'filled':
-				return ($value === '0') ? true : !empty($value);
-			case 'numeric':
-				return is_numeric($value);
-			case 'length':
-				return strlen($value) == $argument;
-			case 'range':
-				if (is_string($value))
-					$value = strlen($value);
-				return $value >= $argument[0] && $value <= $argument[1];
-			case 'array':
-				return in_array($value, (array) $argument);
-			case 'email':
-				return preg_match('#^[^@]+@[^@]+\.[a-z]{2,6}$#i', $value);
-			case 'url':
-				return preg_match('#^.+\.[a-z]{2,6}(\\/.*)?$#i', $value);
-			case 'alfanumeric':
-				return preg_match('#^[a-z0-9]+$#i', $value);
-			default:
-				throw new Exception("Unsupported validation rule $rule.");
-		}
-	}
-
-
-
 	/**
 	 * Constructor
 	 * @param   string  action - url
 	 * @param   string  form name
 	 * @return  string  form name
 	 */
-	public function __construct($url = null, $name = 'form')
+	public function __construct($url = '', $method = 'post', $name = 'form')
 	{
-		if ($name == 'form' && self::$counter++ == 0)
+		static $counter = 0;
+
+		if ($name == 'form' && $counter++ == 0)
 			$this->name = 'form';
 		elseif ($name == 'form')
-			$this->name = 'form' . self::$counter++;
+			$this->name = 'form' . $counter++;
 		else
 			$this->name = $name;
 
-		$this->form = Html::element('form');
-		$this->form['name'] = $this->name;
-		$this->form['method'] = 'post';
-
-		if (!empty($url))
-			$this->form['action'] = $url;
+		$this->form = Html::el('form', array(
+			'name' => $this->name,
+			'method' => 'post',
+			'action' => $url
+		));
 
 		return $this->name;
 	}
 
 
+	/* ======== Containered Controls ======== */
+
 
 	/**
 	 * Add text input
 	 * @param   string  control name
-	 * @param   string  control label
+	 * @param   mixed   label (null = from name, false = no label)
 	 * @return  Form    return $this
 	 */
 	public function addText($control, $label = null)
 	{
-		$this->controls[$control] = new FormTextControl($this, $control, $label);
+		$this->controls[strRightTrim($control, '[]')] = new FormTextControl($this, $control, $label);
 		return $this;
 	}
-
 
 
 	/**
 	 * Add textarea input
 	 * @param   string  control name
-	 * @param   string  control label
+	 * @param   mixed   label (null = from name, false = no label)
 	 * @return  Form    return $this
 	 */
 	public function addTextarea($control, $label = null)
 	{
-		$this->controls[$control] = new FormTextareaControl($this, $control, $label);
+		$this->controls[strRightTrim($control, '[]')] = new FormTextareaControl($this, $control, $label);
 		return $this;
 	}
-
 
 
 	/**
 	 * Add password input
 	 * @param   string  control name
-	 * @param   string  control label
+	 * @param   mixed   label (null = from name, false = no label)
 	 * @return  Form    return $this
 	 */
 	public function addPassword($control, $label = null)
 	{
-		$this->controls[$control] = new FormPasswordControl($this, $control, $label);
+		$this->controls[strRightTrim($control, '[]')] = new FormPasswordControl($this, $control, $label);
 		return $this;
 	}
-
 
 
 	/**
 	 * Add file input
 	 * @param   string  control name
-	 * @param   string  control label
+	 * @param   mixed   label (null = from name, false = no label)
 	 * @return  Form    return $this
 	 */
 	public function addFile($control, $label = null)
 	{
 		$this->form['enctype'] = 'multipart/form-data'; 
-		$this->controls[$control] = new FormFileControl($this, $control, $label);
+		$this->controls[strRightTrim($control, '[]')] = new FormFileControl($this, $control, $label);
 		return $this;
 	}
 
+
+	/**
+	 * Add select input
+	 * @param   string  control name
+	 * @param   array   options
+	 * @param   mixed   label (null = from name, false = no label)
+	 * @return  Form    return $this
+	 */
+	public function addSelect($control, $options, $label = null)
+	{
+		$this->controls[strRightTrim($control, '[]')] = new FormSelectControl($this, $control, $options, $label);
+		return $this;
+	}
+
+
+	/* ======== Controls ======== */
+
+
+	/**
+	 * Add checkbox input
+	 * @param   string  control name
+	 * @param   mixed   label (null = from name, false = no label)
+	 * @return  Form    return $this
+	 */
+	public function addCheckbox($control, $label = null)
+	{
+		$this->controls[$control] = new FormCheckboxControl($this, $control);
+		return $this;
+	}
+
+
+	/**
+	 * Add radio inputs
+	 * @param   string  control name
+	 * @param   array   options
+	 * @param   mixed   label (null = from name, false = no label)
+	 * @return  Form    return $this
+	 */
+	public function addRadio($control, $options, $label = null)
+	{
+		$this->controls[$control] = new FormRadioControl($this, $control, $options, $label);
+		return $this;
+	}
 
 
 	/**
@@ -189,79 +201,38 @@ class Form implements ArrayAccess
 	}
 
 
-
-	/**
-	 * Add select input
-	 * @param   string  control name
-	 * @param   array   options
-	 * @param   string  control label
-	 * @return  Form    return $this
-	 */
-	public function addSelect($control, $options, $label = null)
-	{
-		$this->controls[$control] = new FormSelectControl($this, $control, $options, $label, false);
-		return $this;
-	}
-
+	/* ======== Multi Controls ======== */
 
 
 	/**
-	 * Add multiple-select input
+	 * Add multiple select input
 	 * @param   string  control name
 	 * @param   array   options
-	 * @param   string  control label
+	 * @param   mixed   label (null = from name, false = no label)
 	 * @return  Form    return $this
 	 */
 	public function addMultiSelect($control, $options, $label = null)
 	{
-		$this->controls[$control] = new FormSelectControl($this, $control, $options, $label, true);
+		$this->controls[$control] = new FormMultipleSelectControl($this, $control, $options, $label);
 		return $this;
 	}
 
 
-
 	/**
-	 * Add single checkbox input
-	 * @param   string  control name
-	 * @param   string  control label
-	 * @return  Form    return $this
-	 */
-	public function addSingleCheckbox($control, $label = null)
-	{
-		$this->controls[$control] = new FormSingleCheckboxControl($this, $control, $label);
-		return $this;
-	}
-
-
-
-	/**
-	 * Add checkbox inputs
+	 * Add multi checkbox inputs
 	 * @param   string  control name
 	 * @param   array   options
-	 * @param   string  control label
+	 * @param   mixed   label (null = from name, false = no label)
 	 * @return  Form    return $this
 	 */
-	public function addCheckbox($control, $options, $label = null)
+	public function addMultiCheckbox($control, $options, $label = null)
 	{
-		$this->controls[$control] = new FormCheckboxControl($this, $control, $options, $label);
+		$this->controls[$control] = new FormMultiCheckboxControl($this, $control, $options, $label);
 		return $this;
 	}
 
 
-
-	/**
-	 * Add radion inputs
-	 * @param   string  control name
-	 * @param   array   options
-	 * @param   string  control label
-	 * @return  Form    return $this
-	 */
-	public function addRadio($control, $options, $label = null)
-	{
-		$this->controls[$control] = new FormRadioControl($this, $control, $options, $label);
-		return $this;
-	}
-
+	/* ======== Button Controls ======== */
 
 
 	/**
@@ -277,6 +248,18 @@ class Form implements ArrayAccess
 	}
 
 
+	/**
+	 * Add image submit button
+	 * @param   string  image src
+	 * @param   string  control name
+	 * @return  Form    return $this
+	 */
+	public function addImageSubmit($src = null, $control = 'submit')
+	{
+		$this->controls[$control] = new FormImageSubmitControl($this, $control, $src);
+		return $this;
+	}
+
 
 	/**
 	 * Add reset button
@@ -291,53 +274,45 @@ class Form implements ArrayAccess
 	}
 
 
+	/* ======== Mehtods ======== */
+
 
 	/**
 	 * Render form html start tag
+	 * @todo    Javascript validation
 	 * @param   bool    render js validation?
 	 * @param   array   attributes
 	 * @return  string
 	 */
-	public function start($js = true, $attributes = array())
+	public function startTag($js = true, $attrs = array())
 	{
-		$render = '';
-
-		if ($js) {
-			$js = $this->name . ' = ' . json_encode($this->validation);
-			$render .= "<script type=\"text/javascript\">\n//<![CDATA[\n$js\n//]]>\n</script>";
-			$this->form['onsubmit'] = "return formValidate({$this->name});";
-
-			if (class_exists('Application', false))
-				Application::getInstance()->controller->view->helper('js')->need('hfvalidate');
-		}
-
-		$this->form->setAttributes($attributes);
-		return $this->form->renderStart();
+		$this->form->setAttributes($attrs);
+		return $this->form->startTag();
 	}
-
 
 
 	/**
 	 * Render form end tag with hidden inputs
 	 * @return  string
 	 */
-	public function end()
+	public function endTag()
 	{
 		$render = '';
-		foreach ($this->controls as $Control) {
-			if ($Control instanceof FormHiddenControl)
-				$render .= $Control->block();
+		foreach ($this->controls as $control) {
+			if ($control instanceof FormHiddenControl)
+				$render .= $control->block();
 		}
 
-		$render .= $this->form->renderEnd();
+		$render .= $this->form->endTag();
 		return $render;
 	}
 
 
-
 	/**
-	 * 
-	 * @param   string  jmeno odesilaciho tlacika
+	 * Return true/false if the form has been submitted
+	 * Arguments: no submit button name = check only if form has been submitted
+	 *            buton name/names = check if form has been submitted by button/buttons
+	 * @param   string  button name
 	 * @return  bool
 	 */
 	public function isSubmit()
@@ -353,44 +328,38 @@ class Form implements ArrayAccess
 	}
 
 
-
 	/**
-	 * Zjisti, zda je formaluar validni
+	 * Return true/false if the form is valid
 	 * @return  bool
 	 */
 	public function isValid()
 	{
 		$valid = true;
 		foreach ($this->controls as $control) {
-			foreach ($control->rules as $rule) {
-				if (!$rule->isValid())
-					$valid = false;
-			}
+			if (!$control->isValid())
+				$valid = false;
 		}
 
 		return $valid;
 	}
 
 
-
 	/**
-	 * Set default values
-	 * @param   array   array $fieldName => $value
+	 * Set default values for controls
+	 * @param   array   values - format is array with $controlName => $value
 	 * @return  void
 	 */
-	public function setDefaults(array $defaults)
+	public function setDefaults($defaults)
 	{
-		foreach ($defaults as $id => $value) {
+		foreach ((array) $defaults as $id => $value) {
 			if (isset($this->controls[$id]))
 				$this->controls[$id]->setValue($value);
 		}
 	}
 
 
-
-
 	/**
-	 * Vrati url formulare
+	 * Return form url
 	 * @return  string
 	 */
 	public function getUrl()
@@ -399,88 +368,36 @@ class Form implements ArrayAccess
 	}
 
 
-
 	/**
-	 * Add error message
-	 * @param   string  input name
-	 * @param   string  error message
-	 * @return  void
-	 */
-	public function addError($id, $message)
-	{
-		$this->errors[] = array($id, $message);
-	}
-
-
-
-	/**
-	 * Has form any errors?
-	 * @return  bool
-	 */
-	public function hasErrors()
-	{
-		return count($this->errors) > 0;
-	}
-
-
-
-	/**
-	 * Return array of errors
-	 * @return  array
-	 */
-	public function getErrors()
-	{
-		return $this->errors;
-	}
-
-
-
-	/**
-	 * Render error list
+	 * Render form controls and tags
 	 * @return  string
 	 */
-	public function errorList()
+	public function render()
 	{
-		if (!$this->hasErrors()) return;
+		$r = $this->startTag();
 
-		$list = "<ul class=\"errors\">\n";
-		foreach ($this->errors as $error) {
-			if (!empty($error[0]))
-				$list .= "<li><label class=\"error\" for=\"$this->name-$error[0]\">$error[1]</label></li>\n";
-			else
-				$list .= "<li><label class=\"error\">$error[1]</label></li>\n";
+		foreach ($this->controls as $control) {
+			if (!($control instanceof FormHiddenItem))
+				$r .= $control->block();
 		}
-		$list .= "</ul>\n";
 
-		return $list;
+		$r .= $this->endTag();
+		return $r;
 	}
 
 
-
 	/**
-	 * Vyrenderuje zakladni jednoduchou kostru formulare
-	 * @return  string
-	 */
-	public function renderForm()
-	{
-		echo 'TODO';
-	}
-
-
-
-	/**
-	 * Array-access
+	 * Array-access interface
 	 * @return  void
 	 */
 	public function offsetSet($id, $value)
 	{
-		throw new Exception("Unsupported method for set the form input Control '$id'.");
+		throw new Exception("Unsupported acces to form definition. Use methods add*.");
 	}
 
 
-
 	/**
-	 * Array-access
+	 * Array-access interface
 	 * @return  FormControl
 	 */
 	public function offsetGet($id)
@@ -490,9 +407,8 @@ class Form implements ArrayAccess
 	}
 
 
-
 	/**
-	 * Array-access
+	 * Array-access interface
 	 * @return  void
 	 */
 	public function offsetUnset($id)
@@ -502,9 +418,8 @@ class Form implements ArrayAccess
 	}
 
 
-
 	/**
-	 * Array-access
+	 * Array-access interface
 	 * @return  bool
 	 */
 	public function offsetExists($id)
@@ -513,9 +428,18 @@ class Form implements ArrayAccess
 	}
 
 
+	/**
+	 * Magic method
+	 * @return  string
+	 */
+	public function __toString()
+	{
+		return $this->render();
+	}
+
 
 	/**
-	 * Load submited data
+	 * Load submited data into the form
 	 * @return  void
 	 */
 	private function loadData()
@@ -523,17 +447,16 @@ class Form implements ArrayAccess
 		foreach ($this->controls as $id => $control) {
 			if ($control instanceof FormFileControl) {
 				$this->data[$id] = new FormUploadedFile($control);
-			} elseif (isset($_POST[$this->name][$name])) {
+			} elseif (isset($_POST[$this->name][$id])) {
 				if ($control instanceof FormSubmitControl) {
-					$this->submitBy = $name;
+					$this->submitBy = $id;
 				} else {
-					$control->setValue($_POST[$this->name][$name]);
-					$this->data[$name] = $control->getvalue();
+					$control->setValue($_POST[$this->name][$id]);
+					$this->data[$id] = $control->getvalue();
 				}
 			}
 		}
 	}
-
 
 
 }

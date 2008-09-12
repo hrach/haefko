@@ -11,129 +11,60 @@
  */
 
 
-
-/**
- * FormCondition
- */
-class FormCondition
+class Condition
 {
 
-	/** @var bool|array */
-	private $condition = array();
+
+	/** @var Rule */
+	public $rule;
 
 	/** @var array */
-	private $rules = array();
-
+	public $rules = array();
 
 
 	/**
 	 * Constructor
-	 * @param   Form
+	 * @param   Rule   rule
 	 * @return  void
 	 */
-	public function __construct(& $element, $rule, $argument = null)
+	public function __construct(Rule $rule)
 	{
-		$this->condition = array($element, $rule, $argument);
-	}
-
-
-
-	/**
-	 * Check condition a validate rules
-	 * @return  bool
-	 */
-	public function isValid()
-	{
-		if (!Form::validate($this->contion[1], $this->contion[0]->getValue(), $this->contion[2]))
-			return true;
-
-		$valid = true;
-		foreach ($this->rules as $rule) {
-			if (!Form::validate($rule[1], $rule[0]->getValue(), $rule[2])) {
-				$rule[0]->addError($rule[3]);
-				$valid = false;
-			}
-		}
-
-		return $valid;
+		$this->rule = $rule;
 	}
 
 
 	/**
-	 * Add rule to form contol
-	 * @param   string|callback  rule name or callback
-	 * @param   mixed            additional validation argument
-	 * @param   string           error message
-	 * @return  FormCondition    return $this
+	 * Add rule for actual control (control of condition)
+	 * @param   string       validation rule name or callback
+	 * @param   mixed        validation argument
+	 * @param   string       error message
+	 * @return  Condition    return $this
 	 */
-	public function addRule($element, $rule, $argument = null, $message = null)
+	public function addRule($rule, $arg = null, $message = null)
 	{
-		$this->rules[] = array($element, $rule, $argument, $message);
+		return $this->addRuleOn($this->rule->control, $rule, $arg, $message);
+	}
+
+
+	/**
+	 * Add rule for $control
+	 * @param   FormControl  control
+	 * @param   string       validation rule name or callback
+	 * @param   mixed        validation argument
+	 * @param   string       error message
+	 * @return  Condition    return $this
+	 */
+	public function addRuleOn(FormControl $control, $rule, $arg = null, $message = null)
+	{
+		$r = new Rule();
+		$r->control = $control;
+		$r->rule = $rule;
+		$r->arg = $arg;
+		$r->message = $message;
+
+		$this->rules[] = $r;
 		return $this;
 	}
-
-
-
-
-	/**
-	 * Vrati javascriptovou validaci pro aktualni podminku
-	 * @return  string
-	 */
-	public function js()
-	{
-		if (empty($this->rules)) return;
-
-		$js = null;
-		$id = $this->field->el['id'];
-		$value = ($this->field instanceof FormCheckBoxItem) ? "$('#$id').attr('checked')" : "$('#$id').val()";
-
-
-		foreach ($this->rules as $item) {
-			if ($this->field instanceof FormPasswordItem && $item['rule'] == 'equal' && is_string($item['arg']))
-				continue;
-
-			$rule = ($this->field instanceof FormCheckBoxItem) ? 'expression' : $item['rule'];
-			$arg = $this->jsFieldArg($item['rule'], $item['arg']);
-			$js .= "if (!HFisValid('$rule', $value, $arg)) { valid = false; HFcreateErrorLabel('$id', '" . addslashes($item['message']) . "'); }\n";
-		}
-
-
-		if (!is_null($this->rule)) {
-			$rule = ($this->field instanceof FormCheckBoxItem) ? 'expression' : $this->rule;
-			$arg = $this->jsFieldArg($this->rule, $this->arg);
-			$js = "if (HFisValid('$rule', $value, $arg)) { $js }\n";
-		}
-
-
-		return $js;
-	}
-
-
-
-	/**
-	 * Vrati js vyraz pro argument v zavislosti na podmince a typu predaneho argumentu
-	 * @param   string  podminka
-	 * @param   mixed   argument
-	 * @return  string
-	 */
-	private function jsFieldArg($rule, $arg)
-	{
-		if (in_array($rule, array('filled', 'notfilled'))) {
-			return "'{$this->field->getEmptyValue()}'";
-		} else {
-			if ($arg instanceof FormItem)
-				return "$('#{$arg->el['id']}').val()";
-			elseif (is_array($arg))
-				return toJsArray($arg);
-			else
-				return "'$arg'";
-		}
-	}
-
-
-
-
-
 
 
 }

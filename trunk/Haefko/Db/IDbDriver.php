@@ -22,9 +22,8 @@ interface IDbDriver
 
     public function connect(array $config);
     public function query($sql);
-    public function fetch($type);
-    public function quote($string, $type);
-    public function escape($string);
+    public function fetch($assoc);
+    public function escape($value, $type);
     public function affectedRows();
     public function columnsMeta();
     public function rowCount();

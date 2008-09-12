@@ -1,6 +1,6 @@
 <?php
 
-require 'Haefko/Autoload.php';
+require '../../../Haefko/Autoload.php';
 
 $autoload = new Autoload();
 $autoload->addDir(dirname(__FILE__));

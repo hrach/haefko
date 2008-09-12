@@ -11,33 +11,28 @@
  */
 
 
-
-/**
- * Trida Db zapouzdruhe dibi knihovnu, pripoji se se spravnymi udaji
- */
 class Db
 {
 
-	/** @var array Debug provedenych sql dotazu */
+	/** @var array Debug of queries */
 	public static $sqls = array();
 
-	/** @var string Jmeno aktivniho pripojeni */
+	/** @var string Name of active connection */
 	private static $active;
 
-	/** @var array Pripojeni */
+	/** @var array */
 	private static $connections = array();
 
 
-
 	/**
-	 * Pripoji se k databazi
-	 * Pokud neni predano konfiguracni pole pripojeni, je nacteno z konfiguracni direktivy 'Db.connection'
+	 * Connect to database
+	 * If you don't provide $config, its load from config directive 'Db.connection'
 	 * @example http://haefko.programujte.com/manual
-	 * @param   array   nastaveni pripojeni
-	 * @param   array   jmeno pripojeni
+	 * @param   array   connection config
+	 * @param   array   connection name
 	 * @return  void
 	 */
-	public static function connect(array $config = array(), $name = 'default')
+	public static function connect($config = array(), $name = 'default')
 	{
 		if (empty($config))
 			$config = Config::read('Db.connection', array());
@@ -50,10 +45,9 @@ class Db
 	}
 
 
-
 	/**
-	 * Aktivuje pripojeni $name za vyhozi
-	 * @param   string  jmeno pripojeni
+	 * Set the connection $name as active
+	 * @param   string  connection name
 	 * @return  void
 	 */
 	public static function active($name)
@@ -61,13 +55,13 @@ class Db
 		if (isset(self::$connections[$name]))
 			self::$active = $name;
 		else
-			throw new DbException("Db: Connetion '$name' doesn't exists!");
+			throw new DbException("Connetion '$name' doesn't exists!");
 	}
 
 
 	/**
-	 * Provede dotaz na aktivni pripojeni
-	 * @param   string  sql dotaz
+	 * Wrapper for DbConnection::query()
+	 * @param   string    sql query
 	 * @return  DbResult
 	 */
 	public static function query($sql)
@@ -80,31 +74,28 @@ class Db
 
 
 	/**
-	 * Provede dotaz na aktivni pripojeni a vrati prvni pole prvniho zaznamu
-	 * @param   string  sql dotaz
+	 * Wrapper for DbConnection::fetchField()
+	 * @param   string    sql query
 	 * @return  mixed
 	 */
 	public static function fetchField($sql)
 	{
 		self::checkConnection();
 		$args = func_get_args();
-		$result = call_user_func_array(array(self::$connections[self::$active], 'query'), $args);
-		return $result->fetchField();
+		return call_user_func_array(array(self::$connections[self::$active], 'fetchField'), $args);
 	}
 
 
-
 	/**
-	 * Provede dotaz na aktivni pripojeni a vrati jeho prvni radek
-	 * @param   string  sql dotaz
+	 * Wrapper for DbConnection::fetch()
+	 * @param   string    sql query
 	 * @return  DbResultNode
 	 */
 	public static function fetch($sql)
 	{
 		self::checkConnection();
 		$args = func_get_args();
-		$result = call_user_func_array(array(self::$connections[self::$active], 'query'), $args);
-		return $result->fetch();
+		return call_user_func_array(array(self::$connections[self::$active], 'fetch'), $args);
 	}
 
 
@@ -118,7 +109,7 @@ class Db
 	{
 		self::checkConnection();
 		$args = func_get_args();
-		$result = call_user_func_array(array(self::$connections[self::$active], 'query'), $args);
+		 call_user_func_array(array(self::$connections[self::$active], 'query'), $args);
 		return $result->fetchAll();
 	}
 

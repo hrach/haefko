@@ -2,8 +2,10 @@
 
 $startTime = microtime(true);
 
-require_once '../Haefko/Debug.php';
-require_once '../Haefko/Application/Router.php';
+require_once '../../../Haefko/functions.php';
+require_once '../../../Haefko/Debug.php';
+require_once '../../../Haefko/Http.php';
+require_once '../../../Haefko/Application/Router.php';
 
 echo Http::getRequestUrl() . '<br>';
 
