@@ -102,6 +102,7 @@ class DbResult implements Countable, IteratorAggregate
 					$this->stored = $newRow;
 					$newRow = $this->combineColumns($newRow);
 
+
 					if (strpos($assoc[0], '.') !== false) { // compare table and column
 						list($t, $c) = explode('.', $assoc[0]);
 						if ($row[$t][$c] != $newRow[$t][$c])

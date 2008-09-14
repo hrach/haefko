@@ -47,10 +47,10 @@ abstract class FormContaineredControl extends FormControl
 		if (!$this->container)
 			return parent::getControlValue();
 
-		if (empty($this->value[$this->counter]) && $this->value[$this->counter] !== '0')
+		if (empty($this->value[(integer) $this->htmlCounter]) && $this->value[(integer) $this->htmlCounter] !== '0')
 			return $this->emptyValue;
 		else
-			return $this->value[$this->counter];
+			return $this->value[(integer) $this->htmlCounter];
 	}
 
 	public function isValid()
@@ -108,13 +108,18 @@ abstract class FormContaineredControl extends FormControl
 abstract class FormInputContaineredControl extends FormContaineredControl
 {
 
-	protected $tag = 'input';
+	protected $htmlTag = 'input';
+
+	public function getHtmlType()
+	{
+		return $this->htmlType;
+	}
 
 	protected function prepareControl()
 	{
 		parent::prepareControl();
 		$this->control->value = $this->getControlValue();
-		$this->control->type = $this->type;
+		$this->control->type = $this->htmlType;
 	}
 
 }
@@ -123,8 +128,7 @@ abstract class FormInputContaineredControl extends FormContaineredControl
 class FormTextareaControl extends FormContaineredControl
 {
 
-	protected $tag = 'textarea';
-	protected $classes = array('textarea');
+	protected $htmlTag = 'textarea';
 
 	public function prepareControl()
 	{
@@ -138,9 +142,8 @@ class FormTextareaControl extends FormContaineredControl
 class FormTextControl extends FormInputContaineredControl
 {
 
-	public $filters = array('trim');
-	protected $classes = array('text');
-	protected $type = 'text';
+	protected $filters = array('trim');
+	protected $htmlType = 'text';
 
 }
 
@@ -148,8 +151,7 @@ class FormTextControl extends FormInputContaineredControl
 class FormFileControl extends FormInputContaineredControl
 {
 
-	protected $classes = array('file');
-	protected $type = 'file';
+	protected $htmlType = 'file';
 
 }
 
@@ -157,15 +159,14 @@ class FormFileControl extends FormInputContaineredControl
 class FormPasswordControl extends FormInputContaineredControl
 {
 
-	protected $classes = array('text', 'password');
-	protected $type = 'password';
+	protected $htmlType = 'password';
 
 }
 
 class FormSelectControl extends FormContaineredControl
 {
 
-	protected $tag = 'select';
+	protected $htmlTag = 'select';
 	protected $options = array();
 	protected $values = array();
 

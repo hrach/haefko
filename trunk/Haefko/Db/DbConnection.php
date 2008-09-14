@@ -69,21 +69,30 @@ class DbConnection
 	}
 
 
+	/**
+	 * Transform sql fragment and extern variables to regular sql query
+	 * @param   array   sql fragments + variables
+	 * @return  string
+	 */
 	private function factorySql($args)
 	{
 		$sql = '';
-
 		for ($i = 0, $c = count($args); $i < $c; $i++) {
 			$arg = & $args[$i];
 
 			if (is_string($arg)) {
-				$arg = preg_replace("#\[(\w+)\]#Ue", '$this->quote("\\1")', $arg);
+				$arg = preg_replace("#\[(.+)\]#Ue", '$this->quote("\\1")', $arg);
 
-				if (preg_match('#%if\s*^#i', $arg, $match)) {
+				if (preg_match('#%if#i', $arg)) {
+					$sql .= $arg;
 					if ((boolean) $args[++$i])
-						$sql .= 'TRUE';
+						$sql .= ' */';
+
 					continue;
-				} elseif (preg_match_all('#(%(?:s|i|f|b|a|l|v))#i', $arg, $matches)) {
+				}
+
+
+				if (preg_match_all('#(%(?:s|i|f|b|a|l|v))#i', $arg, $matches)) {
 					array_shift($matches);
 					foreach ($matches as $match) {
 						$pos = strpos($arg, $match[0]);
@@ -92,11 +101,13 @@ class DbConnection
 							 . substr($arg, $pos + 2);
 					}
 				}
+
 			}
 
 			$sql .= $arg;
 		}
 
+		$sql = preg_replace(array('#%if#i', '#%end#'), array('/*', '/* */'), $sql);
 		return $sql;
 	}
 
@@ -124,7 +135,7 @@ class DbConnection
 	private function sanitizeArray(array $array)
 	{
 		foreach ($array as $key => & $val) {
-			$pos = strpos($string, '%');
+			$pos = strpos($key, '%');
 			if ($pos !== false) {
 				$val = $this->sanitize(substr($key, $pos), $val);
 				$key = substr($key, 0, $pos);

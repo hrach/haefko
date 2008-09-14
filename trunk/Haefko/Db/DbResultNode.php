@@ -19,7 +19,7 @@ class DbResultNode implements ArrayAccess
 	 * @param   array   data
 	 * @return  void
 	 */
-	public function __construct($data)
+	public function __construct(array $data)
 	{
 		$i = 0;
 		foreach ($data as $key => $val) {

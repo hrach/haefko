@@ -11,34 +11,14 @@
  */
 
 
-abstract class FormControl
+abstract class FormControl extends Object
 {
-
-
-	/** @var mixed */
-	public $emptyValue;
-
-	/** @var array */
-	public $filters = array();
-
-	/** @var array */
-	public $errors = array();
-
 
 	/** @var string */
 	protected $name;
 
 	/** @var Form */
 	protected $form;
-
-	/** @var mixed */
-	protected $value;
-
-	/** @var array */
-	protected $rules = array();
-
-	/** @var array */
-	protected $conditions = array();
 
 
 	/** @var Html */
@@ -47,31 +27,59 @@ abstract class FormControl
 	/** @var Html|bool */
 	protected $label = false;
 
-	/** @var string */
-	protected $tag;
 
-	/** @var inf */
-	protected $counter = 0;
+	/** @var mixed */
+	protected $value;
+
+	/** @var mixed */
+	protected $emptyValue;
 
 	/** @var array */
-	protected $classes = array();
+	protected $filters = array();
+
+	/** @var array */
+	protected $errors = array();
+
+
+	/* ======== Validation ======== */
+
+	/** @var array */
+	protected $rules = array();
+
+	/** @var array */
+	protected $conditions = array();
+
+
+	/** ======== Render ======== */
+
+	/** @var string */
+	protected $htmlId;
+
+	/** @var array */
+	protected $htmlRequired = false;
+
+	/** @var string */
+	protected $htmlTag;
+
+	/** @var inf */
+	protected $htmlCounter;
 
 
 	/**
 	 * Constructor
-	 * @param   Form         form
-	 * @param   string       control name
-	 * @param   mixed        label (null = from name, false = no label)
+	 * @param   Form     form
+	 * @param   string   control name
+	 * @param   mixed    label (null = from name, false = no label)
 	 * @return  void
 	 */
 	public function __construct(Form $form, $name, $label = null)
 	{
 		$this->name = $name;
 		$this->form = $form;
+		$this->htmlId = "{$form->name}-$name";
 
-		$this->control = Html::el($this->tag);
+		$this->control = Html::el($this->htmlTag);
 		$this->control->name = "{$this->form->name}[$name]";
-		$this->id = "{$this->form->name}-$name";
 
 		if ($label !== false)
 			$this->label = Html::el('label', is_null($label) ? ucfirst($name) : $label);
@@ -123,7 +131,7 @@ abstract class FormControl
 	public function addRuleOn(FormControl $control, $rule, $arg = null, $message = null)
 	{
 		if ($rule == Form::FILLED)
-			$this->classes[] = 'required';
+			$this->htmlRequired = true;
 
 		$r = new Rule();
 		$r->control = $control;
@@ -181,27 +189,6 @@ abstract class FormControl
 
 
 	/**
-	 * Render control block - label & control tag + error label
-	 * @param   array   attributes
-	 * @return  string
-	 */
-	public function block($attrs = array())
-	{
-		$div = Html::el('div');
-		$div->setAttributes($attrs);
-		$div->class = array_merge((array) $div->class, $this->classes);
-
-		if ($this->label === false)
-			$div->setContent($this->control() . $this->error(), false);
-		else
-			$div->setContent($this->label() . $this->control() . $this->error(), false);
-
-		$this->counter();
-		return $div->render();
-	}
-
-
-	/**
 	 * Render label tag
 	 * @param   array   attributes
 	 * @return  string
@@ -229,49 +216,54 @@ abstract class FormControl
 
 	/**
 	 * Render html error label(s)
-	 * @param   bool          return as array?
-	 * @return  string|array
+	 * @return  string
 	 */
-	public function error($asArray = false)
+	public function errors()
 	{
 		$errors = array();
 		foreach ($this->errors as $error)
-			$errors[] = "<label class=\"error\" for=\"{$this->id}" . $this->counter(false) . "\">$error</label>";
+			$errors[] = "<label class=\"error\" for=\"{$this->htmlId}{$this->htmlCounter}\">$error</label>";
 
-		if ($asArray)
-			return $errors;
-		else
-			return "<div class=\"errors\">" . implode("\n", $errors) . "</div>";
+		return implode("\n", $errors);
+	}
+
+
+	public function getHtmlRequired()
+	{
+		return $this->htmlRequired;
+	}
+
+	public function getHtmlTag()
+	{
+		return $this->htmlTag;
+	}
+
+	public function getHtmlId()
+	{
+		return $this->htmlTag;
 	}
 
 
 	/**
-	 * Return number of current control (and optionaly increase them)
-	 * @param   bool  increment counter?
+	 * TODO
 	 * @return  int
 	 */
-	public function counter($increment = true)
+	public function increment()
 	{
-		$c = '';
-		if ($this->counter > 0)
-			$c = $this->counter;
-
-		if ($increment)
-			++$this->counter;
-
-		return $c;
+		++$this->htmlCounter;
+		return $this->htmlCounter;
 	}
 
 
 	/**
 	 * Magic method
 	 */
-	public function __get($name)
+	public function __get($key)
 	{
-		if (in_array($name, array('label', 'control', 'block', 'error')))
-			return $this->{$name}();
+		if (in_array($key, array('label', 'control', 'errors')))
+			return $this->{$key}();
 		else
-			throw new Exception("Unexisting var FormControl::$$name.");
+			return parent::__get($key);
 	}
 
 
@@ -294,9 +286,8 @@ abstract class FormControl
 	 */
 	protected function prepareLabel()
 	{
-		$c = $this->counter(false);
-		$this->label->for = $this->id . $c;
-		$this->label->id = "{$this->id}-label$c";
+		$this->label->for = $this->htmlId . $this->htmlCounter;
+		$this->label->id = "{$this->htmlId}-label{$this->htmlCounter}";
 	}
 
 
@@ -306,7 +297,7 @@ abstract class FormControl
 	 */
 	protected function prepareControl()
 	{
-		$this->control->id = $this->id . $this->counter(false);
+		$this->control->id = $this->htmlId . $this->htmlCounter;
 	}
 
 
@@ -346,7 +337,7 @@ abstract class FormControl
 		}
 
 		if (empty($message))
-			$message = "!!! No error message !!!";
+			$message = 'Undefined error message.';
 
 		return $message;
 	}

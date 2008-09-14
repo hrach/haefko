@@ -59,4 +59,4 @@ if ($form->isSubmit() && $form->isValid()) {
 
 <hr />
 
-<?= $form ?>
+<?= $form->render() ?>

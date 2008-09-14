@@ -11,11 +11,8 @@
  */
 
 
-
 class DbMysqlDriver implements IDbDriver
 {
-
-
 
 	public function connect(array $config)
 	{
@@ -30,50 +27,40 @@ class DbMysqlDriver implements IDbDriver
 		$this->query("set names '$config[encoding]'");
 	}
 
-
-
 	public function query($sql)
 	{
 		$this->result = @mysql_query($sql, $this->resource);
 
 		if (mysql_errno($this->resource))
-			throw new DbSqlException(mysql_error($this->resource)));
+			throw new DbSqlException(mysql_error($this->resource));
 
 		return clone $this;
 	}
 
-
-
-	public function fetch($type)
+	public function fetch($assoc)
 	{
-		return mysql_fetch_array($this->result, $type ? MYSQLI_ASSOC : MYSQLI_NUM);
-	}
+		$fetch = mysql_fetch_array($this->result, $assoc ? MYSQLI_ASSOC : MYSQLI_NUM);
 
-
-
-	public function quote($string, $type)
-	{
-		if ($type == 'value') 
-			return "'$string'";
+		if ($fetch === false)
+			return null;
 		else
-			return "`$string`";
+			return $fetch;
 	}
 
-
-
-	public function escape($string)
+	public function escape($value, $type)
 	{
-		return mysql_real_escape_string($string, $this->resource);
+		switch ($type) {
+		case 'identifier':
+			return "`$value`";
+		case 'text':
+			return "'" . mysql_real_escape_string($value, $this->resource) . "'";
+		}
 	}
-
-
 
 	public function affectedRows()
 	{
 		return mysql_affected_rows($this->resource);
 	}
-
-
 
 	public function columnsMeta()
 	{
@@ -86,13 +73,9 @@ class DbMysqlDriver implements IDbDriver
 		return $meta;
 	}
 
-
-
 	public function rowCount()
 	{
 		return mysql_num_rows($this->result);
 	}
-
-
 
 }

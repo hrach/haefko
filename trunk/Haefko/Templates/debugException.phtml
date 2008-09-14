@@ -39,6 +39,7 @@ foreach ($trace as $i => $item) {
     if (isset($item['file']) && !preg_match('#dibi|haefko#i', $item['file']))
         break;
 }
+$i = 0;
 
 $file  = explode('<br />', highlight_file($trace[$i]['file'], true));
 $line  = $trace[$i]['line'];

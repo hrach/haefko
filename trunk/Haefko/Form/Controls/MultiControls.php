@@ -15,7 +15,7 @@
 class FormMultipleSelectControl extends FormControl
 {
 
-	protected $tag = 'select';
+	protected $htmlTag = 'select';
 	protected $options = array();
 	protected $values = array();
 

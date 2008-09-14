@@ -154,7 +154,7 @@ final class Html
 	 */
 	public function endTag()
 	{
-		return "</{$this->tag}>\n";
+		return "</{$this->tag}>" . ($this->tag != 'a' ? "\n" : '');
 	}
 
 

@@ -45,8 +45,10 @@ class DbMysqliDriver implements IDbDriver
 	public function escape($value, $type)
 	{
 		switch ($type) {
-		case 'identifier':     return "`$value`";
-		case 'text':           return "'" . $this->resource->escape_string($value) . "'";
+		case 'identifier':
+			return "`$value`";
+		case 'text':
+			return "'" . $this->resource->escape_string($value) . "'";
 		}
 	}
 

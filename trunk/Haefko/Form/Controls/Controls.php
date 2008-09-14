@@ -14,13 +14,18 @@
 abstract class FormInputControl extends FormControl
 {
 
-	protected $tag = 'input';
+	protected $htmlTag = 'input';
+
+	public function getHtmlType()
+	{
+		return $this->htmlType;
+	}
 
 	protected function prepareControl()
 	{
 		parent::prepareControl();
 		$this->control->value = $this->getControlValue();
-		$this->control->type = $this->type;
+		$this->control->type = $this->htmlType;
 	}
 
 }
@@ -29,7 +34,7 @@ abstract class FormInputControl extends FormControl
 class FormCheckboxControl extends FormInputControl
 {
 
-	protected $type = 'checkbox';
+	protected $htmlType = 'checkbox';
 
 	public function setValue($value)
 	{
@@ -50,7 +55,7 @@ class FormCheckboxControl extends FormInputControl
 class FormHiddenControl extends FormInputControl
 {
 
-	protected $type = 'hidden';
+	protected $htmlType = 'hidden';
 
 	public function __construct(Form $form, $name, $label)
 	{
@@ -63,7 +68,7 @@ class FormHiddenControl extends FormInputControl
 abstract class FormButtonControl extends FormControl
 {
 
-	protected $tag = 'input';
+	protected $htmlTag = 'input';
 
 	public function __construct(Form $form, $name, $label)
 	{
@@ -76,11 +81,16 @@ abstract class FormButtonControl extends FormControl
 		return null;
 	}
 
+	public function getHtmlType()
+	{
+		return $this->htmlType;
+	}
+
 	protected function prepareControl()
 	{
 		parent::prepareControl();
 		$this->control->value = $this->getControlValue();
-		$this->control->type = $this->type;
+		$this->control->type = $this->htmlType;
 	}
 
 }
@@ -89,8 +99,7 @@ abstract class FormButtonControl extends FormControl
 class FormSubmitControl extends FormButtonControl
 {
 
-	protected $classes = array('submit');
-	protected $type = 'submit';
+	protected $htmlType = 'submit';
 
 }
 
@@ -98,8 +107,7 @@ class FormSubmitControl extends FormButtonControl
 class FormResetControl extends FormButtonControl
 {
 
-	protected $classes = array('reset');
-	protected $type = 'reset';
+	protected $htmlType = 'reset';
 
 }
 
@@ -107,8 +115,7 @@ class FormResetControl extends FormButtonControl
 class FormRadioControl extends FormInputControl
 {
 
-	protected $type = 'radio';
-	protected $classes = array('radio');
+	protected $htmlType = 'radio';
 	protected $options = array();
 	protected $values = array();
 
@@ -123,7 +130,7 @@ class FormRadioControl extends FormInputControl
 	{
 		$render = '';
 
-		$id = $this->control->id;
+		$id = $this->htmlId;
 		$label = Html::el('label');
 		$label->class = 'radio';
 		$el = Html::el('input');
@@ -135,6 +142,8 @@ class FormRadioControl extends FormInputControl
 			$el->id = "$id-$key";
 			if ($key == $this->getControlValue())
 				$el->checked = 'checked';
+			else
+				$el->checked = null;
 
 			$label->for = "$id-$key";
 			$label->id = "$id-$key-label";

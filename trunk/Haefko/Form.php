@@ -13,9 +13,12 @@
 
 require_once dirname(__FILE__) . '/functions.php';
 require_once dirname(__FILE__) . '/Html.php';
+require_once dirname(__FILE__) . '/Object.php';
 
-require_once dirname(__FILE__) . '/Form/Rule.php';
-require_once dirname(__FILE__) . '/Form/Condition.php';
+require_once dirname(__FILE__) . '/Form/FormRule.php';
+require_once dirname(__FILE__) . '/Form/FormCondition.php';
+
+require_once dirname(__FILE__) . '/Form/IFormRenderer.php';
 
 require_once dirname(__FILE__) . '/Form/Controls/FormControl.php';
 require_once dirname(__FILE__) . '/Form/Controls/Controls.php';
@@ -372,16 +375,25 @@ class Form implements ArrayAccess
 	 * Render form controls and tags
 	 * @return  string
 	 */
-	public function render()
+	public function render($renderer = 'block')
 	{
-		$r = $this->startTag();
+		require_once dirname(__FILE__) . '/Form/Renderers/' . ucfirst($renderer) . '.php';
+		$renderer = "Form{$renderer}Renderer";
+		$renderer = new $renderer;
+
+		$r  = $this->startTag();
+		$r .= $renderer->start($this);
 
 		foreach ($this->controls as $control) {
-			if (!($control instanceof FormHiddenItem))
-				$r .= $control->block();
+			if ($control instanceof FormHiddenItem)
+				continue;
+
+			$r .= $renderer->control($control);
 		}
 
+		$r .= $renderer->end($this);
 		$r .= $this->endTag();
+
 		return $r;
 	}
 
@@ -392,7 +404,7 @@ class Form implements ArrayAccess
 	 */
 	public function offsetSet($id, $value)
 	{
-		throw new Exception("Unsupported acces to form definition. Use methods add*.");
+		throw new Exception("Unsupported access - use methods add*().");
 	}
 
 
@@ -425,16 +437,6 @@ class Form implements ArrayAccess
 	public function offsetExists($id)
 	{
 		return isset($this->controls[$id]);
-	}
-
-
-	/**
-	 * Magic method
-	 * @return  string
-	 */
-	public function __toString()
-	{
-		return $this->render();
 	}
 
 

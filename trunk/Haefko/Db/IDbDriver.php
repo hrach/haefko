@@ -11,14 +11,8 @@
  */
 
 
-
-/**
- * DbDriver interface
- */
 interface IDbDriver
 {
-
-
 
     public function connect(array $config);
     public function query($sql);
@@ -27,7 +21,5 @@ interface IDbDriver
     public function affectedRows();
     public function columnsMeta();
     public function rowCount();
-
-
 
 }

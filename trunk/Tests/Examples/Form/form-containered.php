@@ -31,7 +31,7 @@ if ($form->isSubmit() && $form->isValid()) {
 <script type="text/javascript" src="jquery.validate.js"></script>
 <style type="text/css" media="screen">
 	label {
-		display: inline-block;
+		display: inline-control;
 		width: 150px;
 		padding: 4px;
 		text-align: right;
@@ -50,12 +50,10 @@ if ($form->isSubmit() && $form->isValid()) {
 
 <?= $form->startTag() ?>
 
-<?= $form['text']->block ?>
-<?= $form['vlastnosti']->block ?>
-<?= $form['vlastnosti']->block ?>
+<?= $form['text']->control ?>
+<?= $form['vlastnosti']->control ?>
+<? $form['vlastnosti']->increment() ?>
+<?= $form['vlastnosti']->control ?>
 
-<?= $form['nadvlastnosti']->block ?>
-<?= $form['nadvlastnosti']->block ?>
-
-<?= $form['submit']->block ?>
+<?= $form['submit']->control ?>
 <?= $form->endTag() ?>
