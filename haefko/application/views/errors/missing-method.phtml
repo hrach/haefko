@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * Haefko - your php5 framework
+ *
+ * @author      Jan Skrasek <skrasek.jan@gmail.com>
+ * @copyright   Copyright (c) 2008, Jan Skrasek
+ * @link        http://hf.programujte.com
+ * @version     0.7
+ * @package     HF
+ */
+
+?>
+<?php $this->title = 'Nenalezena metoda | Háefko - your php5 framework' ?>
+<div class="error">
+    <h1>CHYBA: Nenalezena metoda</h1>
+    <p>Zkontrolujte URL a routing, zda-li jste neudělali překlep.</p>
+    <p>Pro vytvoření metody využijte následující kostru:
+        <pre>
+        public function <?= $message ?>()
+        {
+            // váš kód
+        }
+        </pre>
+    </p>
+    <p><strong>Poznámka:</strong> Po vypnutí ladícího režimu bude tato chyba nahrazena E404.</p>
+</div>
