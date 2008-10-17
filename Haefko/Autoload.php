@@ -152,7 +152,7 @@ final class Autoload
 
             if ($rdi->isFile() && preg_match($exts, $rdi->getFilename()))
                 $this->files[] = $rdi->getPathname();
-            elseif($rdi->isDir() && preg_match('#^\.(svn|cvs)$#i', $rdi->getFilename()) && $rdi->hasChildren())
+            elseif($rdi->isDir() && !preg_match('#^\.(svn|cvs)$#i', $rdi->getFilename()) && $rdi->hasChildren())
                 $this->getFiles($rdi->getChildren());
         }
     }
