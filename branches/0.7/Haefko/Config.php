@@ -44,7 +44,7 @@ class Config
             if (isset($val[$sn]))
                 self::multiWrite($val[$sn]);
             else
-                die("Haefko: Chybi klic '$serverName' v multi-serverove konfiguraci.");
+                die("Haefko: Chybi klic '$sn' v multi-serverove konfiguraci.");
         } else {
             $levels = explode('.', $var);
             $level = & self::$config;
