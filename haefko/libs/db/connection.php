@@ -12,23 +12,26 @@
  */
 
 
+require_once dirname(__FILE__) . '/driver.php';
 require_once dirname(__FILE__) . '/result.php';
-require_once dirname(__FILE__) . '/result-node.php';
-require_once dirname(__FILE__) . '/idriver.php';
 
 
-class DbConnection
+/**
+ * Instance of database connection
+ * @subpackage  Database
+ */
+class DbConnection extends Object
 {
 
 
 	/** @var bool */
 	private $connected = false;
 
-	/** @var mixed */
-	private $connection;
-
 	/** @var IDbDriver */
 	private $driver;
+
+	/** @var array */
+	private $config = array();
 
 
 	/**
@@ -36,7 +39,7 @@ class DbConnection
 	 * @param   array   connection configuration
 	 * @return  void
 	 */
-	public function __construct(array $config)
+	public function __construct($config)
 	{
 		static $default = array(
 			'driver' => 'mysqli',
@@ -48,78 +51,52 @@ class DbConnection
 			'lazy' => false
 		);
 
-		$this->config = array_merge($default, $config);
+		$this->config = array_merge($default, (array) $config);
 
-		if (!$config['lazy'])
+		if (!$this->config['lazy'])
 			$this->needConnection();
 	}
 
 
 	/**
-	 * Parse and run sql query
-	 * @param   mixed  sql query
+	 * Returns result object
+	 * @param   string   sql query
+	 * @return  DbResult
+	 */
+	public function nativePrepare($sql)
+	{
+		$this->needConnection();
+		return new DbResult($sql, $this->driver);
+	}
+
+
+	/**
+	 * Returns result object with parsed sql query
+	 * @param   string    sql query
+	 * @return  DbResult
+	 */
+	public function prepare($sql)
+	{
+		$sqls = func_get_args();
+		return $this->nativePrepare($this->factorySql($sqls));
+	}
+
+
+	/**
+	 * Returns result object with executed parsed sql query
+	 * @param   string     sql query
 	 * @return  DbResult
 	 */
 	public function query($sql)
 	{
 		$sqls = func_get_args();
-		return $this->rawQuery($this->factorySql($sqls));
+		return call_user_func_array(array($this, 'prepare'), $sqls)->execute();
 	}
 
 
 	/**
-	 * Run sql query
-	 * @param   string  sql query
-	 * @return  DbResult
-	 */
-	public function rawQuery($sql)
-	{
-		$this->needConnection();
-		return new DbResult($this->driver->query($sql));
-	}
-
-
-	/**
-	 * Parse sql query
-	 * @param   mixed  sql query
-	 * @return  string
-	 */
-	public function test($sql)
-	{
-		$sqls = func_get_args();
-		$sql = $this->factorySql($sqls);
-
-		static $keys1 = 'SELECT|UPDATE|INSERT(?:\s+INTO)?|REPLACE(?:\s+INTO)?|DELETE|FROM|WHERE|HAVING|GROUP\s+BY|ORDER\s+BY|LIMIT|SET|VALUES|LEFT\s+JOIN|INNER\s+JOIN|TRUNCATE';
-		static $keys2 = 'ALL|DISTINCT|DISTINCTROW|AS|USING|ON|AND|OR|IN|IS|NOT|NULL|LIKE|TRUE|FALSE';
-
-		// insert new lines
-		$sql = ' ' . $sql;
-		$sql = preg_replace("#(?<=[\\s,(])($keys1)(?=[\\s,)])#i", "\n\$1", $sql);
-
-		// reduce spaces
-		$sql = preg_replace('#[ \t]{2,}#', " ", $sql);
-
-		$sql = wordwrap($sql, 100);
-		$sql = htmlSpecialChars($sql);
-		$sql = preg_replace("#\n{2,}#", "\n", $sql);
-
-		// syntax highlight
-		$sql = preg_replace_callback("#(?<=[\\s,(])($keys1)(?=[\\s,)])|(?<=[\\s,(=])($keys2)(?=[\\s,)=])#is", array($this, 'highlightCallback'), $sql);
-		$sql = trim($sql);
-		echo '<pre class="dump">'. $sql. "</pre>\n";
-	}
-
-	private static function highlightCallback($matches)
-	{
-		if (!empty($matches[1])) // most important keywords
-			return '<strong style="color:blue">' . $matches[1] . '</strong>';
-
-		if (!empty($matches[2])) // other keywords
-			return '<strong style="color:green">' . $matches[2] . '</strong>';
-	}
-
-	/**
-	 * Wrapper for DbResult::fetchField()
+	 * Wrapper for called result
+	 * @see     DbResult::fetchField()
 	 * @param   string    sql query
 	 * @return  mixed
 	 */
@@ -132,8 +109,8 @@ class DbConnection
 
 
 	/**
-	 * Transform sql fragment and extern variables to regular sql query
-	 * @param   array   sql fragments + variables
+	 * Transforms sql and variables to regular sql query
+	 * @param   array     sql fragments and variables
 	 * @return  string
 	 */
 	public function factorySql($args)
@@ -162,11 +139,10 @@ class DbConnection
 	}
 
 
-
 	/**
-	 * Escape $value as type $type
-	 * @param   string  type of variable
-	 * @param   mixed   value
+	 * Escapes $value as type $type
+	 * @param   string    type of variable
+	 * @param   mixed     value
 	 * @return  mixed
 	 */
 	public function escape($value, $type = null)
@@ -180,7 +156,7 @@ class DbConnection
 			case '%r': # raw sql format
 				return $value;
 			case '%c': # sql column
-				return $this->escapeColumn('column', $value);
+				return $this->escapeColumn($value);
 			case '%s': # string
 				return $this->driver->escape('text', $value);
 			case '%i': # integer
@@ -189,6 +165,10 @@ class DbConnection
 				return (float) $value;
 			case '%b': # boolean
 				return (boolean) $value;
+			case '%d': # date
+				return $this->driver->escape('text', date('H:i:s', strtotime($value)));
+			case '%t': # datetime
+				return $this->driver->escape('text', date('Y-m-d H:i:s', strtotime($value)));
 			case '%a': # array - form: key = val
 				foreach ($this->escapeArray($value) as $key => $val)
 					$r[] = "$key = $val";
@@ -205,7 +185,8 @@ class DbConnection
 
 
 	/**
-	 * Escape array $array
+	 * Escapes array
+	 * Uses modificators in the key(column%i)
 	 * @param   array
 	 * @return  array
 	 */
@@ -227,27 +208,10 @@ class DbConnection
 
 
 	/**
-	 * Retrun modificator by varibale type
-	 * @param   mixed  variable
+	 * Excapes columns
+	 * @param   string     column
 	 * @return  string
 	 */
-	public function getType($var)
-	{
-		static $types = array(
-			'string' => '%s',
-			'integer' => '%i',
-			'double' => '%f',
-			'array' => '%a',
-			'boolean' => '%b'
-		);
-
-		if (isset($types[gettype($var)]))
-			return $types[gettype($var)];
-		else
-			return '%s';
-	}
-
-
 	private function escapeColumn($i)
 	{
 		$i = explode('.', $i);
@@ -262,6 +226,28 @@ class DbConnection
 	}
 
 
+	/**
+	 * Retruns modificator by varibale type
+	 * @param   mixed     variable
+	 * @return  string
+	 */
+	public function getType($var)
+	{
+		switch (gettype($var)) {
+			case 'integer':    return '%i';
+			case 'double':     return '%f';
+			case 'array':      return '%a';
+			case 'boolean':    return '%b';
+			default:           return '%s';
+		}
+	}
+
+
+	/**
+	 * Checks connection and creates it
+	 * @throws  DbException
+	 * @return  void
+	 */
 	private function needConnection()
 	{
 		if (!$this->connected) {
@@ -269,7 +255,7 @@ class DbConnection
 			if (file_exists($file))
 				require_once $file;
 
-			$class = "Db{$this->config['driver']}Driver";
+			$class = $this->config['driver'] . 'DbDriver';
 			if (!class_exists($class))
 				throw new DbException("Missing driver class $class.");
 
@@ -278,7 +264,6 @@ class DbConnection
 			$this->connected = true;
 		}
 	}
-
 
 
 }

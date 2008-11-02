@@ -17,31 +17,28 @@ Debug::dump(db::getConnection()->escapeArray($a));
 
 
 
-
-echo "<hr />";
-db::test("insert [table] %v %s %f", $a, 15, '0.4');
-
-
-
-
-
-exit;
-$query = db::query("select posts.title from posts order by RAND() limit 1");
+$query = db::query("select post.title from post order by RAND() limit 1");
+Debug::dump($query);
 echo $query->fetchField();
 
 echo "<hr />";
 
-$query = db::query("select posts.title, posts.id from posts order by title limit 10");
-echo $query->dump();
+$query = db::query("select post.title, post.id from post order by title limit 10");
+Debug::dump($query->fetchAll());
 
 echo "<hr />";
 
-$query = db::query("select posts.title, comments.id, posts.id from posts left join comments on comments.post_id = posts.id where posts.id = 47 or posts.id = 1 order by title limit 10");
-Debug::dump($query->fetchAll('posts'));
+$query = db::query("select post.title, comment.id, post.id from post left join comment on comment.post_id = post.id where post.id = 47 or post.id = 1 order by title limit 10");
+Debug::dump($query->fetchAll('post'));
 
 echo "<hr />";
 
-$query = db::query("select posts.id, posts.title from posts order by title limit 10");
+$query = db::query("select post.id, post.title from post order by title limit 10");
+Debug::dump($query->fetchPairs());
+
+echo "<hr />";
+
+$query = db::query("select post.title from post order by title limit 10");
 Debug::dump($query->fetchPairs());
 
 

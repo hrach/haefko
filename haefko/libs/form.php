@@ -63,7 +63,8 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Constructor
-	 * @param   string  action - url
+	 * @param   string  url
+	 * @param   string  method
 	 * @param   string  form name
 	 * @return  string  form name
 	 */
@@ -92,7 +93,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Add text input
+	 * Adds text input
 	 * @param   string  control name
 	 * @param   mixed   label (null = from name, false = no label)
 	 * @return  Form    return $this
@@ -105,7 +106,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Add textarea input
+	 * Adds textarea input
 	 * @param   string  control name
 	 * @param   mixed   label (null = from name, false = no label)
 	 * @return  Form    return $this
@@ -118,7 +119,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Add password input
+	 * Adds password input
 	 * @param   string  control name
 	 * @param   mixed   label (null = from name, false = no label)
 	 * @return  Form    return $this
@@ -131,7 +132,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Add file input
+	 * Adds file input
 	 * @param   string  control name
 	 * @param   mixed   label (null = from name, false = no label)
 	 * @return  Form    return $this
@@ -145,7 +146,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Add select input
+	 * Adds select input
 	 * @param   string  control name
 	 * @param   array   options
 	 * @param   mixed   label (null = from name, false = no label)
@@ -162,7 +163,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Add checkbox input
+	 * Adds checkbox input
 	 * @param   string  control name
 	 * @param   mixed   label (null = from name, false = no label)
 	 * @return  Form    return $this
@@ -175,7 +176,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Add radio inputs
+	 * Adds radio inputs
 	 * @param   string  control name
 	 * @param   array   options
 	 * @param   mixed   label (null = from name, false = no label)
@@ -189,7 +190,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Add hidden input
+	 * Adds hidden input
 	 * @param   string  control name
 	 * @return  Form    return $this
 	 */
@@ -204,7 +205,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Add multiple select input
+	 * Adds multiple select input
 	 * @param   string  control name
 	 * @param   array   options
 	 * @param   mixed   label (null = from name, false = no label)
@@ -218,7 +219,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Add multi checkbox inputs
+	 * Adds multi checkbox inputs
 	 * @param   string  control name
 	 * @param   array   options
 	 * @param   mixed   label (null = from name, false = no label)
@@ -235,7 +236,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Add submit button
+	 * Adds submit button
 	 * @param   string  control label
 	 * @param   string  control name
 	 * @return  Form    return $this
@@ -248,7 +249,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Add image submit button
+	 * Adds image submit button
 	 * @param   string  image src
 	 * @param   string  control name
 	 * @return  Form    return $this
@@ -261,7 +262,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Add reset button
+	 * Adds reset button
 	 * @param   string  control label
 	 * @param   string  control name
 	 * @return  Form    return $this
@@ -277,7 +278,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Render form html start tag
+	 * Renders form html start tag
 	 * @todo    Javascript validation
 	 * @param   array   attributes
 	 * @return  string

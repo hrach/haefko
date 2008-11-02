@@ -3,10 +3,10 @@
 /**
  * Haefko - your php5 framework
  *
- * @author      Jan Skrasek http://hrach.netuje.cz
+ * @author      Jan Skrasek
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @license     http://creativecommons.org/licenses/by-sa/3.0/
+ * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
  * @package     Haefko
  */
@@ -28,6 +28,8 @@ abstract class Object
 
 	/**
 	 * Magic method
+	 * @throws  Exception
+	 * @return  mixed
 	 */
 	public function __get($key)
 	{
@@ -40,6 +42,8 @@ abstract class Object
 
 	/**
 	 * Magic method
+	 * @throws  Exception
+	 * @return  mixed
 	 */
 	public function __set($key, $value)
 	{

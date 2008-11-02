@@ -31,7 +31,7 @@ class Autoload
 	/** @var array */
 	private $classes = array();
 
-	/** @var array  */
+	/** @var array */
 	private $files = array();
 
 	/** @var array */
@@ -39,7 +39,8 @@ class Autoload
 
 
 	/**
-	 * Contructor - register autoload
+	 * Contructor
+	 * Registers autoload
 	 * @return  void
 	 */
 	public function __construct()
@@ -49,21 +50,23 @@ class Autoload
 
 
 	/**
-	 * Add direcotry for scan
-	 * @param   string  path
-	 * @return  void
+	 * Adds direcotry for scan
+	 * @param   string     path
+	 * @throws  Exception
+	 * @return  Autoload
 	 */
 	public function addDir($dir)
 	{
-		if (is_dir($dir))
-			$this->dirs[] = $dir;
-		else
+		if (!is_dir($dir))
 			throw new Exception("Direcotory '$dir' doesn't exists.");
+
+		$this->dirs[] = $dir;
+		return $this;
 	}
 
 
 	/**
-	 * Autoload handler - load file with $class, or rebuild cache
+	 * Autoload handler - loads file with $class, or rebuild cache
 	 * @param   string  class name
 	 * @return  void
 	 */
@@ -77,8 +80,9 @@ class Autoload
 
 
 	/**
-	 * Rebuild cache
-	 * @return  void
+	 * Rebuilds cache list
+	 * @throws  Exception
+	 * @return  Autoload
 	 */
 	public function rebuild()
 	{
@@ -86,16 +90,17 @@ class Autoload
 		$this->rebuild = true;
 
 		$cache = dirname($this->cache);
-		if (is_dir($cache))
-			file_put_contents($this->cache, serialize($this->classes));
-		else
+		if (!is_dir($cache))
 			throw new Exception("Cache directory '$cache' doesn't exists.");
+
+		file_put_contents($this->cache, serialize($this->classes));
+		return $this;
 	}
 
 
 	/**
-	 * Load list of cached classes or create it
-	 * @return  void
+	 * Loads list of cached classes or create it
+	 * @return  Autoload
 	 */
 	public function load()
 	{
@@ -103,11 +108,13 @@ class Autoload
 			$this->classes = unserialize(file_get_contents($this->cache));
 		else
 			$this->rebuild();
+
+		return $this;
 	}
 
 
 	/**
-	 * Find all files and theirs classes
+	 * Finds all files and theirs classes
 	 * @return  void
 	 */
 	private function findClasses()

@@ -12,7 +12,7 @@
 
 
 
-class JsHelper extends Helper
+class JsHelper
 {
 
 	/** @var string Cesta k js a css scriptum */
@@ -41,8 +41,6 @@ class JsHelper extends Helper
 	 */
 	public function __construct()
 	{
-		parent::__construct();
-
 		$this->path = Config::read('jsHelper.path', $this->path);
 		$this->files = array(
 			'jquery' => array('jquery.js'),
@@ -125,10 +123,10 @@ class JsHelper extends Helper
 		$code = '';
 
 		foreach ($this->includeJs as $file)
-			$code .= "\t" . $this->controller->view->helper('html')->js($this->path . $file);
+			$code .= "\t" . Controller::i()->view->helper('html')->js($this->path . $file);
 
 		foreach ($this->includeCss as $file)
-			$code .= "\t" . $this->controller->view->helper('html')->css($this->path . $file);
+			$code .= "\t" . Controller::i()->view->helper('html')->css($this->path . $file);
 
 		if (!empty($this->js))
 		$code .= "\t<script type=\"text/javascript\">\n\t//<![CDATA[\n"

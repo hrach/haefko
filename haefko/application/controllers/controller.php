@@ -54,11 +54,54 @@ abstract class Controller extends Object
 	}
 
 
+	/**
+	 * Activates support for section $section
+	 * @param   string    section name (db)
+	 * @return  void
+	 */
+	public function initialize($section)
+	{
+		switch (strtolower($section)) {
+			case 'db':
+				$this->app->loadCore('db', false);
+				$config = Config::read('Db.connection', array());
+				Db::connect($config);
+
+				$this->app->loadCore('db-table');
+				$this->app->loadCore('db-table-structure');
+				break;
+		}
+	}
+
+
+	/**
+	 * Returns argument
+	 * @param   string  arg name
+	 * @return  mixed
+	 */
+	public function get($arg)
+	{
+		if (isset(Router::$routing['args'][$arg]))
+			return Router::$routing['args'][$arg];
+		else
+			null;
+	}
+
+
+	/**
+	 * Returns application instance
+	 * @return  Application
+	 */
 	public function getApp()
 	{
 		return $this->app;
 	}
 
+
+	/**
+	 * Returns view instance
+	 * @return  View
+	 */
 	public function getView()
 	{
 		return $this->view;
@@ -111,7 +154,7 @@ abstract class Controller extends Object
 	 */
 	public function redirect($url, $exit = true)
 	{
-		Http::redirect($this->url($url, true), 303);
+		Http::headerRedirect($this->url($url, true), 303);
 		if ($exit)
 			exit;
 	}
@@ -126,9 +169,9 @@ abstract class Controller extends Object
 	 */
 	public function url($url, $absolute = false)
 	{
-		$url = preg_replace('#\{url\}#', Router::getUrl(), $url);
-		$url = preg_replace('#\{\:(\w+)\}#e', 'isset(Router::$args["\\1"]) ? Router::$args["\\1"] : "\\0"', $url);
-		$url = preg_replace('#\{args\}#e', 'implode("/", Router::$args)', $url);
+		$url = preg_replace('#\{url\}#', Http::getRequest(), $url);
+		$url = preg_replace('#\{\:(\w+)\}#e', 'isset(Router::$routing["args"]["\\1"]) ? Router::$routing["args"]["\\1"] : "\\0"', $url);
+		$url = preg_replace('#\{args\}#e', 'implode("/", Router::$routing["args"])', $url);
 		$url = preg_replace_callback('#\{args!(.+)\}#', array($this, 'urlArgs'), $url);
 		$url = '/' . trim($url, '\\/');
 
@@ -167,7 +210,7 @@ abstract class Controller extends Object
 	 */
 	public function render()
 	{
-		$method = Tools::camelize(Router::$action);
+		$method = Tools::camelize(Router::$routing['action']);
 
 		if ($this->ajax && method_exists(get_class($this), $method . 'AjaxAction'))
 			$method .= 'AjaxAction';
@@ -177,9 +220,9 @@ abstract class Controller extends Object
 		$exists = method_exists(get_class($this), $method);
 
 		if ($exists && $this->view->getView() == '')
-			$this->view->view(Router::$action);
+			$this->view->view(Router::$routing['action']);
 
-		if (!$exists && !$this->app->error)
+		if (!$exists && !Application::$error)
 			throw new ApplicationException('missing-method', $method);
 
 		$this->view->loadHelpers();
@@ -187,12 +230,12 @@ abstract class Controller extends Object
 		try {
 			call_user_func(array($this, 'init'));
 			if ($exists)
-				call_user_func_array(array($this, $method), Router::$args);
+				call_user_func_array(array($this, $method), Router::$routing['args']);
 		} catch (ApplicationError $e) {
 			$this->view->view($e->view);
 		}
 
-		echo $this->view->render();
+		return $this->view->render();
 	}
 
 

@@ -60,7 +60,7 @@ class View extends Object implements IView
 
 
 	/**
-	 * Set view template
+	 * Sets view template
 	 * @param   string
 	 * @return  void
 	 */
@@ -71,7 +71,7 @@ class View extends Object implements IView
 
 
 	/**
-	 * Return view template
+	 * Returns view template
 	 * @return  string
 	 */
 	public function getView()
@@ -81,7 +81,7 @@ class View extends Object implements IView
 
 
 	/**
-	 * Set layout template
+	 * Sets layout template
 	 * @param   string|false
 	 * @return  void
 	 */
@@ -92,7 +92,7 @@ class View extends Object implements IView
 
 
 	/**
-	 * Return layout template
+	 * Returns layout template
 	 * @return  string|false
 	 */
 	public function getLayout()
@@ -102,7 +102,7 @@ class View extends Object implements IView
 
 
 	/**
-	 * Set application theme
+	 * Sets application theme
 	 * @param   string|false
 	 * @return  void
 	 */
@@ -113,7 +113,7 @@ class View extends Object implements IView
 
 
 	/**
-	 * Return theme
+	 * Returns theme
 	 * @return  string|false
 	 */
 	public function getTheme()
@@ -123,7 +123,17 @@ class View extends Object implements IView
 
 
 	/**
-	 * Load heleper
+	 * Returns base
+	 * @return  string
+	 */
+	public function getBase()
+	{
+		return $this->base;
+	}
+
+
+	/**
+	 * Loads heleper
 	 * @param   string  helper name
 	 * @param   string  var name
 	 */
@@ -144,7 +154,7 @@ class View extends Object implements IView
 
 
 	/**
-	 * Nacte helpery definovane v controller
+	 * Loads defined helpers in controller
 	 * @return  void
 	 */
 	public function loadHelpers()
@@ -155,25 +165,26 @@ class View extends Object implements IView
 	}
 
 
-
 	/**
-	 * Načtení externího kodu
-	 * @param   string  jmeno souboru bez pripony
+	 * Loads snippet
+	 * @param   string  filename without ext
+	 * @throws  ApplicationException
 	 * @return  void
 	 */
 	public function renderSnippet($name)
 	{
 		$file = $this->controller->app->path . Inflector::snippetViewFile($this->ext, $name);
 
-		if (file_exists($file)) {
-			extract($this->vars);
-			$controller = $this->controller;
-			include $file;
-		} else {
-			die("Haefko: nenalezena sablona snippet view $file!");
-		}
-	}
+		if (!file_exists($file))
+			throw new ApplicationException('missing-view', $file);
 
+		extract($this->vars);
+		extract($this->helpers);
+		$controller = Controller::i();
+		$application = Application::i();
+
+		require $file;
+	}
 
 
 	/**
@@ -190,8 +201,6 @@ class View extends Object implements IView
 
 		$this->vars[$name] = $value;
 	}
-
-
 
 
 	/**
@@ -244,7 +253,7 @@ class View extends Object implements IView
 		if (array_key_exists($name, $this->vars))
 			return $this->vars[$name];
 		else
-			throw new Exception("Neexistujici promenna \$$name!");
+			parent::__get($name);
 	}
 
 
@@ -284,7 +293,7 @@ class View extends Object implements IView
 		$core = dirname(__FILE__) . '/../';
 
 		$layouts = array(
-			$app  . Inflector::layoutFile($this->ext, $this->layout, Router::$namespace, $this->theme),
+			$app  . Inflector::layoutFile($this->ext, $this->layout, Router::$routing['module'], $this->theme),
 			$app  . Inflector::layoutFile($this->ext, $this->layout, '', ''),
 			$core . Inflector::layoutFile($this->ext, $this->layout, '', ''),
 			$core . Inflector::layoutFile('phtml', 'layout', '', '')
@@ -311,15 +320,15 @@ class View extends Object implements IView
 		if (!Application::$error) {
 			if ($this->controller->ajax) {
 
-				$ajaxView = Inflector::viewFile("ajax.{$this->ext}", $this->view, Router::$namespace, $this->theme, Router::$controller, !empty(Router::$service));
+				$ajaxView = Inflector::viewFile("ajax.{$this->ext}", $this->view, Router::$routing['module'], $this->theme, Router::$routing['controller'], !empty(Router::$service));
 
-				if (file_exists("{$app->path}/$ajaxView"))
-					return "{$app->path}/$ajaxView";
+				if (file_exists("$app$ajaxView"))
+					return "$app$ajaxView";
 				else
 					return false;
 			} else {
 
-				$view = Inflector::viewFile($this->ext, $this->view, Router::$namespace, $this->theme, Router::$controller, !empty(Router::$service));
+				$view = Inflector::viewFile($this->ext, $this->view, Router::$routing['module'], $this->theme, Router::$routing['controller'], !empty(Router::$service));
 
 				if (file_exists("$app$view"))
 					return "$app$view";
@@ -344,19 +353,21 @@ class View extends Object implements IView
 
 
 	/**
-	 * Parsuje sablonu
-	 * @param   string  cesta k sablone
-	 * @param   array   promenne
+	 * Parses view template
+	 * @param   string  template filename
 	 * @return  string
 	 */
-	protected function parse($parsedFile)
+	protected function parse($__file__)
 	{
 		extract($this->vars);
 		extract($this->helpers);
-		$controller = $this->controller;
+		$controller = Controller::i();
+		$application = Application::i();
 
-		include $parsedFile;
-		return ob_get_clean();
+		include $__file__;
+		$return = ob_get_contents();
+		ob_clean();
+		return $return;
 	}
 
 

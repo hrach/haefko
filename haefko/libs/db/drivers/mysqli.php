@@ -3,23 +3,28 @@
 /**
  * Haefko - your php5 framework
  *
- * @author      Jan Skrasek <skrasek.jan@gmail.com>
+ * @author      Jan Skrasek
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
  * @package     Haefko
  */
 
 
-class DbMysqliDriver implements IDbDriver
+/**
+ * MySQLi driver
+ * @subpackage  Database
+ */
+class MysqliDbDriver extends DbDriver
 {
 
-	public function connect(array $config)
+	public function connect($config)
 	{
 		$this->resource = @new mysqli($config['server'], $config['username'], $config['password'], $config['database']);
 
 		if (mysqli_connect_errno())
-			throw new DbException(mysqli_connect_error());
+			throw new Exception(mysqli_connect_error());
 
 		$this->resource->set_charset($config['encoding']);
 	}
@@ -30,7 +35,7 @@ class DbMysqliDriver implements IDbDriver
 		$this->result = $this->resource->query($sql);
 
 		if ($this->resource->errno)
-			throw new DbSqlException($this->resource->error . " ($sql).");
+			throw new Exception($this->resource->error . " ($sql).");
 
 		return clone $this;
 	}
