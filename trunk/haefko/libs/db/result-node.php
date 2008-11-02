@@ -1,17 +1,23 @@
 <?php
 
-
+/**
+ * Haefko - your php5 framework
+ *
+ * @author      Jan Skrasek
+ * @copyright   Copyright (c) 2008, Jan Skrasek
+ * @link        http://haefko.programujte.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
+ * @version     0.8
+ * @package     Haefko
+ */
 
 
 /**
- * Class for db result
+ * Interface node for db result
+ * @subpackage  Database
  */
 class DbResultNode implements ArrayAccess
 {
-
-
-	/** @var array */
-	private $keys = array();
 
 
 	/**
@@ -19,13 +25,10 @@ class DbResultNode implements ArrayAccess
 	 * @param   array   data
 	 * @return  void
 	 */
-	public function __construct(array $data)
+	public function __construct($data)
 	{
-		$i = 0;
-		foreach ($data as $key => $val) {
+		foreach ((array) $data as $key => $val)
 			$this->$key = $val;
-			$this->keys[$i++] = $key;
-		}
 	}
 
 
@@ -35,7 +38,7 @@ class DbResultNode implements ArrayAccess
 	 */
 	public function __get($name)
 	{
-		throw new DbResultException("Undefined field '$name'.");
+		throw new Exception("Undefined field '$name'.");
 	}
 
 
@@ -45,7 +48,7 @@ class DbResultNode implements ArrayAccess
 	 */
 	public function offsetSet($key, $value)
 	{
-		$this->{$key} = $value;
+		$this->$key = $value;
 	}
 
 
@@ -55,10 +58,10 @@ class DbResultNode implements ArrayAccess
 	 */
 	public function offsetGet($key)
 	{
-		if (is_int($key) && isset($this->keys[$key]))
-			return $this->{$this->keys[$key]};
-		else
-			return $this->{$key};
+		if (!property_exists($this, $key))
+			throw new Exception("Undefined key '$key'.");
+
+		return $this->$key;
 	}
 
 
@@ -68,7 +71,7 @@ class DbResultNode implements ArrayAccess
 	 */
 	public function offsetUnset($key)
 	{
-		throw new DbResultException("You can not unset the '$key'.");
+		throw new Exception("You can not unset the '$key'.");
 	}
 
 
@@ -78,10 +81,7 @@ class DbResultNode implements ArrayAccess
 	 */
 	public function offsetExists($key)
 	{
-		if (is_int($key))
-			return isset($this->keys[$key]);
-		else
-			return isset($this->{$key});
+		return isset($this->$key);
 	}
 
 

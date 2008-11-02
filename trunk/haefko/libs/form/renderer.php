@@ -32,6 +32,9 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	public $control;
 
 	/** @var Html */
+	public $controlSeparator = 'br';
+
+	/** @var Html */
 	public $label;
 
 	/** @var Html */
@@ -53,12 +56,13 @@ abstract class FormRenderer extends Object implements IFormRenderer
 		$this->body = Html::el($this->body);
 		$this->block = Html::el($this->block);
 		$this->control = Html::el($this->control);
+		$this->controlSeparator = Html::el($this->controlSeparator);
 		$this->label = Html::el($this->label);
 	}
 
 
 	/**
-	 * Render form $part
+	 * Renders form $part
 	 * @param   string  part
 	 * @param   string  title
 	 * @param   array   attributes
@@ -84,7 +88,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 
 	/**
-	 * Render form
+	 * Renders form
 	 * @param   array  params and attributes
 	 * @return  string
 	 */
@@ -97,14 +101,14 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 
 	/**
-	 * Render form
+	 * Renders form start tag
 	 * @param   array  params and attributes
 	 * @return  string
 	 */
 	protected function renderStart($attrs)
 	{
 		# set attributes
-		$this->container->setAttrs($attrs[0]);
+		$this->container->setAttrs(&$attrs[0]);
 
 		return $this->form->startTag()
 		     . $this->container->startTag();
@@ -112,7 +116,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 
 	/**
-	 * Render form
+	 * Renders form end tag
 	 * @param   array  params and attributes
 	 * @return  string
 	 */
@@ -124,7 +128,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 
 	/**
-	 * Render body
+	 * Renders body
 	 * @param   array  params and attributes
 	 * @return  string
 	 */
@@ -148,7 +152,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 
 	/**
-	 * Render block of control and label
+	 * Renders block of control and label
 	 * @param   array  params and attributes
 	 * @return  string
 	 */
@@ -165,7 +169,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 
 	/**
-	 * Render control
+	 * Renders control
 	 * @param   string  control name
 	 * @return  string
 	 */
@@ -184,7 +188,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 
 	/**
-	 * Render label
+	 * Renders label
 	 * @param   string  control name
 	 * @return  string
 	 */
@@ -206,7 +210,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	protected function prepareBody($attrs)
 	{
 		$this->body->clearContent();
-		$this->body->setAttrs((array) $attrs[2]);
+		$this->body->setAttrs((array) @$attrs[2]);
 	}
 
 

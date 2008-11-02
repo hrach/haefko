@@ -3,39 +3,47 @@
 /**
  * Haefko - your php5 framework
  *
- * @author      Jan Skrasek <skrasek.jan@gmail.com>
+ * @author      Jan Skrasek
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
  * @package     Haefko
  */
 
 
-class DbMysqlDriver implements IDbDriver
+/**
+ * MySQL driver
+ * @subpackage  Database
+ */
+class MysqlDbDriver extends DbDriver
 {
 
-	public function connect(array $config)
+
+	public function connect($config)
 	{
 		$this->resource = @mysql_connect($config['server'], $config['username'], $config['password']);
 
 		if (!$this->resource)
-			throw new DbException(mysql_error($this->resource));
+			throw new Exception(mysql_error($this->resource));
 
 		if (!mysql_select_db($config['database'], $this->resource))
-			throw new DbException(mysql_error($this->resource));
+			throw new Exception(mysql_error($this->resource));
 
 		$this->query("set names '$config[encoding]'");
 	}
+
 
 	public function query($sql)
 	{
 		$this->result = @mysql_query($sql, $this->resource);
 
 		if (mysql_errno($this->resource))
-			throw new DbSqlException(mysql_error($this->resource));
+			throw new Exception(mysql_error($this->resource));
 
 		return clone $this;
 	}
+
 
 	public function fetch($assoc)
 	{
@@ -47,20 +55,23 @@ class DbMysqlDriver implements IDbDriver
 			return $fetch;
 	}
 
-	public function escape($value, $type)
+
+	public function escape($type, $value)
 	{
 		switch ($type) {
-		case 'identifier':
-			return "`$value`";
-		case 'text':
-			return "'" . mysql_real_escape_string($value, $this->resource) . "'";
+			case 'column':
+				return "`$value`";
+			case 'text':
+				return "'" . mysql_real_escape_string($value, $this->resource) . "'";
 		}
 	}
+
 
 	public function affectedRows()
 	{
 		return mysql_affected_rows($this->resource);
 	}
+
 
 	public function columnsMeta()
 	{
@@ -73,9 +84,11 @@ class DbMysqlDriver implements IDbDriver
 		return $meta;
 	}
 
+
 	public function rowCount()
 	{
 		return mysql_num_rows($this->result);
 	}
+
 
 }

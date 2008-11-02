@@ -23,7 +23,6 @@ class Html extends Object
 	public static $emptyEl = array('img', 'meta', 'input', 'meta', 'area', 'base', 'col', 'link', 'param', 'frame', 'embed');
 
 
-
 	/** @var string */
 	public $prepend;
 
@@ -56,15 +55,18 @@ class Html extends Object
 	{
 		$el = new Html();
 		$el->tag = $tag;
-		$el->attrs = $attrs;
 		$el->setText($text);
 
-		$el->attrs['class'] = (array) $el->attrs['class'];
+
+		if (!empty($attrs))
+			$el->attrs = (array) $attrs;
+
 
 		if ($isEmpty === null)
 			$el->isEmpty = in_array($el->tag, self::$emptyEl);
 		else
 			$el->isEmpty = $isEmpty;
+
 
 		return $el;
 	}
@@ -89,10 +91,10 @@ class Html extends Object
 		if (empty($args[0]))
 			$this->attrs[$name] = null;
 		# add to array attribut
-		elseif (is_array($this->attrs[$name]))
+		elseif (isset($this->attrs[$name]) && is_array($this->attrs[$name]))
 			$this->attrs[$name][] = $args[0];
 		# add to attribut
-		elseif ($args[1] === true)
+		elseif (isset($this->attrs[$name]) && $args[1] === true)
 			$this->attrs[$name] .= $args[0];
 		# set attribut
 		else

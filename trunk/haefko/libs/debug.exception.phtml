@@ -3,77 +3,148 @@
 /**
  * Haefko - your php5 framework
  *
- * @author      Jan Skrasek <skrasek.jan@gmail.com>
+ * @author      Jan Skrasek
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @version     0.7
+ * @license     http://www.opensource.org/licenses/mit-license.html
+ * @version     0.8
  * @package     Haefko
  */
+
 
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="robots" content="noindex,noarchive" />
-    <meta name="generator" content="Háefko - your php5 framework" />
-    <title>Exception: <?= htmlspecialchars($exception->getMessage()) ?></title>
-    <style type="text/css" media="screen">
-    body { background: white; font-family: Calibri, sans-serif; padding: 0; margin: 0; }
-    a { color: #6F071E; text-decoration: none; font-weight: bold; }
-    a:hover { text-decoration: underline; }
-    h1 { background: #6F071E; color: white; font-size: 28px; margin: 0; padding: 15px 20px; }
-    pre, code { font-family: Consolas, 'Lucida Console', 'Monaco CE', fixed, monospace; font-size: 14px; }
-    pre { background: white; border: 1px solid #dedede; padding: 2px; overflow: auto; }
-    span.line { color: black; margin: 0 4px; }
-    span.cur-line { background: #EFD1D1; }
-    </style>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="robots" content="noindex,noarchive" />
+	<meta name="generator" content="Háefko - your php5 framework" />
+	<title>Exception: <?= htmlspecialchars($exception->getMessage()) ?></title>
+
+	<style type="text/css" media="screen">
+	body {
+		background: white;
+		font-family: Calibri, sans-serif;
+		margin: 0;
+		padding: 0;
+	}
+	#header {
+		background: white;
+		border-top: 10px solid #d70000;
+		font-family: Candara, 'Trebuchet MS', 'Geneva CE', lucida, sans-serif;
+		padding: 20px 25px;
+	}
+	#header h1 {
+		color: #444;
+		margin: 0;
+		padding: 0;
+	}
+	#header p {
+		margin: 0;
+		color: #aa0000;
+		font-size: 18px;
+	}
+	.block {
+		background: #f3f3f3;
+		border: 1px solid #dedede;
+		margin: 10px 25px;
+	}
+	.block p {
+		border-bottom: 1px solid #dedede;
+		padding: 4px 10px;
+		margin: 0;
+	}
+	code {
+		font-family: Consolas, 'Lucida Console', 'Monaco CE', fixed, monospace;
+		font-size: 14px;
+	}
+	pre {
+		background: #fff8d2;
+		padding: 2px;
+		margin: 0;
+		overflow: auto;
+	}
+	.line-num {
+		color: black;
+		margin: 0 8px 0 4px;
+	}
+	#line {
+		background: #edce20;
+		color: #3a3a3a;
+		display: block;
+		width: 100%;
+	}
+	table td {
+		text-align: right;
+	}
+	table th {
+		text-align: left;
+	}
+	</style>
 </head>
 <body>
-<h1><?= $exception->getMessage(); ?></h1>
+<div id="header">
+	<h1>Exception</h1>
+	<p><?= preg_replace("#'(.*)'#U", '<code>\1</code>', $exception->getMessage()); ?></p>
+</div>
+
+<div class="block">
 <?php
+	$i = 0;
+	$trace = $exception->getTrace();
+	foreach ($trace as $i => $item) {
+		if (isset($item['file']) && strpos($item['file'], Application::i()->corePath) === false)
+			break;
+	}
+	$i = 0;
 
-$trace = $exception->getTrace();
 
-foreach ($trace as $i => $item) {
-    if (isset($item['file']) && !preg_match('#dibi|haefko#i', $item['file']))
-        break;
-}
-$i = 0;
+	$file = trim(file_get_contents($trace[$i]['file']));
+	$file = preg_replace("#\r(?!\n)|(?<!\r)\n#", "\r\n", $file);
+	$file = highlight_string($file, true);
+	$file = explode("<br />", str_replace("\n", '', $file));
 
-$file  = explode('<br />', highlight_file($trace[$i]['file'], true));
-$line  = $trace[$i]['line'];
-$lines = strlen((string) count($file)) + 1;
+	$line = $trace[$i]['line'];
+	$lines = strlen((string) count($file));
 
-foreach ($file as $l => & $row) {
-    $row = str_replace("\n", '', $row);
+	foreach ($file as $l => & $row) {
+		$rl = '<span class="line-num">' . str_pad($l + 1, $lines, ' ', STR_PAD_LEFT) . '</span>';
 
-    if ($l == $line - 1) {
-        preg_match('#.*(<span[^>]+>)#', $row, $match);
-        if (!empty($match[1]))
-                $match[1] = '</span>' . $match[1];
-        $row = '<span class="cur-line">' . strip_tags($row) . "</span>$match[1]";
-    }
+		if ($line == $l + 1) {
+			preg_match('#.*(<span[^>]+>)#', $row, $m);
+			$row = '<span id="line">' . $rl . strip_tags($row) . '</span>' . $m[1];
+		} else {
+			$row = $rl . $row;
+		}
+	}
 
-    $row = '<span class="line">' . str_pad($l + 1, $lines, " ", STR_PAD_LEFT) . ":</span>$row";
-}
-
-$file = implode("", $file);
-
+	$file = implode("", $file) . '</code>';
 ?>
+	<p><strong>File: </strong><?= Tools::relativePath($trace[$i]['file']) ?>&nbsp;&nbsp;
+	<strong>Line: </strong><a href="#line"><?= $line ?></a></p>
+	<pre><?= $file ?></pre>
+</div>
 
-<div style="padding: 10px 20px;">
-    <br />
-    <strong>Soubor: </strong> <?= str_replace($_SERVER['DOCUMENT_ROOT'], '', str_replace('\\', '/', $trace[$i]['file'])) ?><br />
-    <strong>Řádek: </strong><?= $line ?>
-    <pre><?= $file ?></pre>
 
-    <p>
-        Čas generování: <strong><?= self::getTime() ?>ms</strong><br />
-        Server: <strong><?= $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'] ?></strong><br />
-        Vygenerováno: <strong><?= date('d.m.Y, h.i') ?></strong><br />
-        Powered by: <a href="http://haefko.programujte.com">Háefko</a> v.<?= Application::$version ?><br />
-    </p>
+<div class="block" style="font-size: 12px">
+<table>
+<tr>
+	<td>rendering time:</td>
+	<th><?= self::getTime() ?>ms</th>
+</tr>
+<tr>
+	<td>server:</td>
+	<th><?= $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'] ?></th>
+</tr>
+<tr>
+	<td>generated at:</td>
+	<th><?= date('d.m.Y, h.i') ?></th>
+</tr>
+<tr>
+	<td></td>
+	<th><a href="http://haefko.programujte.com">Háefko</a> v.0.8</th>
+</tr>
+</table>
 </div>
 </body>
 </html>

@@ -3,39 +3,35 @@
 /**
  * Haefko - your php5 framework
  *
- * @author      Jan Skrasek <skrasek.jan@gmail.com>
+ * @author      Jan Skrasek
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
  * @package     Haefko
  */
 
 
-
-/**
- * Trida Inflector spravuje jmenne konvence
- */
 class Inflector
 {
 
 
-
 	/**
-	 * Vrati jmeno tridy pro controller
+	 * Returns controller's class name
 	 * @param   string  controller
-	 * @param   string  namespace
+	 * @param   array   modules
 	 * @return  string
 	 */
-	public static function controllerClass($controller, $namespace = null)
+	public static function controllerClass($controller, $module = null)
 	{
-		return Tools::camelize($namespace) . Tools::camelize($controller) . 'Controller';
+		array_walk($module, array('Tools', 'camelize'));
+		return implode('', $module) . Tools::camelize($controller) . 'Controller';
 	}
 
 
-
 	/**
-	 * Vrati jmeno souboru pro controller
-	 * @param   string  trida controlleru
+	 * Returns controller's file name
+	 * @param   string  controlleru class
 	 * @return  string
 	 */
 	public static function controllerFile($class)
@@ -44,34 +40,8 @@ class Inflector
 	}
 
 
-
 	/**
-	 * Vrati jmeno tridy pro model
-	 * @param   string  model
-	 * @param   string  namespace
-	 * @return  string
-	 */
-	public static function sqlClass($model, $namespace = null)
-	{
-		return Tools::camelize($namespace) . Tools::camelize($model) . 'Model';
-	}
-
-
-
-	/**
-	 * Vrati jmeno souboru pro model
-	 * @param   string  trida modelu
-	 * @return  string
-	 */
-	public static function sqlFile($class)
-	{
-		return 'sqls/' . Tools::dash($class) . '.php';
-	}
-
-
-
-	/**
-	 * Vrati jmeno tridy pro helper
+	 * Returns helper's class name
 	 * @param   string  helper
 	 * @return  string
 	 */
@@ -81,10 +51,9 @@ class Inflector
 	}
 
 
-
 	/**
-	 * Vrati jmeno souboru pro helper
-	 * @param   string  trida helperu
+	 * Returns helper's file name
+	 * @param   string  helper class
 	 * @return  string
 	 */
 	public static function helperFile($name)
@@ -93,20 +62,22 @@ class Inflector
 	}
 
 
-
 	/**
-	 * Vrati jmeno souboru pro layout
+	 * Returns layout's view file name
 	 * @param   string       pripona
 	 * @param   string       jmeno layoutu
 	 * @param   string|bool  namespace
 	 * @param   string|bool  theme
 	 * @return  string
 	 */
-	public static function layoutFile($ext, $name, $namespace, $theme)
+	public static function layoutFile($ext, $name, $module, $theme)
 	{
 		$path  = 'views/';
 		$path .= ($theme) ? "$theme/" : '';
-		$path .= ($namespace) ? Tools::dash($namespace) . '-' : '';
+		if (!empty($module)) {
+			array_walk($module, array('Tools', 'camelize'));
+			$path .= implode('-', $module) .  '-';
+		}
 		$path .= Tools::dash($name) .".$ext";
 
 		return $path;
@@ -115,7 +86,7 @@ class Inflector
 
 
 	/**
-	 * Vrati jmeno souboru pro view
+	 * Returns view's file name
 	 * @param   string       pripona
 	 * @param   string       jmeno view
 	 * @param   string|bool  namespace
@@ -124,11 +95,14 @@ class Inflector
 	 * @param   string       service
 	 * @return  string
 	 */
-	public static function viewFile($ext, $name, $namespace, $theme, $controller, $service)
+	public static function viewFile($ext, $name, $module, $theme, $controller, $service)
 	{
 		$path  = 'views/';
 		$path .= ($theme) ? "$theme/" : '';
-		$path .= ($namespace) ? Tools::dash($namespace) . '-' : '';
+		if (!empty($module)) {
+			array_walk($module, array('Tools', 'camelize'));
+			$path .= implode('-', $module) . '-';
+		}
 		$path .= Tools::dash($controller) . '/';
 		$path .= ($service) ? 'service/' : '';
 		$path .= Tools::dash($name) . ".$ext";

@@ -3,20 +3,34 @@
 /**
  * Haefko - your php5 framework
  *
- * @author      Jan Skrasek <skrasek.jan@gmail.com>
+ * @author      Jan Skrasek
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
  * @package     Haefko
  */
 
 
+require_once dirname(__FILE__) . '/result-node.php';
+
+
+/**
+ * Instance of query result
+ * @subpackage  Database
+ */
 class DbResult implements Countable, IteratorAggregate
 {
 
 
+	/** @var string */
+	private $query;
+
 	/** @var DbDriver */
 	private $driver;
+
+	/** @var bool */
+	private $executed = false;
 
 	/** @var array */
 	private $cols = array();
@@ -30,80 +44,166 @@ class DbResult implements Countable, IteratorAggregate
 	/** @var null|array Stored row */
 	private $stored;
 
+	/** @var array */
+	private $association = array();
+
+	/** @var boll|array */
+	private $pagination = false;
+
 
 	/**
 	 * Constructor
-	 * @param   DbDriver
+	 * @param   string     sql query
+	 * @param   DbDriver   driver instance
 	 * @return  void
 	 */
-	public function __construct($driver)
+	public function __construct($query, DbDriver $driver)
 	{
+		$this->query = $query;
 		$this->driver = $driver;
+	}
 
+
+	/**
+	 * Executes sql query
+	 * @return DbResult    $this
+	 */
+	public function execute()
+	{
+		# pagination
+		if ($this->pagination !== false) {
+			if (empty($this->pagination[2]))
+				$this->pagination[2] = db::fetchField(preg_replace('#select (.+) from#si', 'SELECT COUNT(*) FROM', $sql));
+
+			$this->query .= ' LIMIT ' . ($this->pagination[0] - 1) * $this->pagination[1] . ', ' . $this->pagination[1];
+		}
+
+
+		# run query
+		$time = microtime(true);
+		$this->driver = $this->driver->query($this->query);
+		$this->executed = true;
+
+		Db::$sqls[] = array($this->query, Debug::getTime($time), Debug::getTime());
+
+		# pagination
+		if ($this->pagination !== false) {
+			require_once dirname(__FILE__) . '/../paginator.php';
+			$this->paginator = new Paginator($this->pagination[0], ceil($this->pagination[2] / $this->pagination[1]));
+		}
+
+
+		# columns & tables
 		$tables = array();
 		foreach ($this->driver->columnsMeta() as $col) {
 			$this->cols[] = array($col['table'], $col['name']);
 			$tables[$col['table']] = true;
 		}
+		$this->tables = count($tables) > 1;
 
-		$this->tables = $tables = count($tables) > 1;
+		return $this;
 	}
 
 
 	/**
-	 * Return value of the first field
+	 * Sets association
+	 * @param   string     main table
+	 * @param   array      other tables
+	 * @return  DbResult   $this
+	 */
+	public function associate($main, $hasMany = array())
+	{
+		$this->association[0] = $main;
+		$this->association[1] = (array) $hasMany;
+
+		return $this;
+	}
+
+
+	/**
+	 * Sets pagination
+	 * @param   int        page
+	 * @param   int        limit
+	 * @param   int        count pages
+	 * @return  DbResult   $this
+	 */
+	public function paginate($page, $limit = 10, $count = null)
+	{
+		$this->pagination[0] = (int) $page;
+		$this->pagination[1] = (int) $limit;
+		if (!empty($count))
+			$this->pagination[2] = (int) $count;
+
+		return $this;
+	}
+
+
+	/**
+	 * Returns first field value
 	 * @return  mixed
 	 */
 	public function fetchField()
 	{
-		if (is_null($this->rows))
+		$this->checkExecution();
+
+		if (empty($this->rows))
 			$this->rows = array($this->fetch());
 
-		if (isset($this->rows[0][0]))
-			return $this->rows[0][0];
-		else
-			return null; // TODO throw Exception
+		return current($this->rows[0]);
 	}
 
 
+	/**
+	 * Returns array of pairs
+	 * @return array
+	 */
 	public function fetchPairs()
 	{
+		$this->checkExecution();
+
 		$array = array();
 		foreach ($this->fetchAll() as $row) {
-			if (!isset($row[1]))
-				$array[] = $row[0];
+			if (count((array) $row) == 1)
+				$array[] = current($row);
 			else
-				$array[$row[0]] = $row[1];
+				$array[current($row)] = next($row);
 		}
+
 		return $array;
 	}
 
 
 	/**
-	 * Return one row of result with assocciation $assoc
-	 * @param   array         Association
+	 * Returns one (associated) row
 	 * @return  DbResultNode
 	 */
-	public function fetch($assoc = null)
+	public function fetch()
 	{
-		$assoc = func_get_args();
+		$this->checkExecution();
+
 		$row = $this->getRow(!$this->tables);
-			if (is_null($row))
+		if (is_null($row))
 				return null;
 
 		if ($this->tables) {
-
 			$row = $this->combineColumns($row);
 
 			# association
-			if (!empty($assoc)) {
+			if (!empty($this->association)) {
+				# prepare hasMany
+				foreach ($row as $table => $data) {
+					if (in_array($table, $this->association[1]))
+						$row[$table] = array($data);
+				}
+
+				# add associated rows
 				while (($newRow = $this->getRow(false)) !== null) {
 					$this->stored = $newRow;
 					$newRow = $this->combineColumns($newRow);
 
-					if (strpos($assoc[0], '.') !== false) {
+					if (strpos($this->association[0], '.') !== false) {
 					# compare table and column
-						list($t, $c) = explode('.', $assoc[0]);
+						list($t, $c) = explode('.', $this->association[0]);
 						if ($row[$t][$c] != $newRow[$t][$c])
 							break;
 
@@ -111,26 +211,21 @@ class DbResult implements Countable, IteratorAggregate
 						unset($newRow[$t]);
 					} else { 
 					# compare table
-						if ($row[$assoc[0]] != $newRow[$assoc[0]])
+						if (!isset($row[$this->association[0]]) || $row[$this->association[0]] != $newRow[$this->association[0]])
 							break;
 
 						$this->stored = null;
-						unset($newRow[$assoc[0]]);
+						unset($newRow[$this->association[0]]);
 					}
 
 					# copy tables
 					foreach ($newRow as $table => $data) {
-						if (!in_array($table, (array) $assoc[1])) {
+						if (!in_array($table, $this->association[1]))
 						# hasOne
-							if (!isset($row[$table]))
-								$row[$table] = $data;
-						} else {
+							$row[$table] = $data;
+						else
 						# hasMany
-							if(!is_array($row[$table]))
-								$row[$table] = array();
-
 							$row[$table][] = $data;
-						}
 					}
 				}
 			}
@@ -141,8 +236,82 @@ class DbResult implements Countable, IteratorAggregate
 	}
 
 
+	/**
+	 * Returns all (associated) rows
+	 * @return  array
+	 */
+	public function fetchAll()
+	{
+		$this->checkExecution();
+		while (($row = $this->fetch()) !== null)
+			$this->rows[] = $row;
+
+		return $this->rows;
+	}
+
+
+	/**
+	 * Retruns num of affected rows
+	 * @return  int
+	 */
+	public function affectedRows()
+	{
+		$this->checkExecution();
+		return $this->driver->affectedRows();
+	}
+
+
+	/**
+	 * IteratorAggregate interface
+	 * @return  ArrayIterator
+	 */
+	public function getIterator()
+	{
+		$this->checkExecution();
+		return new ArrayIterator($this->fetchAll());
+	}
+
+
+	/**
+	 * Countable interface
+	 * @return  int
+	 */
+	public function count()
+	{
+		$this->checkExecution();
+		return $this->driver->rowCount();
+	}
+
+
+	/**
+	 * Checkes if has been sql query executed and 
+	 * @return  void
+	*/
+	private function checkExecution()
+	{
+		if (!$this->executed)
+			$this->execute();
+	}
+
+
+	/**
+	 * Returns one reuslt row
+	 * @return  bool
+	 */
+	private function getRow($assoc)
+	{
+		if (!empty($this->stored)) {
+			$stored = $this->stored;
+			$this->stored = null;
+			return $stored;
+		} else {
+			return $this->driver->fetch($assoc);
+		}
+	}
+
+
 	/*
-	 * Combine tables with columns and values
+	 * Combines tables with their columns
 	 * @param   array   table row
 	 * @return  array
 	 */
@@ -161,95 +330,6 @@ class DbResult implements Countable, IteratorAggregate
 				$data = new DbResultNode($data);
 		}
 
-		return $r;
-	}
-
-
-	/**
-	 * Return array of all (associated) rows
-	 * @param   array  Association
-	 * @return  array
-	 */
-	public function fetchAll($assoc = null)
-	{
-		while (($row = $this->fetch($assoc)) !== null)
-			$this->rows[] = $row;
-
-		return $this->rows;
-	}
-
-
-	/**
-	 * Retrun number of affected rows
-	 * @return  int
-	 */
-	public function affectedRows()
-	{
-		return $this->driver->affectedRows();
-	}
-
-
-	/**
-	 * IteratorAggregate interface
-	 * @return  ArrayIterator
-	 */
-	public function getIterator()
-	{
-		return new ArrayIterator($this->fetchAll());
-	}
-
-
-	/**
-	 * Countable interface
-	 * @return  int
-	 */
-	public function count()
-	{
-		return $this->driver->rowCount();
-	}
-
-
-	/**
-	 * Has result any rows?
-	 * @return  bool
-	 */
-	public function has()
-	{
-		return $this->count() > 0;
-	}
-
-
-	/**
-	 * Proccess one row of db result
-	 * @return  bool
-	 */
-	private function getRow($assoc)
-	{
-		if (!empty($this->stored)) {
-			$stored = $this->stored;
-			$this->stored = null;
-			return $stored;
-		} else {
-			return $this->driver->fetch($assoc);
-		}
-	}
-
-
-	public function dump()
-	{
-		$r = '<table>';
-		foreach ($this->fetchAll() as $row) {
-			$r .= '<tr>';
-			foreach ($row as $field) {
-				if (is_object($field))
-					$r .= '<td>' . print_r($field, true) . '</td>';
-						
-				else
-					$r .= '<td>' . $field . '</td>';
-			}
-			$r .= '</tr>';
-		}
-		$r .= '</table>';
 		return $r;
 	}
 

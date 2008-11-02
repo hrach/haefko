@@ -17,7 +17,7 @@ class Tools
 
 
 	/**
-	 * Camelize string
+	 * Camelizes string
 	 * @param   string
 	 * @return  string
 	 */
@@ -28,7 +28,7 @@ class Tools
 
 
 	/**
-	 * Dashed string
+	 * Dashs string
 	 * @param   string
 	 * @return  string
 	 */
@@ -39,7 +39,18 @@ class Tools
 
 
 	/**
-	 * Strip diacritics
+	 * Underscores string
+	 * @param   string
+	 * @return  string
+	 */
+	public static function underscore($string)
+	{
+		return strtolower(preg_replace('/(?<=\\w)([A-Z])/', '_\\1', $string));
+	}
+
+
+	/**
+	 * Strips diacritics
 	 * @param   string
 	 * @return  string
 	 */
@@ -72,8 +83,10 @@ class Tools
 
 
 	/**
-	 * Render cool url - strip diacritics and replace non-alfanumeric chars to dash
-	 * @author  Jakub Vrana <http://php.vrana.cz>
+	 * Renders cool url
+	 * Strips diacritics and replaces non-alfanumeric chars by dash
+	 * @author  Jakub Vrana
+	 * @link    http://php.vrana.cz
 	 * @param   string
 	 * @return  string
 	 */
@@ -89,7 +102,7 @@ class Tools
 
 
 	/**
-	 * Return true when the $string start with $substring
+	 * Returns true when the $string start with $substring
 	 * @param   string
 	 * @param   string  substring
 	 * @return  bool
@@ -101,7 +114,7 @@ class Tools
 
 
 	/**
-	 * Return true when the $string end with $substring
+	 * Returns true when the $string end with $substring
 	 * @param   string
 	 * @param   string  substring
 	 * @return  bool
@@ -113,7 +126,7 @@ class Tools
 
 
 	/**
-	 * Strip $sub from the start of $string
+	 * Strips $sub from the start of $string
 	 * @param   string
 	 * @param   string  substring
 	 * @return  string
@@ -128,7 +141,7 @@ class Tools
 
 
 	/**
-	 * Strip $sub string from the end of $string
+	 * Strips $sub string from the end of $string
 	 * @param   string
 	 * @param   string  substring
 	 * @return  string
@@ -143,17 +156,13 @@ class Tools
 
 
 	/**
-	 * Transform url string to array - explode by /
-	 * @param   string
-	 * @return  array
+	 * Returns relative application path
+	 * @param   string  path
+	 * @return  string
 	 */
-	function urlToArray($url)
+	public static function relativePath($path)
 	{
-		$url = trim($url, '/');
-		if (empty($url))
-			return array();
-
-		return explode('/', $url);
+		return preg_replace("#^$_SERVER[DOCUMENT_ROOT]#i", '', str_replace('\\', '/', $path));
 	}
 
 

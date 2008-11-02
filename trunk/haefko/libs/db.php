@@ -12,40 +12,41 @@
  */
 
 
-require_once dirname(__FILE__) . '/db/exceptions.php';
+require_once dirname(__FILE__) . '/db/connection.php';
 
 
+/**
+ * Wrapper and interface for db connections
+ * @subpackage  Database
+ * @static
+ */
 class Db
 {
 
 
-	/** @var array Debug of queries */
+	/** @var array */
 	public static $sqls = array();
 
-	/** @var string Name of active connection */
+	/** @var string */
 	private static $active;
 
-	/** @var array */
+	/** @var DbConnection[] */
 	private static $connections = array();
 
 
 	/**
-	 * Connect to database
-	 * If you don't provide $config, its load from config directive 'Db.connection'
-	 * @example http://haefko.programujte.com/manual
+	 * Connects to database
+	 * If you don't provide $config, its load from config directive Db.connection
+	 * @link    http://haefko.programujte.com/db
 	 * @param   array   connection config
 	 * @param   array   connection name
 	 * @return  bool
 	 */
 	public static function connect($config = array(), $name = 'default')
 	{
-		if (empty($config))
-			$config = Config::read('Db.connection', array());
-
 		if (isset(self::$connections[$name]))
-			throw new DbException("Connection '$name' is already created.");
+			self::$active[$name];
 
-		require_once dirname(__FILE__) . '/db/connection.php';
 		self::$connections[$name] = new DbConnection($config);
 		self::$active = $name;
 		return true;
@@ -60,14 +61,41 @@ class Db
 	public static function active($name)
 	{
 		if (!isset(self::$connections[$name]))
-			throw new DbException("Connection '$name' doesn't exists.");
+			throw new Exception("Connection '$name' doesn't exists.");
 
 		self::$active = $name;
 	}
 
 
 	/**
-	 * Wrapper for DbConnection::query()
+	 * Wrapper for active connection
+	 * @see     DbConnection::rawPrepare()
+	 * @param   string    sql query
+	 * @return  DbResult
+	 */
+	public static function nativePrepare($sql)
+	{
+		$args = func_get_args();
+		return call_user_func_array(array(self::getConnection(), 'nativeQuery'), $args);
+	}
+
+
+	/**
+	 * Wrapper for active connection
+	 * @see     DbConnection::prepare()
+	 * @param   string    sql query
+	 * @return  DbResult
+	 */
+	public static function prepare($sql)
+	{
+		$args = func_get_args();
+		return call_user_func_array(array(self::getConnection(), 'prepare'), $args);
+	}
+
+
+	/**
+	 * Wrapper for active connection
+	 * @see     DbConnection::query()
 	 * @param   string    sql query
 	 * @return  DbResult
 	 */
@@ -79,31 +107,8 @@ class Db
 
 
 	/**
-	 * Wrapper for DbConnection::rawQuery()
-	 * @param   string    sql query
-	 * @return  DbResult
-	 */
-	public static function rawQuery($sql)
-	{
-		$args = func_get_args();
-		return call_user_func_array(array(self::getConnection(), 'rawQuery'), $args);
-	}
-
-
-	/**
-	 * Wrapper for DbConnection::test()
-	 * @param   string    sql query
-	 * @return  DbResult
-	 */
-	public static function test($sql)
-	{
-		$args = func_get_args();
-		return call_user_func_array(array(self::getConnection(), 'test'), $args);
-	}
-
-
-	/**
-	 * Wrapper for DbConnection::fetchField()
+	 * Wrapper for active connection
+	 * @see     DbConnection::fetchField()
 	 * @param   string    sql query
 	 * @return  mixed
 	 */
@@ -121,7 +126,7 @@ class Db
 	public static function getConnection()
 	{
 		if (empty(self::$active) || !isset(self::$connections[self::$active]))
-			throw new DbException('No database connection.');
+			throw new Exception('No database connection.');
 
 		return self::$connections[self::$active];
 	}
