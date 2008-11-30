@@ -8,7 +8,7 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Libs
  */
 
 
@@ -85,7 +85,7 @@
 <body>
 <div id="header">
 	<h1>Exception</h1>
-	<p><?= preg_replace("#'(.*)'#U", '<code>\1</code>', $exception->getMessage()); ?></p>
+	<p><?= preg_replace("#'(.*)'#U", '<code>\1</code>', htmlspecialchars($exception->getMessage())); ?></p>
 </div>
 
 <div class="block">
@@ -93,11 +93,14 @@
 	$i = 0;
 	$trace = $exception->getTrace();
 	foreach ($trace as $i => $item) {
-		if (isset($item['file']) && strpos($item['file'], Application::i()->corePath) === false)
+		if (isset($item['file']) && strpos($item['file'], Application::get()->corePath) === false)
 			break;
 	}
-	$i = 0;
 
+		Debug::dump($trace);
+
+	if (empty($trace[$i]))
+		$i = 0;
 
 	$file = trim(file_get_contents($trace[$i]['file']));
 	$file = preg_replace("#\r(?!\n)|(?<!\r)\n#", "\r\n", $file);

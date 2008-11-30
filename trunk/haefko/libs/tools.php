@@ -8,7 +8,7 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Libs
  */
 
 
@@ -172,12 +172,23 @@ class Tools
 /******************** FUNCTIONS ********************/
 
 
+/**
+ * Return argument's array
+ * @param   mixed    arg
+ * @return  array
+ */
 function a()
 {
 	return func_get_args();
 }
 
 
+/**
+ * Return associated argument's array
+ * @param   string   key
+ * @param   mixed    value
+ * @return  array
+ */
 function aa()
 {
 	$args = func_get_args();
@@ -217,18 +228,14 @@ if (!function_exists('json_encode')) {
 
 				return '{' . implode(',', $array) . '}';
 			}
-		}
-
-		if (is_string($val)) {
+		} elseif (is_string($val)) {
 			$val = addslashes($val);
 			return '"' . addcslashes($val, "\x8..\xA\xC\xD/") . '"';
-		}
-
-		if (is_bool($val))
+		} elseif (is_bool($val)) {
 			return $val ? 'true' : 'false';
-
-		if (is_numeric($val))
+		} elseif (is_numeric($val)) {
 			return (string) $val;
+		}
 
 		return null;
 	}

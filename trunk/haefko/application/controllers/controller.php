@@ -8,16 +8,20 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Application
+ * @subpackage  Controller
  */
 
 
 abstract class Controller extends Object
 {
 
+	/** @var string */
+	private $urlPrefix;
+	
 
 	/** @var Application */
-	protected $app;
+	protected $application;
 
 	/** @var View */
 	protected $view;
@@ -29,9 +33,13 @@ abstract class Controller extends Object
 	public $helpers = array();
 
 
-	public static function i()
+	/**
+	 * Returns self instance
+	 * @return  Controller
+	 */
+	public static function get()
 	{
-		return Application::i()->controller;
+		return Application::get()->controller;
 	}
 
 
@@ -41,12 +49,14 @@ abstract class Controller extends Object
 	 */
 	public function __construct()
 	{
-		$this->app = Application::i();
+		$this->application = Application::get();
 		$this->ajax = Http::isAjax();
 
 		# load view
-		$class = Config::read('Service.' . Router::$service, 'View');
-		$this->app->loadFile('views/' . Tools::dash($class) . '.php');
+		$class = 'View';
+		if (!empty($this->application->router->service))
+			$class = Config::read('Service.' . $this->application->router->service, 'View');
+		$this->application->loadFile('views/' . Tools::dash($class) . '.php');
 		$this->view = new $class($this);
 
 		if ($this->ajax)
@@ -56,55 +66,54 @@ abstract class Controller extends Object
 
 	/**
 	 * Activates support for section $section
-	 * @param   string    section name (db)
+	 * @param   string    section name (db|)
 	 * @return  void
 	 */
 	public function initialize($section)
 	{
 		switch (strtolower($section)) {
 			case 'db':
-				$this->app->loadCore('db', false);
-				$config = Config::read('Db.connection', array());
-				Db::connect($config);
+				$this->application->loadCore('db');
+				Db::connect(Config::read('Db.connection', array()));
 
-				$this->app->loadCore('db-table');
-				$this->app->loadCore('db-table-structure');
+				$this->application->loadCore('db-table');
+				$this->application->loadCore('db-table-structure');
+				break;
+			case 'translation':
+			case 'translations':
+				$this->application->loadCore('l10n');
 				break;
 		}
 	}
 
 
 	/**
-	 * Returns argument
-	 * @param   string  arg name
-	 * @return  mixed
-	 */
-	public function get($arg)
-	{
-		if (isset(Router::$routing['args'][$arg]))
-			return Router::$routing['args'][$arg];
-		else
-			null;
-	}
-
-
-	/**
-	 * Returns application instance
+	 * Returns Application instance
 	 * @return  Application
 	 */
-	public function getApp()
+	public function getApplication()
 	{
-		return $this->app;
+		return $this->application;
 	}
 
 
 	/**
-	 * Returns view instance
+	 * Returns View instance
 	 * @return  View
 	 */
 	public function getView()
 	{
 		return $this->view;
+	}
+
+
+	/**
+	 * Returns Routing instance
+	 * @return  Routing
+	 */
+	public function getRouting()
+	{
+		return $this->routing;
 	}
 
 
@@ -131,12 +140,10 @@ abstract class Controller extends Object
 	{}
 
 
-
 	/**
-	 * Zobrazi chybovou chybovou zpravu.
-	 * Pokud je ladici rezim vypnut, zobrazi se chyba 404.
-	 * @param   string  jmeno view
-	 * @param   bool    nahradit v non-debug 404?
+	 * Jumps out of application and display error $view
+	 * @param   string    error view
+	 * @param   bool      is error page only for debug mode?
 	 * @return  void
 	 */
 	public function error($view = '404', $debug = false)
@@ -145,36 +152,34 @@ abstract class Controller extends Object
 	}
 
 
-
 	/**
-	 * Presmeruje na novou url v ramci aplikace
-	 * @param   string  url (relativni)
-	 * @param   bool    zavolat po presmerovani exit?
+	 * Redirects to new $url and terminate application when $exit = true
+	 * @param   string    internal relative url
+	 * @param   bool      terminate application?
 	 * @return  void
 	 */
 	public function redirect($url, $exit = true)
 	{
-		Http::headerRedirect($this->url($url, true), 303);
-		if ($exit)
-			exit;
+		Http::headerRedirect($this->url($url, array(), true), 303);
+		if ($exit) exit;
 	}
 
 
-
 	/**
-	 * Vytvori URL v ramci aplikace
+	 * Creates application internal url
 	 * @param   string  url
-	 * @param   bool    absolutni url?
+	 * @param   array   additional args
+	 * @param   bool    absolute url?
 	 * @return  string
 	 */
-	public function url($url, $absolute = false)
+	public function url($url, $args = array(), $absolute = false)
 	{
-		$url = preg_replace('#\{url\}#', Http::getRequest(), $url);
-		$url = preg_replace('#\{\:(\w+)\}#e', 'isset(Router::$routing["args"]["\\1"]) ? Router::$routing["args"]["\\1"] : "\\0"', $url);
-		$url = preg_replace('#\{args\}#e', 'implode("/", Router::$routing["args"])', $url);
-		$url = preg_replace_callback('#\{args!(.+)\}#', array($this, 'urlArgs'), $url);
-		$url = '/' . trim($url, '\\/');
+		$url = $this->processUrl($url, (array) $args);
 
+		if (isset($url[0]) && $url[0] !== '/')
+			$url = $this->urlPrefix . $url;
+
+		$url = '/' . ltrim($url, '/');
 		if ($absolute)
 			return Http::$serverUri . Http::$baseUri . $url;
 		else
@@ -182,35 +187,25 @@ abstract class Controller extends Object
 	}
 
 
-
 	/**
-	 * Vrati hodnotu jmenneho argumentu
-	 * @param   string  jmeno argumentu
-	 * @param   mixed   defaultni hodnota
-	 * @param   mixed   bool/string - jedna se o jemnny argument/odstranic dany prefix
-	 * @return  mixed
+	 * Sets application internal url's prefix
+	 * @param   string  url
+	 * @return  void
 	 */
-	public function getArg($variable, $default = null, $name = null)
+	public function urlPrefix($url)
 	{
-		if (isset(Router::$args[$variable])) {
-			if (empty($name))
-				return Tools::lTrim(Router::$args[$variable], "$variable:");
-			else
-				return Tools::lTrim(Router::$args[$variable], "$name:");
-		} else {
-			return $default;
-		}
+		$this->urlPrefix = $this->processUrl($url);
 	}
 
 
-
 	/**
-	 * Spusti volani action a rendering
+	 * Runns actino call
 	 * @return  void
 	 */
 	public function render()
 	{
-		$method = Tools::camelize(Router::$routing['action']);
+		call_user_func(array($this, 'init'));
+		$method = Tools::camelize($this->application->router->action);
 
 		if ($this->ajax && method_exists(get_class($this), $method . 'AjaxAction'))
 			$method .= 'AjaxAction';
@@ -220,7 +215,7 @@ abstract class Controller extends Object
 		$exists = method_exists(get_class($this), $method);
 
 		if ($exists && $this->view->getView() == '')
-			$this->view->view(Router::$routing['action']);
+			$this->view->view($this->application->router->action);
 
 		if (!$exists && !Application::$error)
 			throw new ApplicationException('missing-method', $method);
@@ -228,9 +223,11 @@ abstract class Controller extends Object
 		$this->view->loadHelpers();
 
 		try {
-			call_user_func(array($this, 'init'));
-			if ($exists)
-				call_user_func_array(array($this, $method), Router::$routing['args']);
+			if ($exists) {
+				$args = $this->application->router->getArgs();
+				unset($args['controller'], $args['module'], $args['action'], $args['service']);
+				call_user_func_array(array($this, $method), $args);
+			}
 		} catch (ApplicationError $e) {
 			$this->view->view($e->view);
 		}
@@ -239,23 +236,20 @@ abstract class Controller extends Object
 	}
 
 
-
 	/**
-	 * Vrati cas url s pozadovanymi argumenty
-	 * @param   array   matches
+	 * Processes the application url
+	 * @param   string    url
+	 * @param   array     args
 	 * @return  string
 	 */
-	private function urlArgs($matches)
+	private function processUrl($url, $args = array())
 	{
-		$args = array();
-		$matches = array_diff(array_keys(Router::$args), explode(',', $matches[1]));
+		$args = array_merge($this->application->router->getArgs(), $args);
+		$url = preg_replace('#\<\:(\w+)\>#e', 'isset($args["\\1"]) ? $args["\\1"] : "\\1"', $url);
+		$url = preg_replace_callback('#\<\$url\>#', array('Http', 'getRequest'), $url);
 
-		foreach ($matches as $match)
-			$args[] = Router::$args[$match];
-
-		return implode('/', $args);
+		return $url;
 	}
-
 
 
 }

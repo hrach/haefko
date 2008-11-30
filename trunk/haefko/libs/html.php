@@ -8,11 +8,11 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Libs
  */
 
 
- require_once dirname(__FILE__) . '/object.php';
+require_once dirname(__FILE__) . '/object.php';
 
 
 class Html extends Object
@@ -57,16 +57,13 @@ class Html extends Object
 		$el->tag = $tag;
 		$el->setText($text);
 
-
 		if (!empty($attrs))
 			$el->attrs = (array) $attrs;
-
 
 		if ($isEmpty === null)
 			$el->isEmpty = in_array($el->tag, self::$emptyEl);
 		else
 			$el->isEmpty = $isEmpty;
-
 
 		return $el;
 	}
@@ -94,7 +91,7 @@ class Html extends Object
 		elseif (isset($this->attrs[$name]) && is_array($this->attrs[$name]))
 			$this->attrs[$name][] = $args[0];
 		# add to attribut
-		elseif (isset($this->attrs[$name]) && $args[1] === true)
+		elseif (isset($this->attrs[$name]) && isset($args[1]) && $args[1] === true)
 			$this->attrs[$name] .= $args[0];
 		# set attribut
 		else
@@ -185,25 +182,26 @@ class Html extends Object
 
 	/**
 	 * Renders element's start tag + content + end tag
+	 * @param   bool     append new line
 	 * @return  string
 	 */
-	public function render()
+	public function render($newLine = false)
 	{
 		$s = $this->startTag();
 
 		if ($this->isEmpty)
-			return $s;
+			return $s . ($newLine ? "\n" : '');
 
 		foreach ($this->content as $node) {
 			if ($node instanceof Html)
-				$s .= $node->render();
+				$s .= $node->render(true);
 			else
 				$s .= $node;
 		}
 
 		$s .= $this->endTag();
 
-		return $s;
+		return $s . ($newLine ? "\n" : '');
 	}
 
 

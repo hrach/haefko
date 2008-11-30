@@ -3,11 +3,13 @@
 /**
  * Haefko - your php5 framework
  *
- * @author      Jan Skrasek <skrasek.jan@gmail.com>
+ * @author      Jan Skrasek
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Application
+ * @subpackage  Localization
  */
 
 
@@ -111,7 +113,7 @@ class L10n
 	 */
 	public static function domain($name, $encoding = 'utf-8', $activate = true)
 	{
-		$path = Application::i()->path . 'locales';
+		$path = Application::get()->path . 'locales';
 		bindtextdomain($name, $path);
 		bind_textdomain_codeset($name, $encoding);
 

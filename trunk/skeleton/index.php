@@ -1,15 +1,18 @@
 <?php
 
 # load application
-require './haefko/application.php';
-$app = new Application();
+require './../haefko/application.php';
 
-# load autoload for files in "/app/extends"
-# $app->autoload();
+
+$application = new Application();
+
+
+# activate utoload for "/app/extends"
+# $application->autoload();
 
 
 # routing
+# Router::connect();
 
 
-# run application
-$app->run();
+$application->run();

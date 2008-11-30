@@ -8,155 +8,230 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Application
  */
 
 
+/**
+ * Router
+ * @subpackage Application
+ */
 class Router
 {
 
 
-	/** @var array */
-	public static $defaults = array();
-
-	/** @var array */
-	public static $url = array();
-
-	/** @var array */
-	public static $routing = array(
-		'controller' => '',
-		'action' => '',
-		'module' => array(),
-		'args' => array()
-	);
-
-	/** @var string */
-	public static $service;
-
 	/** @var bool */
-	public static $routed = false;
+	public $routed = false;
+
+	/** @var array */
+	protected $defaults = array();
+
+	/** @var array */
+	protected $url = array();
+
+	/** @var array */
+	protected $routing = array();
 
 
 	/**
 	 * Initializes router
 	 * @return  void
 	 */
-	public static function initialize()
+	public function __construct()
 	{
-		self::$url = self::toArray(Http::getRequest());
+		$this->url = Http::getRequest();
 	}
 
 
 	/**
-	 * Adds service for alternate view
-	 * @param   string  service name
-	 * @return  bool
+	 * Sets defaults routing setting
+	 * @param   array     defaults settings
+	 * @return  Router    $this
 	 */
-	public static function addService($service)
+	public function defaults($defaults)
 	{
-		if (strcasecmp(end(self::$url), $service) === 0) {
-			array_pop(self::$url);
-			self::$service = strtolower($service);
-			return true;
-		}
-
-		return false;
+		$this->defaults = (array) $defaults;
+		return $this;
 	}
 
 
 	/**
 	 * Connects to url
-	 * @param   string  routing expression
-	 * @param   array   defaults
+	 * @param   string    routing expression
+	 * @param   array     defaults
+	 * @param   bool      base route?
 	 * @return  bool
 	 */
-	public static function connect($route, $defaults = array())
+	public function connect($route, $defaults = array(), $baseRoute = false)
 	{
-		if (self::$routed) return false;
+		# route only once
+		if ($this->routed)
+			return false;
 
-		$routing = array_merge(array(
-			'controller' => '',
-			'action' => '',
-			'module' => array()
-		), self::$defaults, $defaults);
-		$rule = self::toArray($route);
-		if (end($rule) == ':args') {
-			array_pop($rule);
 
-			$i = 0;
-			while (count($rule) < count(self::$url))
-				$rule[] = ':arg' . $i++;
+		# set the defaults
+		$newRoute = '';
+		$route = trim($route, '/');
+		$routing = array('controller' => '', 'action' => 'index', 'module' => array(), 'service' => '');
+		$routing = $this->normalize(array_merge($routing, $this->defaults, $defaults));
+
+
+		# explode by variables
+		$parts = preg_split('#\<\:\w+( [^>]+)?\>#', $route);
+		if (count($parts) > 1) {
+			preg_match_all('#\<\:(\w+)( [^>]+)?\>#', $route, $matches);
+			foreach ($matches[2] as $i => $match) {
+				if (empty($match))
+					$match = $baseRoute ? '[^/]+' : '[^/]+?';
+
+				# escape other text
+				$newRoute .= preg_quote($parts[$i], '#') . '(' . trim($match) . ')';
+			}
+
+			if (!empty($parts[$i + 1]))
+				$newRoute .= $parts[$i + 1];
+		} else {
+			$newRoute = $route;
 		}
 
-		if (count($rule) < count(self::$url)) return false;
 
-		foreach ($rule as $x => $e) {
-			if (empty(self::$url[$x]))
-				$val = '';
-			else
-				$val = self::$url[$x];
-
-			# variable
-			if (preg_match('#:(:)?(\w+)({(.*)})?#', $e, $match)) {
-				if (!empty($match[3])) {
-					if (empty($match[4]) && empty($val))
-						continue;
-					elseif (empty($match[4]))
-						$match[4] = '#.+#';
-					elseif ($match[4][0] != '#')
-						$match[4] = "#^$match[4]$#i";
-
-					if (!preg_match($match[4], $val))
-						return false;
-				} elseif (empty($val)) {
-					return false;
-				}
-
-				if ($match[1] == ':')
-					$val = Tools::lTrim($val, $match[2] . ':');
-
-				if ($match[2] == 'module')
-					$routing[$match[2]][] = $val;
-				else
-					$routing[$match[2]] = $val;
-			# expression
-			} elseif ($e != $val) {
+		if ($baseRoute === false) {
+			# match url and routing
+			if (!preg_match("#^$newRoute$#", $this->url, $m))
 				return false;
+
+			array_shift($m);
+			$this->routing = $routing;
+			if (count($m) > 0) {
+				foreach ($matches[1] as $i => $key) {
+					if ($key == 'module')
+						$this->routing['module'][] = $m[$i];
+					else
+						$this->routing[$key] = $m[$i];
+				}
+			}
+		} else {
+			if (!preg_match("#^$newRoute#", $this->url, $m, PREG_OFFSET_CAPTURE))
+				return false;
+
+			array_shift($m);
+			$this->routing = $routing;
+			if (count($m) > 0) {
+				foreach ($matches[1] as $i => $key) {
+					if ($key == 'module')
+						$this->routing['module'][] = $m[$i][0];
+					else
+						$this->routing[$key] = $m[$i][0];
+				}
+			}
+
+			$lastChar = end($m);
+			$lastChar = strlen($lastChar[0]) + $lastChar[1];
+
+			if (strlen($this->url) > $lastChar) {
+				$args = explode('/', substr($this->url, $lastChar + 1));
+				foreach ($args as $i => $arg)
+					$this->routing['var' . ($i + 1)] = $arg;
 			}
 		}
 
-		if (empty($routing['controller']))
-			return false;
 
-		if (empty($routing['action']))
-			$routing['action'] = 'index';
-
-		self::$routing['controller'] = strtolower($routing['controller']);
-		self::$routing['action'] = strtolower($routing['action']);
-		self::$routing['module'] = (array) $routing['module'];
-		unset($routing['controller'], $routing['action'], $routing['module']);
-
-		self::$routing['args'] = $routing;
-		return self::$routed = true;
+		$this->routing = $this->normalize($this->routing);
+		return $this->routed = true;
 	}
 
 
 	/**
-	 * Transforms url string to array
-	 * @param   array
-	 * @return  string
+	 * Returns args array
+	 * @return  array
 	 */
-	public static function toArray($url)
+	public function getArgs()
 	{
-		$url = trim($url, '/');
-		if (empty($url))
-			return array();
+		return $this->routing;
+	}
+
+
+	/**
+	 * Return arg
+	 * @param   strign       arg name
+	 * @param   bool|string  try remove named prefix?
+	 * @return  mixed        if doesn't exists return null
+	 */
+	public function get($key, $removePrefix = true)
+	{
+		if (!array_key_exists($key, $this->routing))
+			return null;
+
+		if ($removePrefix === false)
+			return $this->routing[$key];
+		elseif ($removePrefix === true)
+			return Tools::lTrim($this->routing[$key], "$key:");
 		else
-			return explode('/', $url);
+			return Tools::lTrim($this->routing[$key], "$removePrefix:");
+	}
+
+
+	/**
+	 * Getter
+	 * @param   string   variable name
+	 * @return  mixed
+	 */
+	public function __get($key)
+	{
+		if (!array_key_exists($key, $this->routing))
+			return null;
+
+		return $this->routing[$key];
+	}
+
+
+	/**
+	 * Setter
+	 * @throws  Exception
+	 */
+	public function __set($key, $value)
+	{
+		throw new Exception("You can't set the 'Router::\$$key' variable.");
+	}
+
+
+	/**
+	 * Issetter
+	 * @return  bool
+	 */
+	public function __isset($key)
+	{
+		return array_key_exists($key, $this->routing);
+	}
+
+
+	/**
+	 * Unsetter
+	 * @throws  Exception
+	 */
+	public function __unset($key)
+	{
+		throw new Exception("You can't unset 'Router::\$$key' variable.");
+	}
+
+
+	/**
+	 * Normalizes routing array
+	 * @param   array
+	 * @return  array
+	 */
+	private function normalize($routing)
+	{
+		$routing['module'] = (array) $routing['module'];
+		$routing['controller'] = Tools::camelize($routing['controller']);
+		$routing['service'] = strtolower($routing['service']);
+		$routing['action'] = lcfirst(Tools::camelize($routing['action']));
+
+		foreach ($routing['module'] as & $module)
+			$module = Tools::camelize($module);
+
+		return $routing;
 	}
 
 
 }
-
-
-Router::initialize();

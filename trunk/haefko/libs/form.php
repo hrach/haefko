@@ -8,7 +8,7 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Forms
  */
 
 
@@ -70,8 +70,12 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function __construct($url = '', $method = 'post', $name = 'form')
 	{
-		static $counter = 0;
+		# application url proccesing
+		if (class_exists('Application', false))
+			$url = call_user_func_array(array(Controller::get(), 'url'), (array) (empty($url) ? '<$url>' : $url));
 
+
+		static $counter = 0;
 		if ($name == 'form' && $counter++ == 0)
 			$this->name = 'form';
 		elseif ($name == 'form')
@@ -237,11 +241,11 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds submit button
-	 * @param   string  control label
 	 * @param   string  control name
+	 * @param   string  control label
 	 * @return  Form    return $this
 	 */
-	public function addSubmit($label = null, $control = 'submit')
+	public function addSubmit($control = 'submit', $label = null)
 	{
 		$this->controls[$control] = new FormSubmitControl($this, $control, $label);
 		return $this;
@@ -250,11 +254,11 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds image submit button
-	 * @param   string  image src
 	 * @param   string  control name
+	 * @param   string  image src
 	 * @return  Form    return $this
 	 */
-	public function addImageSubmit($src = null, $control = 'submit')
+	public function addImageSubmit($control = 'submit', $src = null)
 	{
 		$this->controls[$control] = new FormImageSubmitControl($this, $control, $src);
 		return $this;
@@ -263,11 +267,11 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds reset button
-	 * @param   string  control label
 	 * @param   string  control name
+	 * @param   string  control label
 	 * @return  Form    return $this
 	 */
-	public function addReset($label = null, $control = 'reset')
+	public function addReset($control = 'reset', $label = null)
 	{
 		$this->controls[$control] = new FormResetControl($this, $control, $label);
 		return $this;
@@ -299,7 +303,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 		$render = '';
 		foreach ($this->controls as $control) {
 			if ($control instanceof FormHiddenControl)
-				$render .= $control->block();
+				$render .= $control->control();
 		}
 
 		$render .= $this->form->endTag();

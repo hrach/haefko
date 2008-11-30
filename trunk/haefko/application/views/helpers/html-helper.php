@@ -8,21 +8,26 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Application
+ * @subpackage  View
  */
 
 
-class HtmlHelper
+class HtmlHelper extends Object
 {
+
+
+	/** @var array */
+	protected $headers = array();
 
 
 	/**
 	 * Returns HTML link
 	 * If text is null, then as the title is used link url
-	 * @param   string  url
-	 * @param   string  link text
-	 * @param   array   html attributes
-	 * @param   bool    escape link content
+	 * @param   string    url
+	 * @param   string    link text
+	 * @param   array     html attributes
+	 * @param   bool      escape link content
 	 * @return  string
 	 */
 	public function link($url, $text = null, $attrs = array(), $escape = true)
@@ -32,10 +37,9 @@ class HtmlHelper
 		                   ->href($url);
 
 		if ($escape == true)
-			$el->setText(empty($text) ? $url : $text);
+			$el->setText($text === null ? $url : $text);
 		else
-			$el->setHtml(empty($text) ? $url : $text);
-
+			$el->setHtml($text === null ? $url : $text);
 
 		return $el->render();
 	}
@@ -44,14 +48,14 @@ class HtmlHelper
 	/**
 	 * Returns HTML button
 	 * If text is null, then as the title is used link url
-	 * @param   string  url
-	 * @param   string  link text
-	 * @param   string  javascript confirm question
-	 * @param   array   html attributes
-	 * @param   bool    escape link content
+	 * @param   string    url
+	 * @param   string    link text
+	 * @param   string    javascript confirm question
+	 * @param   array     html attributes
+	 * @param   bool      escape link content
 	 * @return  string
 	 */
-	public function button($url, $title, $confirm = false, $attrs = array(), $escape = false)
+	public function button($url, $text, $confirm = false, $attrs = array(), $escape = false)
 	{
 		$url = $this->factoryUrl($url);
 		$el = Html::el('button')->type('button')
@@ -62,10 +66,9 @@ class HtmlHelper
 			$el->onclick("if (confirm('$confirm')) { {$el->onclick} }");
 
 		if ($escape == true)
-			$el->setText(empty($text) ? $url : $text);
+			$el->setText($text);
 		else
-			$el->setHtml(empty($text) ? $url : $text);
-
+			$el->setHtml($text);
 
 		return $el->render();
 	}
@@ -73,8 +76,8 @@ class HtmlHelper
 
 	/**
 	 * Returns HTML image
-	 * @param   string  url
-	 * @param   array   html attributes
+	 * @param   string    url
+	 * @param   array     html attributes
 	 * @return  string
 	 */
 	public function img($url, $attrs = array())
@@ -89,8 +92,8 @@ class HtmlHelper
 
 	/**
 	 * Returns HTML css-external tag
-	 * @param   string  url
-	 * @param   string  media type
+	 * @param   string    url
+	 * @param   string    media type
 	 * @return  string
 	 */
 	public function css($url, $media = 'screen')
@@ -107,7 +110,7 @@ class HtmlHelper
 
 	/**
 	 * Returns HTML js-external tag
-	 * @param   string  url
+	 * @param   string    url
 	 * @return  string
 	 */
 	public function js($url)
@@ -122,8 +125,8 @@ class HtmlHelper
 
 	/**
 	 * Returns HTML rss link tag
-	 * @param   string  url
-	 * @param   string  rss title
+	 * @param   string    url
+	 * @param   string    rss title
 	 * @return  string
 	 */
 	public function rss($url, $title = 'RSS')
@@ -140,7 +143,7 @@ class HtmlHelper
 
 	/**
 	 * Returns HTML favicon tag
-	 * @param   string  url
+	 * @param   string    url
 	 * @return  string
 	 */
 	public function icon($url)
@@ -155,7 +158,7 @@ class HtmlHelper
 
 	/**
 	 * Returns HTML encoding-header tag
-	 * @param   string  charset
+	 * @param   string    charset
 	 * @return  string
 	 */
 	public function encoding($charset = 'UTF-8')
@@ -169,17 +172,36 @@ class HtmlHelper
 
 	/**
 	 * Returns HTML title tag
-	 * @param   string  title 
-	 * @param   string  title suffix
+	 * @param   string    title 
+	 * @param   string    title suffix
 	 * @return  string
 	 */
 	public function title($title = null, $suffix = null)
 	{
 		$el = Html::el('title');
-		$el->setText(empty($title) ? Controller::i()->view->title : $title)
+		$el->setText(empty($title) ? Controller::get()->view->title : $title)
 		   ->setText($suffix);
 
 		return $el->render();
+	}
+
+
+	/**
+	 * Renders headers
+	 * @return  string
+	 */
+	public function headers()
+	{
+		return implode("\n\t", $this->headers);
+	}
+
+
+	/**
+	 * Adds header
+	 */
+	public function addHeader($content)
+	{
+		$this->headers[] = $content;
 	}
 
 
@@ -193,7 +215,7 @@ class HtmlHelper
 		if (substr($url, 0, 4) == 'www.')
 			$url = "http://$url";
 		if (strpos($url, '://') === false)
-			$url = call_user_func_array(array(Controller::i(), 'url'), (array) $url);
+			$url = call_user_func_array(array(Controller::get(), 'url'), array($url));
 
 		return $url;
 	}

@@ -8,7 +8,7 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Forms
  */
 
 
@@ -23,19 +23,18 @@ require_once dirname(__FILE__) . '/controls/buttons.php';
 abstract class FormControl extends Object
 {
 
+
 	/** @var string */
 	protected $name;
 
 	/** @var Form */
 	protected $form;
 
-
 	/** @var Html */
 	protected $control;
 
 	/** @var Html|bool */
 	protected $label = false;
-
 
 	/** @var mixed */
 	protected $value;
@@ -49,17 +48,11 @@ abstract class FormControl extends Object
 	/** @var array */
 	protected $errors = array();
 
-
-	# ========= php ========
-
 	/** @var array */
 	protected $rules = array();
 
 	/** @var array */
 	protected $conditions = array();
-
-
-	# ======== render ========
 
 	/** @var string */
 	protected $htmlId;
@@ -120,7 +113,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Add rule for actual control ($this)
+	 * Adds rule for actual control ($this)
 	 * @param   string       validation rule name or callback
 	 * @param   mixed        validation argument
 	 * @param   string       error message
@@ -133,7 +126,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Add rule for $control
+	 * Adds rule for $control
 	 * @param   FormControl  control
 	 * @param   string       validation rule name or callback
 	 * @param   mixed        validation argument
@@ -157,7 +150,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Add condition to input element
+	 * Adds condition to input element
 	 * @param   string|callback  rule name or callback
 	 * @param   mixed            additional validation argument
 	 * @return  FormCondition
@@ -175,7 +168,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Check if control value is valid
+	 * Checks if control value is valid
 	 * @return  bool
 	 */
 	public function isValid()
@@ -203,7 +196,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Return true when control was rendered
+	 * Returns true when control was rendered
 	 * @param   bool  set redendered as true
 	 * @return  bool
 	 */
@@ -217,7 +210,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Render label tag
+	 * Renders label tag
 	 * @param   array   attributes
 	 * @return  string
 	 */
@@ -233,7 +226,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Render html control tag
+	 * Renders html control tag
 	 * @param   array   attributes
 	 * @return  string
 	 */
@@ -247,7 +240,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Render html error label(s)
+	 * Renders html error label(s)
 	 * @return  string
 	 */
 	public function errors()
@@ -261,7 +254,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Return form tag
+	 * Returns form tag
 	 * @return  Html
 	 */
 	public function getForm()
@@ -271,7 +264,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Return form name
+	 * Returns form name
 	 * @return  string
 	 */
 	public function getName()
@@ -281,7 +274,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Return if control is required
+	 * Returns if control is required
 	 * @return  bool
 	 */
 	public function getHtmlRequired()
@@ -291,7 +284,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Return empty value
+	 * Returns empty value
 	 * @return  mixed
 	 */
 	public function getEmptyValue()
@@ -301,7 +294,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Set empty value
+	 * Sets empty value
 	 * @param   mixed  empty value
 	 * @return  FormControl  $this
 	 */
@@ -313,7 +306,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Increment and return number of renderer control
+	 * Increments and return number of renderer control
 	 * @return  int
 	 */
 	public function increment()
@@ -335,7 +328,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Return default value for html tag
+	 * Returns default value for html tag
 	 * @return  string
 	 */
 	protected function getHtmlValue()
@@ -348,7 +341,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Prepare label for rendering
+	 * Prepares label for rendering
 	 * @return  void
 	 */
 	protected function prepareLabel()
@@ -359,7 +352,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Prepare control for rendering
+	 * Prepares control for rendering
 	 * @return  void
 	 */
 	protected function prepareControl()
@@ -369,7 +362,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Filter value by filters and null them if value is equall to emptyValue
+	 * Filters value by filters and null them if value is equall to emptyValue
 	 * @return  void
 	 */
 	protected function filter($value)
@@ -385,7 +378,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Prepare message
+	 * Prepares message
 	 * @param   Rule    rule
 	 * @param   string  message
 	 * @param   mixed   arguments
@@ -450,7 +443,7 @@ abstract class FormContaineredControl extends FormControl
 
 
 	/**
-	 * Set the control value
+	 * Sets the control value
 	 * @param   mixed   new value
 	 * @return  bool
 	 */
@@ -469,7 +462,7 @@ abstract class FormContaineredControl extends FormControl
 
 
 	/**
-	 * Return default value for html tag
+	 * Returns default value for html tag
 	 * @return  string
 	 */
 	protected function getHtmlValue()
@@ -486,7 +479,7 @@ abstract class FormContaineredControl extends FormControl
 
 
 	/**
-	 * Check if control value is valid
+	 * Checks if control value is valid
 	 * @return  bool
 	 */
 	public function isValid()
@@ -523,7 +516,7 @@ abstract class FormContaineredControl extends FormControl
 
 
 	/**
-	 * Render html error label(s)
+	 * Renders html error label(s)
 	 * @return  string
 	 */
 	public function errors()
