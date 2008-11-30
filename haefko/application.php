@@ -8,20 +8,18 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Application
  */
 
 
 ob_start();
 $startTime = microtime(true);
 
-/******************** LIBRARIES ********************/
+
 require_once dirname(__FILE__) . '/libs/tools.php';
 require_once dirname(__FILE__) . '/libs/http.php';
 require_once dirname(__FILE__) . '/libs/object.php';
 require_once dirname(__FILE__) . '/libs/cache.php';
-
-/******************** CORE ********************/
 require_once dirname(__FILE__) . '/application/libs/exceptions.php';
 require_once dirname(__FILE__) . '/application/libs/inflector.php';
 require_once dirname(__FILE__) . '/application/libs/router.php';
@@ -45,7 +43,7 @@ class Application extends Object
 	 * Returns instance of Application
 	 * @return  Application
 	 */
-	public static function i()
+	public static function get()
 	{
 		return self::$self;
 	}
@@ -58,6 +56,9 @@ class Application extends Object
 
 	/** @var string */
 	private $corePath;
+
+	/** @var Router */
+	private $router;
 
 	/** @var CustomController */
 	private $controller;
@@ -80,6 +81,8 @@ class Application extends Object
 
 		if ($config !== false)
 			$this->loadConfig($this->path . $config);
+
+		$this->router = new Router();
 	}
 
 
@@ -130,12 +133,10 @@ class Application extends Object
 	 * @throws  Exception
 	 * @return  void
 	 */
-	public function loadCore($file, $appFile = true)
+	public function loadCore($file)
 	{
-		if ($appFile)
-			$file = dirname(__FILE__) . "/application/libs/$file.php";
-		else
-			$file = dirname(__FILE__) . "/libs/$file.php";
+		$file = Tools::dash($file);
+		$file = dirname(__FILE__) . "/libs/$file.php";
 
 		if (!file_exists($file))
 			throw new Exception('Missing core file \'' . Tools::relativePath($file) . '\'.');
@@ -146,7 +147,7 @@ class Application extends Object
 
 	/**
 	 * Loads framework file
-	 * Try loads file in appliacation directory, then in framework core direcotry
+	 * Tries load file from appliacation path or framework core path
 	 * @param   string  filename
 	 * @throws  ApplicationException
 	 * @return  void
@@ -174,8 +175,7 @@ class Application extends Object
 	 */
 	public function loadClass($type, $class)
 	{
-		static $types = array('controller', 'helper');
-		if (!in_array($type, $types))
+		if (!in_array($type, array('controller', 'helper')))
 			throw new Exception("Unsupported class-type '$type'.");
 
 
@@ -220,10 +220,10 @@ class Application extends Object
 			eval('class AppController extends Controller {}');
 		}
 
-		if (Router::$routed === false)
+		if ($this->router->routed === false)
 			throw new ApplicationException('routing');
 
-		$class = Inflector::controllerClass(Router::$routing['controller'], Router::$routing['module']);
+		$class = Inflector::controllerClass($this->router->controller, $this->router->module);
 		$this->loadClass('controller', $class);
 
 		$this->controller = new $class;
@@ -243,15 +243,19 @@ class Application extends Object
 			# render application layout
 			if ($exception instanceof ApplicationException || Config::read('Core.debug') == 0) {
 
-				Router::$service = null;
+				//$this->router->service = null;
 				$this->controller = new AppController();
 
-				if ($exception instanceof ApplicationException) {
+				if (Config::read('Core.debug') == 0) {
+					if ($exception instanceof ApplicationException) {
+						$this->controller->view->view('404');
+					} else {
+						$this->controller->view->view('500');
+						Debug::log($exception->getMessage());
+					}
+				} else {
 					$this->controller->view->view($exception->error);
 					$this->controller->view->message = $exception->getMessage();
-				} else {
-					$this->controller->view('500');
-					Debug::log($exception->getMessage());
 				}
 
 				$this->controller->view->loadHelpers();
@@ -284,16 +288,21 @@ class Application extends Object
 	 */
 	public function autoloadHandler($class)
 	{
-		static $core = array('autoload' => false, 'cookie' => false, 'session' => false, 'debug' => false,
-		                     'html' => false, 'db' => false, 'appform' => true, 'l10n' => true, 'db-table' => true,
-		                     'db-tables-structure' => true);
+		static $libs = array('autoload', 'cookie', 'session', 'debug', 'html', 'l10n',
+		                     'db', 'db-table', 'db-table-structure');
 
-		if (isset($core[strtolower($class)]))
-			$this->loadCore(Tools::dash($class), $core[strtolower($class)]);
-		elseif (Tools::endWith(strtolower($class), 'controller'))
+		$ci_class = strtolower($class);
+		if (in_array($ci_class, $libs))
+			$this->loadCore($class, false);
+		elseif (class_exists('DbTableStructure', false) && DbTableStructure::existTable($class))
+			eval("class $class extends DbTable {} $class::\$table = '" . Tools::underscore($class) . "';");
+		elseif (Tools::endWith($ci_class, 'controller'))
 			$this->loadClass('controller', $class);
-		elseif (Tools::endWith(strtolower($class), 'helper'))
+		elseif (Tools::endWith($ci_class, 'helper'))
 			$this->loadClass('helper', $class);
+
+		if (method_exists($class, 'initConfig'))
+			call_user_func(array($class, 'initConfig'));
 	}
 
 
@@ -344,6 +353,16 @@ class Application extends Object
 	public function getCorePath()
 	{
 		return $this->corePath;
+	}
+
+
+	/**
+	 * Returns framework core path
+	 * @return  string
+	 */
+	public function getRouter()
+	{
+		return $this->router;
 	}
 
 

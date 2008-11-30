@@ -8,17 +8,13 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Database
  */
 
 
 require_once dirname(__FILE__) . '/../object.php';
 
 
-/**
- * Base class for DbDriver
- * @subpackage  Database
- */
 abstract class DbDriver extends Object
 {
 
@@ -85,6 +81,14 @@ abstract class DbDriver extends Object
 	 * @return  int
 	 */
 	abstract public function rowCount();
+
+
+	/**
+	 * Returns last inserted id
+	 * @param   string    sequence name
+	 * @return  int
+	 */
+	abstract public function insertedId($sequence);
 
 
 }

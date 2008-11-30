@@ -3,11 +3,12 @@
 /**
  * Haefko - your php5 framework
  *
- * @author      Jan Skrasek <skrasek.jan@gmail.com>
+ * @author      Jan Skrasek
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Libs
  */
 
 
@@ -24,9 +25,27 @@ class Session
 	/** @var bool */
 	private static $started = false;
 
+	/** @var string */
+	protected static $name;
+
+	/** @var string */
+	protected static $path;
+
+	/** @var string */
+	protected static $domain;
+
+	/** @var int */
+	protected static $lifeTime;
+
+	/** @var bool */
+	protected static $crossDomain;
+
+	/** @var bool */
+	protected static $secure;
+
 
 	/**
-	 * Star session
+	 * Starts session
 	 * @return  void
 	 */
 	public static function start()
@@ -38,7 +57,7 @@ class Session
 
 
 	/**
-	 * Read session variable
+	 * Reads session variable
 	 * @param   string  variable name
 	 * @param   mixed   default value
 	 * @return  mixed
@@ -56,7 +75,7 @@ class Session
 
 
 	/**
-	 * Safe read.
+	 * Safe read
 	 * @param   string  variable name
 	 * @param   mixed   default value
 	 * @return  mixed
@@ -110,41 +129,51 @@ class Session
 
 	public static function init()
 	{
-		if (function_exists('ini_set')) {
-			ini_set('session.use_cookies', 1);
+		self::$name = 'haefko-session';
+		self::$lifeTime = 259200; // 3 days
+		self::$path = Http::$baseUri;
+		self::$domain = Http::$domain;
+		self::$crossDomain = false;
+		self::$secure = false;
 
-			$name  = 'haefko-session';
-			$lifeTime = 259200; // 3 days
-			$path = Http::$baseUri;
-			$domain = Http::$domain;
+		self::writeConfig();
+	}
 
-			if (class_exists('Config', false)) {
-				if (Config::read('Session.temp') !== false)
-					ini_set('session.save_path', Config::read('Session.temp'));
 
-				$name = Config::read('Session.name', $name);
-				$lifeTime = Config::read('Session.lifeTime', $lifeTime);
-				$path = config::read('Session.path', $path);
-				$domain = config::read('Session.domain', $domain);
-			}
+	public static function initConfig()
+	{
+		self::$name = Config::read('Session.name', self::$name);
+		self::$lifeTime = Config::read('Session.lifeTime', self::$lifeTime);
+		self::$path = Config::read('Session.path', self::$path);
+		self::$domain = Config::read('Session.domain', self::$domain);
+		self::$crossDomain = Config::read('Session.crossDomain', self::$crossDomain);
+		self::$secure = Config::read('Session.secure', self::$secure);
 
-			if (substr_count($domain, ".") == 1)
-				$domain = ".$domain";
-			else
-				$domain = preg_replace ('/^([^.])*/i', null, $domain);
-
-			ini_set('session.name', $name);
-			ini_set('session.cookie_lifetime', $lifeTime);
-			ini_set('session.cookie_path', $path);
-			ini_set('session.cookie_domain', $domain);
-		}
+		self::writeConfig();
 	}
 
 
 	private static function checkHeaders()
 	{
-		if (headers_sent())
-			throw new Exception("Sessions nelze zapnout, hlavicky byly jiz odeslany.");
+		if (headers_sent($file, $line))
+			throw new Exception("Headers has been already sent in $file on line $line.");
+	}
+
+
+	private static function writeConfig()
+	{
+		if (function_exists('ini_set'))
+			ini_set('session.use_cookies', 1);
+
+		$domain = self::$domain;
+		if (self::$crossDomain) {
+			if (substr_count($domain, ".") == 1)
+				$domain = ".$domain";
+			else
+				$domain = preg_replace('/^([^.])*/i', null, $domain);
+		}
+
+		session_set_cookie_params(self::$lifeTime, self::$path, $domain, self::$secure);
 	}
 
 

@@ -8,7 +8,7 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Libs
  */
 
 
@@ -17,7 +17,7 @@ abstract class Object
 
 
 	/**
-	 * Retun class name
+	 * Returns class name
 	 * @return  string
 	 */
 	public function getClass()

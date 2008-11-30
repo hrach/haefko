@@ -3,12 +3,12 @@
 /**
  * Haefko - your php5 framework
  *
- * @author      Jan Skrasek http://hrach.netuje.cz
+ * @author      Jan Skrasek
  * @copyright   Copyright (c) 2008, Jan Skrasek
  * @link        http://haefko.programujte.com
- * @license     http://creativecommons.org/licenses/by-sa/3.0/
+ * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Libs
  */
 
 
@@ -30,7 +30,7 @@ class Http
 
 
 	/**
-	 * Sanitize superglobal variables ($_GET, $_POST, $_COOKIE a $_REQUEST)
+	 * Sanitizes superglobal variables ($_GET, $_POST, $_COOKIE a $_REQUEST)
 	 * @return  void
 	 */
 	public static function sanitizeData()
@@ -67,7 +67,7 @@ class Http
 
 
 	/**
-	 * Return user IP
+	 * Returns user IP
 	 * @return  string
 	 */
 	public static function getIp()
@@ -77,7 +77,7 @@ class Http
 
 
 	/**
-	 * Return request method
+	 * Returns request method
 	 * @return  string
 	 */
 	public static function getRequestMethod()
@@ -87,7 +87,7 @@ class Http
 
 
 	/**
-	 * Return request url
+	 * Returns request url
 	 * @return  string
 	 */
 	public static function getRequest()
@@ -101,7 +101,7 @@ class Http
 
 
 	/**
-	 * Send redirect header
+	 * Sends redirect header
 	 * @param   string  absolute url
 	 * @param   int     redirect code
 	 * @return  void
@@ -114,7 +114,7 @@ class Http
 
 
 	/**
-	 * Send mime-type header
+	 * Sends mime-type header
 	 * @param   string  mime-type
 	 * @return  void
 	 */
@@ -126,7 +126,7 @@ class Http
 
 
 	/**
-	 * Send error header
+	 * Sends error header
 	 * @param   int    error code
 	 * @return  void
 	 */
@@ -168,7 +168,7 @@ class Http
 
 
 	/**
-	 * Check headers
+	 * Checks headers
 	 * @return  void
 	 */
 	private static function checkHeaders()

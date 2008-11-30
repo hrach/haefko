@@ -8,7 +8,7 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Application
  */
 
 
@@ -24,8 +24,12 @@ class Inflector
 	 */
 	public static function controllerClass($controller, $module = null)
 	{
-		array_walk($module, array('Tools', 'camelize'));
-		return implode('', $module) . Tools::camelize($controller) . 'Controller';
+		if (empty($module))
+			$module = null;
+		else
+			$module = implode('_', $module) . '_';
+
+		return $module . $controller . 'Controller';
 	}
 
 
@@ -36,7 +40,10 @@ class Inflector
 	 */
 	public static function controllerFile($class)
 	{
-		return 'controllers/' . Tools::dash($class) . '.php';
+		$class = Tools::dash($class);
+		$file = str_replace(array('_-', '_'), array('/', '/'), $class);
+
+		return "controllers/$file.php";
 	}
 
 
@@ -73,11 +80,14 @@ class Inflector
 	public static function layoutFile($ext, $name, $module, $theme)
 	{
 		$path  = 'views/';
-		$path .= ($theme) ? "$theme/" : '';
+		$path .= ($theme) ? "$theme-theme/" : '';
+
+
 		if (!empty($module)) {
-			array_walk($module, array('Tools', 'camelize'));
-			$path .= implode('-', $module) .  '-';
+			foreach ((array) $module as $m)
+				$path .= Tools::dash($m) . '-module/';
 		}
+
 		$path .= Tools::dash($name) .".$ext";
 
 		return $path;
@@ -98,11 +108,13 @@ class Inflector
 	public static function viewFile($ext, $name, $module, $theme, $controller, $service)
 	{
 		$path  = 'views/';
-		$path .= ($theme) ? "$theme/" : '';
+		$path .= ($theme) ? "$theme-theme/" : '';
+
 		if (!empty($module)) {
-			array_walk($module, array('Tools', 'camelize'));
-			$path .= implode('-', $module) . '-';
+			foreach ((array) $module as $m)
+				$path .= Tools::dash($m) . '-module/';
 		}
+
 		$path .= Tools::dash($controller) . '/';
 		$path .= ($service) ? 'service/' : '';
 		$path .= Tools::dash($name) . ".$ext";

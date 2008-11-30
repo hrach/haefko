@@ -8,16 +8,13 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Database
  */
 
 
-/**
- * MySQLi driver
- * @subpackage  Database
- */
 class MysqliDbDriver extends DbDriver
 {
+
 
 	public function connect($config)
 	{
@@ -79,6 +76,12 @@ class MysqliDbDriver extends DbDriver
 	public function rowCount()
 	{
 		return $this->result->num_rows;
+	}
+
+
+	public function insertedId($sequence)
+	{
+		return $this->resource->insert_id;
 	}
 
 

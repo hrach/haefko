@@ -8,7 +8,8 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Application
+ * @subpackage  View
  */
 
 
@@ -144,7 +145,7 @@ class View extends Object implements IView
 
 		if (!isset($this->helpers[$var])) {
 			$class = Inflector::helperClass($name);
-			$this->controller->app->loadClass('helper', $class);
+			$this->controller->application->loadClass('helper', $class);
 			$this->helpers[$var] = new $class;
 		}
 
@@ -173,15 +174,15 @@ class View extends Object implements IView
 	 */
 	public function renderSnippet($name)
 	{
-		$file = $this->controller->app->path . Inflector::snippetViewFile($this->ext, $name);
+		$file = $this->controller->application->path . Inflector::snippetViewFile($this->ext, $name);
 
 		if (!file_exists($file))
 			throw new ApplicationException('missing-view', $file);
 
 		extract($this->vars);
 		extract($this->helpers);
-		$controller = Controller::i();
-		$application = Application::i();
+		$controller = Controller::get();
+		$application = Application::get();
 
 		require $file;
 	}
@@ -289,11 +290,11 @@ class View extends Object implements IView
 		if ($this->layout === false)
 			return false;
 
-		$app = Application::i()->path . '/';
+		$app = Application::get()->path . '/';
 		$core = dirname(__FILE__) . '/../';
 
 		$layouts = array(
-			$app  . Inflector::layoutFile($this->ext, $this->layout, Router::$routing['module'], $this->theme),
+			$app  . Inflector::layoutFile($this->ext, $this->layout, $this->controller->application->router->module, $this->theme),
 			$app  . Inflector::layoutFile($this->ext, $this->layout, '', ''),
 			$core . Inflector::layoutFile($this->ext, $this->layout, '', ''),
 			$core . Inflector::layoutFile('phtml', 'layout', '', '')
@@ -314,7 +315,7 @@ class View extends Object implements IView
 	 */
 	protected function viewFactory()
 	{
-		$app = Application::i()->path . '/';
+		$app = Application::get()->path . '/';
 		$core = dirname(__FILE__) . '/../';
 
 		if (!Application::$error) {
@@ -328,7 +329,14 @@ class View extends Object implements IView
 					return false;
 			} else {
 
-				$view = Inflector::viewFile($this->ext, $this->view, Router::$routing['module'], $this->theme, Router::$routing['controller'], !empty(Router::$service));
+				$view = Inflector::viewFile(
+					$this->ext,
+					$this->view,
+					$this->controller->application->router->module,
+					$this->theme,
+					$this->controller->application->router->controller,
+					!empty($this->controller->application->router->service)
+				);
 
 				if (file_exists("$app$view"))
 					return "$app$view";
@@ -361,12 +369,14 @@ class View extends Object implements IView
 	{
 		extract($this->vars);
 		extract($this->helpers);
-		$controller = Controller::i();
-		$application = Application::i();
+		$controller = Controller::get();
+		$application = Application::get();
 
 		include $__file__;
 		$return = ob_get_contents();
 		ob_clean();
+
+		$return = preg_replace('#(<[^>]+ (src|href|action))\s*=\s*"(hf://)#i', '$1="' . $this->base, $return);
 		return $return;
 	}
 

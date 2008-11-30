@@ -8,7 +8,7 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Database
  */
 
 
@@ -16,10 +16,6 @@ require_once dirname(__FILE__) . '/driver.php';
 require_once dirname(__FILE__) . '/result.php';
 
 
-/**
- * Instance of database connection
- * @subpackage  Database
- */
 class DbConnection extends Object
 {
 
@@ -59,18 +55,6 @@ class DbConnection extends Object
 
 
 	/**
-	 * Returns result object
-	 * @param   string   sql query
-	 * @return  DbResult
-	 */
-	public function nativePrepare($sql)
-	{
-		$this->needConnection();
-		return new DbResult($sql, $this->driver);
-	}
-
-
-	/**
 	 * Returns result object with parsed sql query
 	 * @param   string    sql query
 	 * @return  DbResult
@@ -78,19 +62,32 @@ class DbConnection extends Object
 	public function prepare($sql)
 	{
 		$sqls = func_get_args();
-		return $this->nativePrepare($this->factorySql($sqls));
+		return new DbResult($this->factorySql($sqls), $this->driver);
 	}
 
 
 	/**
 	 * Returns result object with executed parsed sql query
-	 * @param   string     sql query
-	 * @return  DbResult
+	 * or last inserted id
+	 * @param   string        sql query
+	 * @return  DbResult|int
 	 */
 	public function query($sql)
 	{
 		$sqls = func_get_args();
-		return call_user_func_array(array($this, 'prepare'), $sqls)->execute();
+		$sql = $this->factorySql($sqls);
+
+		if (preg_match('#^(select|describe|show|explain)#i', $sql)) {
+			$result = new DbResult($sql, $this->driver);
+			return $result->execute();
+		} else {
+			$driver = $this->driver->query($sql);
+
+			if (stripos($sql, 'select') === 0 && in_array(get_class($this->driver), array('MysqlDbDriver', 'MysqliDbDriver', 'PdoDbDriver', 'SqliteDbDriver')))
+				return $driver->insertedId('');
+			else
+				return null;
+		}
 	}
 
 
@@ -105,6 +102,34 @@ class DbConnection extends Object
 		$args = func_get_args();
 		$query = call_user_func_array(array($this, 'query'), $args);
 		return $query->fetchField();
+
+
+	}
+	/**
+	 * Wrapper for called result
+	 * @see     DbResult::fetch()
+	 * @param   string    sql query
+	 * @return  mixed
+	 */
+	public function fetch($args)
+	{
+		$args = func_get_args();
+		$query = call_user_func_array(array($this, 'query'), $args);
+		return $query->fetch();
+	}
+
+
+	/**
+	 * Wrapper for called result
+	 * @see     DbResult::fetchAll()
+	 * @param   string    sql query
+	 * @return  mixed
+	 */
+	public function fetchAll($args)
+	{
+		$args = func_get_args();
+		$query = call_user_func_array(array($this, 'query'), $args);
+		return $query->fetchAll();
 	}
 
 
@@ -117,25 +142,50 @@ class DbConnection extends Object
 	{
 		$this->needConnection();
 
-		$sql = array_shift($args);
-		$sql = preg_replace("#\[(.+)\]#Ue", '$this->escapeColumn("\\1")', $sql);
-		$start = 0;
-		$nSql = '';
+		$sql = '';
+		$cond = array();
+		while (($frag = array_shift($args)) !== null) {
 
-		if (preg_match_all('#(%(?:r|c|s|i|f|b|a|l|v))#', $sql, $matches, PREG_OFFSET_CAPTURE + PREG_SET_ORDER)) {
-			foreach ($matches as $match) {
-				if (count($args) === 0)
-					throw new DbException('Missing sql argumenty.');
+			$frag = preg_replace("#\[(.+)\]#Ue", '$this->escapeColumn("\\1")', $frag);
+			if (preg_match_all('#(%(?:r|c|s|i|f|b|d|t|dt|a|l|v|if|end))(?!\w)#', $frag, $matches, PREG_OFFSET_CAPTURE + PREG_SET_ORDER)) {
+				$temp = '';
+				$start = 0;
+				foreach ($matches as $match) {
+					$temp .= substr($frag, $start, $match[0][1] - $start); // - strlen($match[0][0])
+					$start = $match[0][1] + strlen($match[0][0]);
 
-				$var = $this->escape(array_shift($args), $match[0][0]);
-				$nSql .= substr($sql, $start, $match[0][1] - $start) . $var;
-				$start = $match[0][1] + 2;
+					if ($match[0][0] == '%if') {
+						if (array_shift($args) == false) {
+							$temp .= '/* ';
+							$cond[] = false;
+						} else {
+							$cond[] = true;
+						}
+					} elseif ($match[0][0] == '%end') {
+						$pop = array_pop($cond);
+
+						if ($pop == false && !in_array(false, $cond))
+							$temp .= '*/';
+					} else {
+						if (empty($args))
+							throw new Exception('Missing sql argument.');
+						else
+							$arg = $this->escape(array_shift($args), $match[0][0]);
+
+						$temp .= $arg;
+					}
+				}
+
+				if (strlen($start) < strlen($frag))
+					$temp .= substr($frag, $start);
+
+				$sql .= $temp;
+			} else {
+				$sql .= $frag;
 			}
-		} else {
-			return $sql;
 		}
 
-		return $nSql;
+		return trim($sql);
 	}
 
 
@@ -166,8 +216,10 @@ class DbConnection extends Object
 			case '%b': # boolean
 				return (boolean) $value;
 			case '%d': # date
-				return $this->driver->escape('text', date('H:i:s', strtotime($value)));
+				return $this->driver->escape('text', date('Y-m-d', strtotime($value)));
 			case '%t': # datetime
+				return $this->driver->escape('text', date('H:i:s', strtotime($value)));
+			case '%dt': # datetime
 				return $this->driver->escape('text', date('Y-m-d H:i:s', strtotime($value)));
 			case '%a': # array - form: key = val
 				foreach ($this->escapeArray($value) as $key => $val)
@@ -176,10 +228,11 @@ class DbConnection extends Object
 			case '%l': # array list - form: (val1, val2)
 				return "(" . implode(', ', $this->escapeArray($value)) . ")";
 			case '%v': # array values - form: (key1, key2) VALUES (val1, val2)
-				return "(" . implode(', ', array_keys($this->escapeArray($value))) . ')'
-				     . " VALUES (" . implode(', ', $this->escapeArray($value)) . ')';
+				$array = $this->escapeArray($value);
+				return Debug::dump("(" . implode(', ', array_keys($array)) . ')'
+				     . " VALUES (" . implode(', ', $array) . ')');
 			default:
-				throw new DbException("Unknow sql query modifier '$type'.");
+				throw new Exception("Unknow sql query modifier '$type'.");
 		}
 	}
 
@@ -235,7 +288,7 @@ class DbConnection extends Object
 	{
 		switch (gettype($var)) {
 			case 'integer':    return '%i';
-			case 'double':     return '%f';
+			case 'double':     return '%f';  # float
 			case 'array':      return '%a';
 			case 'boolean':    return '%b';
 			default:           return '%s';
@@ -250,19 +303,20 @@ class DbConnection extends Object
 	 */
 	private function needConnection()
 	{
-		if (!$this->connected) {
-			$file = dirname(__FILE__) . '/drivers/' . strtolower($this->config['driver']) . '.php';
-			if (file_exists($file))
-				require_once $file;
+		if ($this->connected)
+			return;
 
-			$class = $this->config['driver'] . 'DbDriver';
-			if (!class_exists($class))
-				throw new DbException("Missing driver class $class.");
+		$file = dirname(__FILE__) . '/drivers/' . strtolower($this->config['driver']) . '.php';
+		if (file_exists($file))
+			require_once $file;
 
-			$this->driver = new $class;
-			$this->driver->connect($this->config);
-			$this->connected = true;
-		}
+		$class = $this->config['driver'] . 'DbDriver';
+		if (!class_exists($class))
+			throw new DbException("Missing driver class $class.");
+
+		$this->driver = new $class;
+		$this->driver->connect($this->config);
+		$this->connected = true;
 	}
 
 

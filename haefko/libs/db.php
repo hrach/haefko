@@ -8,18 +8,13 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Database
  */
 
 
 require_once dirname(__FILE__) . '/db/connection.php';
 
 
-/**
- * Wrapper and interface for db connections
- * @subpackage  Database
- * @static
- */
 class Db
 {
 
@@ -73,10 +68,10 @@ class Db
 	 * @param   string    sql query
 	 * @return  DbResult
 	 */
-	public static function nativePrepare($sql)
+	public static function execute($sql)
 	{
 		$args = func_get_args();
-		return call_user_func_array(array(self::getConnection(), 'nativeQuery'), $args);
+		return call_user_func_array(array(self::getConnection(), 'execute'), $args);
 	}
 
 
@@ -116,6 +111,32 @@ class Db
 	{
 		$args = func_get_args();
 		return call_user_func_array(array(self::getConnection(), 'fetchField'), $args);
+	}
+
+
+	/**
+	 * Wrapper for active connection
+	 * @see     DbConnection::fetch()
+	 * @param   string    sql query
+	 * @return  mixed
+	 */
+	public static function fetch($sql)
+	{
+		$args = func_get_args();
+		return call_user_func_array(array(self::getConnection(), 'fetch'), $args);
+	}
+
+
+	/**
+	 * Wrapper for active connection
+	 * @see     DbConnection::fetchAll()
+	 * @param   string    sql query
+	 * @return  mixed
+	 */
+	public static function fetchAll($sql)
+	{
+		$args = func_get_args();
+		return call_user_func_array(array(self::getConnection(), 'fetchAll'), $args);
 	}
 
 

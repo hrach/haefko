@@ -8,13 +8,10 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Forms
  */
 
 
-/**
- * Textarea
- */
 class FormTextareaControl extends FormContaineredControl
 {
 
@@ -29,16 +26,13 @@ class FormTextareaControl extends FormContaineredControl
 }
 
 
-/**
- * Input hidden
- */
 class FormHiddenControl extends FormInputControl
 {
 
 	protected $htmlType = 'hidden';
 	protected $htmlTypeClass = '';
 
-	public function __construct(Form $form, $name, $label)
+	public function __construct(Form $form, $name)
 	{
 		parent::__construct($form, $name, false);
 	}
@@ -46,9 +40,6 @@ class FormHiddenControl extends FormInputControl
 }
 
 
-/**
- * Input text
- */
 class FormTextControl extends FormInputContaineredControl
 {
 
@@ -59,9 +50,6 @@ class FormTextControl extends FormInputContaineredControl
 }
 
 
-/**
- * Input password
- */
 class FormPasswordControl extends FormInputContaineredControl
 {
 

@@ -8,14 +8,10 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Database
  */
 
 
-/**
- * MySQL driver
- * @subpackage  Database
- */
 class MysqlDbDriver extends DbDriver
 {
 
@@ -88,6 +84,12 @@ class MysqlDbDriver extends DbDriver
 	public function rowCount()
 	{
 		return mysql_num_rows($this->result);
+	}
+
+
+	public function insertedId($sequence)
+	{
+		return mysql_insert_id($this->resource);
 	}
 
 

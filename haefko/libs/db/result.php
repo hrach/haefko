@@ -8,17 +8,13 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Database
  */
 
 
 require_once dirname(__FILE__) . '/result-node.php';
 
 
-/**
- * Instance of query result
- * @subpackage  Database
- */
 class DbResult implements Countable, IteratorAggregate
 {
 
@@ -73,7 +69,7 @@ class DbResult implements Countable, IteratorAggregate
 		# pagination
 		if ($this->pagination !== false) {
 			if (empty($this->pagination[2]))
-				$this->pagination[2] = db::fetchField(preg_replace('#select (.+) from#si', 'SELECT COUNT(*) FROM', $sql));
+				$this->pagination[2] = db::fetchField(preg_replace('#select (.+) from#si', 'SELECT COUNT(*) FROM', $this->query));
 
 			$this->query .= ' LIMIT ' . ($this->pagination[0] - 1) * $this->pagination[1] . ', ' . $this->pagination[1];
 		}
@@ -148,6 +144,9 @@ class DbResult implements Countable, IteratorAggregate
 
 		if (empty($this->rows))
 			$this->rows = array($this->fetch());
+
+		if (empty($this->rows[0]))
+			throw new Exception('No result');
 
 		return current($this->rows[0]);
 	}

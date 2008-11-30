@@ -8,9 +8,8 @@
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8
- * @package     Haefko
+ * @package     Haefko_Libs
  */
-
 
 
 class Debug
@@ -49,6 +48,7 @@ class Debug
 	public static function dump($var)
 	{
 		echo '<pre style="text-align: left;">' . htmlspecialchars(print_r($var, true)) . '</pre>';
+		return $var;
 	}
 
 
