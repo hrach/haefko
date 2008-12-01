@@ -166,12 +166,10 @@ class Session
 			ini_set('session.use_cookies', 1);
 
 		$domain = self::$domain;
-		if (self::$crossDomain) {
-			if (substr_count($domain, ".") == 1)
-				$domain = ".$domain";
-			else
-				$domain = preg_replace('/^([^.])*/i', null, $domain);
-		}
+		if (substr_count($domain, ".") == 1 && self::$crossDomain)
+			$domain = ".$domain";
+		else
+			$domain = preg_replace('#^([^.])*#i', null, $domain);
 
 		session_set_cookie_params(self::$lifeTime, self::$path, $domain, self::$secure);
 	}

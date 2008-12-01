@@ -17,10 +17,6 @@ class HtmlHelper extends Object
 {
 
 
-	/** @var array */
-	protected $headers = array();
-
-
 	/**
 	 * Returns HTML link
 	 * If text is null, then as the title is used link url
@@ -183,25 +179,6 @@ class HtmlHelper extends Object
 		   ->setText($suffix);
 
 		return $el->render();
-	}
-
-
-	/**
-	 * Renders headers
-	 * @return  string
-	 */
-	public function headers()
-	{
-		return implode("\n\t", $this->headers);
-	}
-
-
-	/**
-	 * Adds header
-	 */
-	public function addHeader($content)
-	{
-		$this->headers[] = $content;
 	}
 
 

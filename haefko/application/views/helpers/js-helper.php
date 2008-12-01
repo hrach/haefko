@@ -18,95 +18,94 @@ class JsHelper extends Object
 
 
 	/** @var string */
-	protected $js;
+	protected $code;
 
 	/** @var string */
-	private $linkBy;
+	protected $link;
 
 
 	/**
-	 * Prida html tagy pro include js $file
-	 * @param   strgin  jmeno js souboru
-	 * @return  bool
+	 * Returns new instance
+	 * @return  JsHeleper
 	 */
-	public function js($file)
+	public static function get()
 	{
-		Controller::get()->view->helper('html')->addHeader(
-			Controller::get()->view->helper('html')->js($file)
-		);
-
-		return true;
+		return new JsHelper();
 	}
 
 
-
-
-
-
 	/**
-	 * Vyrenderuje js kod pro hlavicku
-	 * @return  string
-	 */
-	public function render()
-	{
-		$code = "\t<script type=\"text/javascript\">\n\t//<![CDATA[\n"
-			  .  "\t$(document).ready(function() {\n\t\t\n{$this->js};\n\t});\n"
-			  .  "\t//]]>\n\t</script>";
-
-		return $code;
-	}
-
-
-
-	/**
-	 * Prida surovy javasriptovy kod
-	 * @param   string  kod
-	 * @return  void
+	 * Adds raw javasript code
+	 * @param   string    raw code
+	 * @return  JsHelper  $this
 	 */
 	public function raw($code)
 	{
-		if ($this->linkBy == '.')
-			$this->js .= ";\n";
+		if ($this->link == '.')
+			$this->code .= ";\n";
 
-		$this->js .= "$code\n";
-		$this->linkBy = '';
-	}
-
-
-
-	/**
-	 * Selector
-	 * @param   string  selector
-	 * @return  JsHelper
-	 */
-	public function jquery($selector)
-	{
-		if ($this->linkBy == '.')
-			$this->js .= ";\n";
-
-		$this->js .= "$('$selector')";
-		$this->linkBy = '.';
-
+		$this->code .= "$code\n";
+		$this->link = '';
 		return $this;
 	}
 
+
+	/**
+	 * Jquery selector
+	 * @param   string    selector
+	 * @return  JsHelper  $this
+	 */
+	public function jquery($selector)
+	{
+		if ($this->link == '.')
+			$this->code .= ";\n";
+
+		$this->code .= "jQuery('$selector')";
+		$this->link = '.';
+		return $this;
+	}
 
 
 	/**
 	 * Magic method
-	 * @param   string  jmeno metody
-	 * @param   array   argumenty metody
-	 * @return  JsHelper
+	 * @param   string    method name
+	 * @param   array     arguments
+	 * @return  JsHelper  $this
 	 */
 	public function __call($name, $args)
 	{
-		foreach ($args as & $val)
-			$val = json_encode($val);
+		foreach ($args as $i => $arg)
+			$args[$i] = json_encode($arg);
 
-		$this->js .= "{$this->linkBy}$name(" . implode(', ', $args). ")";
-		$this->linkBy = '.';
-
+		$this->code .= $this->link . $name . '(' . implode(', ', $args) . ')';
+		$this->link = '.';
 		return $this;
+	}
+
+
+	/**
+	 * Renders javascript calls
+	 * @param   bool      render on ready block?
+	 * @return  string
+	 */
+	public function render($onready = true)
+	{
+		if (!$onready)
+			return $this->code;
+
+		return "\t<script type=\"text/javascript\">\n\t//<![CDATA[\n"
+		     . "\t$(document).ready(function() {\n\t\t\n{$this->code};\n\t});\n"
+		     . "\t//]]>\n\t</script>";
+	}
+
+
+	/**
+	 * Returns javascript expressions
+	 * @return string
+	 */
+	public function __toString()
+	{
+		return $this->code;
 	}
 
 

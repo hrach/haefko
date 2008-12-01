@@ -104,8 +104,8 @@ class Paginator extends Object
 
 		# render previous
 		if ($this->hasPrev) {
-			$prev = $this->link($mask, $this->page - 1);
-			$render .= "<li class=\"previous\"><a href=\"$prev\">$options[prev]</a></li>";
+			$prev = $this->link($mask, $this->page - 1, $options['prev']);
+			$render .= "<li class=\"previous\">$prev</li>";
 		} else {
 			$render .= "<li class=\"previous-off\">$options[prev]</li>";
 		}
@@ -154,8 +154,8 @@ class Paginator extends Object
 
 		# render next
 		if ($this->hasNext) {
-			$next = $this->link($mask, $this->page + 1);
-			$render .= "<li class=\"next\"><a href=\"$next\">$options[next]</a></li>";
+			$next = $this->link($mask, $this->page + 1, $options['next']);
+			$render .= "<li class=\"next\">$next</li>";
 		} else {
 			$render .= "<li class=\"next-off\">$options[next]</li>";
 		}
@@ -180,16 +180,20 @@ class Paginator extends Object
 	 * Renders link element
 	 * @param   string    mask
 	 * @param   int       page
+	 * @param   int       text
 	 * @return  string
 	 */
-	private function link($mask, $i)
+	private function link($mask, $i, $text = null)
 	{
+		if (empty($text))
+			$text = $i;
+
 		if (class_exists('Application', false))
 			$link = Controller::get()->url($mask, array('page' => $i));
 		else
 			$link = preg_replace('#<:page>#', $i, $link);
 
-		return "<a href=\"$link\">$i</a>";
+		return "<a href=\"$link\">$text</a>";
 	}
 
 

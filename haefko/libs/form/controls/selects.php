@@ -23,6 +23,7 @@ class FormSelectControl extends FormContaineredControl
 	{
 		parent::__construct($form, $name, $label);
 		$this->options = $options;
+		$this->control->onfocus("this.onmousewheel=function(){return false}");
 
 		foreach ($this->options as $key => $option) {
 			if (is_array($option)) {

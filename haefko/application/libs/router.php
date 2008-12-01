@@ -48,7 +48,7 @@ class Router
 	 * @param   array     defaults settings
 	 * @return  Router    $this
 	 */
-	public function defaults($defaults)
+	public function defaults($defaults = null)
 	{
 		$this->defaults = (array) $defaults;
 		return $this;

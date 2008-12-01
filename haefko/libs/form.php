@@ -72,7 +72,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	{
 		# application url proccesing
 		if (class_exists('Application', false))
-			$url = call_user_func_array(array(Controller::get(), 'url'), (array) (empty($url) ? '<$url>' : $url));
+			$url = call_user_func_array(array(Controller::get(), 'url'), (array) (empty($url) ? '<:url:>' : $url));
 
 
 		static $counter = 0;

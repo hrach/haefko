@@ -93,16 +93,16 @@ class Application extends Object
 	public function __destruct()
 	{
 		# debug sqls
-		if (Config::read('Core.debug') >= 2) {
-			Debug::fireLog('Sqls', 'GROUP_START');
-			foreach (Db::$sqls as $sql)
-				Debug::fireLog($sql, 'LOG');
-			Debug::fireLog('Sqls', 'GROUP_END');
-		}
+		//if (Config::read('Core.debug') >= 2) {
+		//	Debug::fireLog('Sqls', 'GROUP_START');
+		//	foreach (Db::$sqls as $sql)
+		//		Debug::fireLog($sql, 'LOG');
+		//	Debug::fireLog('Sqls', 'GROUP_END');
+		//}
 
 		# debug full time
 		if (Config::read('Core.debug') >= 1) {
-			Debug::fireLog(Debug::getTime() . 'ms', 'INFO', 'Rendering time');
+			Debug::fireSend(Debug::getTime() . 'ms', 'INFO', 'Rendering time');
 		}
 	}
 
@@ -288,7 +288,7 @@ class Application extends Object
 	 */
 	public function autoloadHandler($class)
 	{
-		static $libs = array('autoload', 'cookie', 'session', 'debug', 'html', 'l10n',
+		static $libs = array('autoload', 'cookie', 'session', 'debug', 'html', 'l10n', 'form',
 		                     'db', 'db-table', 'db-table-structure');
 
 		$ci_class = strtolower($class);
