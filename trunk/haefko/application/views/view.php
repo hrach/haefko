@@ -56,7 +56,7 @@ class View extends Object implements IView
 		$this->base = Http::$baseUri;
 
 		$this->set('escape', 'htmlSpecialChars');
-		$this->set('title', $this->controller->getClass());
+		$this->set('title', '');
 	}
 
 

@@ -85,7 +85,7 @@
 <body>
 <div id="header">
 	<h1>Exception</h1>
-	<p><?= preg_replace("#'(.*)'#U", '<code>\1</code>', htmlspecialchars($exception->getMessage())); ?></p>
+	<p><?= htmlspecialchars($exception->getMessage()); ?></p>
 </div>
 
 <div class="block">
@@ -128,6 +128,9 @@
 	<pre><?= $file ?></pre>
 </div>
 
+<div class="block">
+	<pre><?= htmlspecialchars($rendered) ?></pre>
+</div>
 
 <div class="block" style="font-size: 12px">
 <table>

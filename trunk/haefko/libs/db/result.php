@@ -15,9 +15,12 @@
 require_once dirname(__FILE__) . '/result-node.php';
 
 
-class DbResult implements Countable, IteratorAggregate
+class DbResult extends Object implements Countable, IteratorAggregate
 {
 
+
+	/** @var Paginator */
+	public $paginator;
 
 	/** @var string */
 	private $query;

@@ -29,6 +29,9 @@ class DbConnection extends Object
 	/** @var array */
 	private $config = array();
 
+	/** @var array */
+	private $sqls = array();
+
 
 	/**
 	 * Constructor
@@ -147,11 +150,11 @@ class DbConnection extends Object
 		while (($frag = array_shift($args)) !== null) {
 
 			$frag = preg_replace("#\[(.+)\]#Ue", '$this->escapeColumn("\\1")', $frag);
-			if (preg_match_all('#(%(?:r|c|s|i|f|b|d|t|dt|a|l|v|if|end))(?!\w)#', $frag, $matches, PREG_OFFSET_CAPTURE + PREG_SET_ORDER)) {
+			if (is_string($frag) && preg_match_all('#(%(?:r|c|s|i|f|b|d|t|dt|a|l|v|if|end))(?!\w)#', $frag, $matches, PREG_OFFSET_CAPTURE + PREG_SET_ORDER)) {
 				$temp = '';
 				$start = 0;
 				foreach ($matches as $match) {
-					$temp .= substr($frag, $start, $match[0][1] - $start); // - strlen($match[0][0])
+					$temp .= substr($frag, $start, $match[0][1] - $start);
 					$start = $match[0][1] + strlen($match[0][0]);
 
 					if ($match[0][0] == '%if') {
@@ -181,7 +184,10 @@ class DbConnection extends Object
 
 				$sql .= $temp;
 			} else {
-				$sql .= $frag;
+				if (is_string($frag))
+					$sql .= $frag;
+				else
+					$sql .= $this->escape($frag);
 			}
 		}
 
@@ -215,12 +221,12 @@ class DbConnection extends Object
 				return (float) $value;
 			case '%b': # boolean
 				return (boolean) $value;
+			case '%t': # time
+				return $this->driver->escape('text', date('H:i:s', is_int($value) ? $value : strtotime($value)));
 			case '%d': # date
-				return $this->driver->escape('text', date('Y-m-d', strtotime($value)));
-			case '%t': # datetime
-				return $this->driver->escape('text', date('H:i:s', strtotime($value)));
+				return $this->driver->escape('text', date('Y-m-d', is_int($value) ? $value : strtotime($value)));
 			case '%dt': # datetime
-				return $this->driver->escape('text', date('Y-m-d H:i:s', strtotime($value)));
+				return $this->driver->escape('text', date('Y-m-d H:i:s', is_int($value) ? $value : strtotime($value)));
 			case '%a': # array - form: key = val
 				foreach ($this->escapeArray($value) as $key => $val)
 					$r[] = "$key = $val";
@@ -229,8 +235,8 @@ class DbConnection extends Object
 				return "(" . implode(', ', $this->escapeArray($value)) . ")";
 			case '%v': # array values - form: (key1, key2) VALUES (val1, val2)
 				$array = $this->escapeArray($value);
-				return Debug::dump("(" . implode(', ', array_keys($array)) . ')'
-				     . " VALUES (" . implode(', ', $array) . ')');
+				return "(" . implode(', ', array_keys($array)) . ')'
+				     . " VALUES (" . implode(', ', $array) . ')';
 			default:
 				throw new Exception("Unknow sql query modifier '$type'.");
 		}

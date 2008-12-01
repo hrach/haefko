@@ -245,8 +245,8 @@ abstract class Controller extends Object
 	private function processUrl($url, $args = array())
 	{
 		$args = array_merge($this->application->router->getArgs(), $args);
-		$url = preg_replace('#\<\:(\w+)\>#e', 'isset($args["\\1"]) ? $args["\\1"] : "\\1"', $url);
-		$url = preg_replace_callback('#\<\$url\>#', array('Http', 'getRequest'), $url);
+		$url = preg_replace('#(\<\:(\w+)\>)#e', 'isset($args["\\2"]) ? $args["\\2"] : "\\1"', $url);
+		$url = preg_replace_callback('#\<\:url\:\>#', array('Http', 'getRequest'), $url);
 
 		return $url;
 	}
