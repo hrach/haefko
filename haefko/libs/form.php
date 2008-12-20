@@ -18,7 +18,6 @@ require_once dirname(__FILE__) . '/object.php';
 
 require_once dirname(__FILE__) . '/form/rule.php';
 require_once dirname(__FILE__) . '/form/condition.php';
-
 require_once dirname(__FILE__) . '/form/controls.php';
 
 
@@ -93,7 +92,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	}
 
 
-	/* ======== Containered Controls ======== */
+	/* ======== Controls ======== */
 
 
 	/**
@@ -104,7 +103,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addText($control, $label = null)
 	{
-		$this->controls[Tools::rTrim($control, '[]')] = new FormTextControl($this, $control, $label);
+		$this->controls[$control] = new FormTextControl($this, $control, $label);
 		return $this;
 	}
 
@@ -117,7 +116,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addTextarea($control, $label = null)
 	{
-		$this->controls[Tools::rTrim($control, '[]')] = new FormTextareaControl($this, $control, $label);
+		$this->controls[$control] = new FormTextareaControl($this, $control, $label);
 		return $this;
 	}
 
@@ -130,7 +129,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addPassword($control, $label = null)
 	{
-		$this->controls[Tools::rTrim($control, '[]')] = new FormPasswordControl($this, $control, $label);
+		$this->controls[$control] = new FormPasswordControl($this, $control, $label);
 		return $this;
 	}
 
@@ -144,7 +143,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	public function addFile($control, $label = null)
 	{
 		$this->form->enctype = 'multipart/form-data'; 
-		$this->controls[Tools::rTrim($control, '[]')] = new FormFileControl($this, $control, $label);
+		$this->controls[$control] = new FormFileControl($this, $control, $label);
 		return $this;
 	}
 
@@ -158,12 +157,9 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addSelect($control, $options, $label = null)
 	{
-		$this->controls[Tools::rTrim($control, '[]')] = new FormSelectControl($this, $control, $options, $label);
+		$this->controls[$control] = new FormSelectControl($this, $control, $options, $label);
 		return $this;
 	}
-
-
-	/* ======== Controls ======== */
 
 
 	/**

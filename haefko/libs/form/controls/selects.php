@@ -12,7 +12,7 @@
  */
 
 
-class FormSelectControl extends FormContaineredControl
+class FormSelectControl extends FormControl
 {
 
 	protected $htmlTag = 'select';
@@ -37,15 +37,8 @@ class FormSelectControl extends FormContaineredControl
 
 	public function setValue($value)
 	{
-		if ($this->container) {
-			foreach ($value as $val) {
-				if (!$this->isAllowedValue($val))
-					return false;
-			}
-		} else {
-			if (!$this->isAllowedValue($value))
-				return false;
-		}
+		if (!$this->isAllowedValue($value))
+			return false;
 
 		parent::setValue($value);
 	}
