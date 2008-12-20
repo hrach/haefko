@@ -158,6 +158,9 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	 */
 	protected function renderBlock($attrs)
 	{
+		if ($this->form[$attrs[0]] instanceof FormHiddenControl)
+			return;
+
 		$this->prepareBlock();
 
 		$this->block->setHtml($this->renderLabel($attrs[0]))

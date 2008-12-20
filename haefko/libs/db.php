@@ -32,7 +32,7 @@ class Db
 	/**
 	 * Connects to database
 	 * If you don't provide $config, its load from config directive Db.connection
-	 * @link    http://haefko.programujte.com/db
+	 * @link    http://haefko.programujte.com/database
 	 * @param   array   connection config
 	 * @param   array   connection name
 	 * @return  bool
@@ -49,7 +49,7 @@ class Db
 
 
 	/**
-	 * Set the connection $name as active
+	 * Actives the connection $name
 	 * @param   string  connection name
 	 * @return  void
 	 */
@@ -141,7 +141,35 @@ class Db
 
 
 	/**
-	 * Return active connection
+	 * Wrapper for active connection
+	 * @see     DbConnection::affectedRows()
+	 * @return  int
+	 */
+	public static function affectedRows()
+	{
+		return call_user_func(array(self::getConnection(), 'affectedRows'));
+	}
+
+
+	/**
+	 * Logs sql query to debugger. Works only when Db.debug is active
+	 * @param   string    sql query
+	 * @param   int       microtime timestamp
+	 * @return  void
+	 */
+	public static function debug($sql, $time)
+	{
+		if (Config::read('Db.debug') == 0 || Config::read('Core.debug') < 3)
+			return false;
+
+		$abbr = 'time: ' . Debug::getTime($time) . 'ms; affected: ' . self::affectedRows();
+		$text = "<abbre title=\"$abbr\">$sql</abbr>";
+		Debug::toolbar($text, 'sql');
+	}
+
+
+	/**
+	 * Returns active connection
 	 * @return  DbConnection
 	 */
 	public static function getConnection()

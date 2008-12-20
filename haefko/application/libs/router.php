@@ -153,21 +153,25 @@ class Router
 
 	/**
 	 * Return arg
-	 * @param   strign       arg name
-	 * @param   bool|string  try remove named prefix?
-	 * @return  mixed        if doesn't exists return null
+	 * @param   strign    arg name
+	 * @param   bool      inline named variable?
+	 * @return  mixed     if doesn't exists return null
 	 */
-	public function get($key, $removePrefix = true)
+	public function get($key, $named = true)
 	{
-		if (!array_key_exists($key, $this->routing))
-			return null;
+		if (!$named) {
+			if (!array_key_exists($key, $this->routing))
+				return null;
 
-		if ($removePrefix === false)
 			return $this->routing[$key];
-		elseif ($removePrefix === true)
-			return Tools::lTrim($this->routing[$key], "$key:");
-		else
-			return Tools::lTrim($this->routing[$key], "$removePrefix:");
+		}
+
+		foreach ($this->routing as $value) {
+			if (is_string($value) && Tools::startWith($value, "$key:"))
+				return Tools::lTrim($value, "$key:");
+		}
+
+		return null;
 	}
 
 

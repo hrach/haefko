@@ -92,18 +92,21 @@ class Application extends Object
 	 */
 	public function __destruct()
 	{
-		# debug sqls
-		//if (Config::read('Core.debug') >= 2) {
-		//	Debug::fireLog('Sqls', 'GROUP_START');
-		//	foreach (Db::$sqls as $sql)
-		//		Debug::fireLog($sql, 'LOG');
-		//	Debug::fireLog('Sqls', 'GROUP_END');
-		//}
+		$this->terminate();
+	}
 
+
+	/**
+	 * Prints debuggin information
+	 * @return  void
+	 */
+	public function terminate()
+	{
 		# debug full time
-		if (Config::read('Core.debug') >= 1) {
-			Debug::fireSend(Debug::getTime() . 'ms', 'INFO', 'Rendering time');
-		}
+		Debug::toolbar('Rendering time: ' . Debug::getTime() . 'ms');
+
+		# render toolbar
+		Debug::renderToolbar();
 	}
 
 
