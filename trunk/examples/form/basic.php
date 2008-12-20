@@ -23,6 +23,7 @@ $form['age']->addCondition(Form::FILLED)
 			->addRule(Form::RANGE, a(15,99));
 
 $form['password']->addRule(Form::EQUAL, $form['password2'], 'Hesla se musí shodovat');
+$form['agree']->addRule(Form::FILLED, null, 'Musíte souhlasit s podmínkami');
 
 if ($form->isSubmit() && $form->isValid()) {
 

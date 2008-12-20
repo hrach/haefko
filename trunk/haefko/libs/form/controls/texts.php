@@ -12,7 +12,7 @@
  */
 
 
-class FormTextareaControl extends FormContaineredControl
+class FormTextareaControl extends FormControl
 {
 
 	protected $htmlTag = 'textarea';
@@ -40,7 +40,7 @@ class FormHiddenControl extends FormInputControl
 }
 
 
-class FormTextControl extends FormInputContaineredControl
+class FormTextControl extends FormInputControl
 {
 
 	protected $filters = array('trim');
@@ -50,7 +50,7 @@ class FormTextControl extends FormInputContaineredControl
 }
 
 
-class FormPasswordControl extends FormInputContaineredControl
+class FormPasswordControl extends FormInputControl
 {
 
 	protected $htmlType = 'password';

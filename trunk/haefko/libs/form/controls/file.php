@@ -12,7 +12,7 @@
  */
 
 
-class FormFileControl extends FormInputContaineredControl
+class FormFileControl extends FormInputControl
 {
 
 	protected $htmlType = 'file';
@@ -20,14 +20,12 @@ class FormFileControl extends FormInputContaineredControl
 
 }
 
+
 class FormUploadedFile
 {
 
 	/** @var string */
 	public static $uploads;
-
-	/** @var int */
-	protected static $i = 0;
 
 	/** @var int */
 	public $state;
@@ -53,12 +51,11 @@ class FormUploadedFile
 	 */
 	public function __construct(FormControl $control, $data)
 	{
-		$this->state = $data['error'][$control->name][self::$i];
-		$this->name = $data['name'][$control->name][self::$i];
-		$this->temp = $data['tmp_name'][$control->name][self::$i];
-		$this->type = $data['type'][$control->name][self::$i];
-		$this->size = $data['size'][$control->name][self::$i];
-		self::$i++;
+		$this->state = $data['error'][$control->name];
+		$this->name = $data['name'][$control->name];
+		$this->temp = $data['tmp_name'][$control->name];
+		$this->type = $data['type'][$control->name];
+		$this->size = $data['size'][$control->name];
 	}
 
 
