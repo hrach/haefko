@@ -15,9 +15,6 @@
 require_once dirname(__FILE__) . '/Http.php';
 
 
-/**
- * Trida pro praci se session
- */
 class Session
 {
 
@@ -57,9 +54,19 @@ class Session
 
 
 	/**
+	 * Destroys session
+	 * @return  void
+	 */
+	public static function destroy()
+	{
+		session_destroy();
+	}
+
+
+	/**
 	 * Reads session variable
-	 * @param   string  variable name
-	 * @param   mixed   default value
+	 * @param   string    variable name
+	 * @param   mixed     default value
 	 * @return  mixed
 	 */
 	public static function read($var, $default = null)
@@ -75,9 +82,10 @@ class Session
 
 
 	/**
-	 * Safe read
-	 * @param   string  variable name
-	 * @param   mixed   default value
+	 * Safe reads session variable 
+	 * If session is not started returns default
+	 * @param   string    variable name
+	 * @param   mixed     default value
 	 * @return  mixed
 	 */
 	public static function safeRead($var, $default = null)
@@ -89,6 +97,11 @@ class Session
 	}
 
 
+	/**
+	 * Checks if session $var exists
+	 * @param   string    variable name
+	 * @return  bool
+	 */
 	public static function exists($var)
 	{
 		if (!self::$started)
@@ -98,6 +111,12 @@ class Session
 	}
 
 
+	/**
+	 * Writes $val to session $var
+	 * @param   string    variable name
+	 * @param   mixed     value
+	 * @return  void
+	 */
 	public static function write($var, $val)
 	{
 		if (!self::$started)
@@ -112,6 +131,11 @@ class Session
 	}
 
 
+	/**
+	 * Unsets session variable
+	 * @param   string    variable name
+	 * @return  void
+	 */
 	public static function delete($var)
 	{
 		if (!self::$started)
@@ -121,12 +145,10 @@ class Session
 	}
 
 
-	public static function destroy()
-	{
-		session_destroy();
-	}
-
-
+	/**
+	 * Init default configuration
+	 * @return  void
+	 */
 	public static function init()
 	{
 		self::$name = 'haefko-session';
@@ -140,6 +162,10 @@ class Session
 	}
 
 
+	/**
+	 * Init configurations from Config
+	 * @return  void
+	 */
 	public static function initConfig()
 	{
 		self::$name = Config::read('Session.name', self::$name);
@@ -153,6 +179,11 @@ class Session
 	}
 
 
+	/**
+	 * Checks sent headers
+	 * @throws  Exception
+	 * @return  void
+	 */
 	private static function checkHeaders()
 	{
 		if (headers_sent($file, $line))
@@ -160,6 +191,10 @@ class Session
 	}
 
 
+	/**
+	 * Sets session configuration
+	 * @return  void
+	 */
 	private static function writeConfig()
 	{
 		if (function_exists('ini_set'))

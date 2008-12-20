@@ -82,8 +82,7 @@ class DbResult extends Object implements Countable, IteratorAggregate
 		$time = microtime(true);
 		$this->driver = $this->driver->query($this->query);
 		$this->executed = true;
-
-		Db::$sqls[] = array($this->query, Debug::getTime($time), Debug::getTime());
+		Db::debug($this->query, $time);
 
 		# pagination
 		if ($this->pagination !== false) {
@@ -128,7 +127,10 @@ class DbResult extends Object implements Countable, IteratorAggregate
 	 */
 	public function paginate($page, $limit = 10, $count = null)
 	{
-		$this->pagination[0] = (int) $page;
+		if ($page < 1)
+			$page = 1;
+
+		$this->pagination[0] = $page;
 		$this->pagination[1] = (int) $limit;
 		if (!empty($count))
 			$this->pagination[2] = (int) $count;

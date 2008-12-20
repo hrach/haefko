@@ -17,10 +17,10 @@ class Debug
 
 
 	/** @var bool */
-	private static $isFirebug = false;
+	public static $isFirebug = false;
 
 	/** @var array */
-	private static $profiler = array();
+	private static $toolbar = array();
 
 
 	/**
@@ -60,6 +60,19 @@ class Debug
 	 * @param   Exception
 	 * @return  void
 	 */
+	public static function renderToolbar()
+	{
+		if (Config::read('Core.debug') > 2 && !empty(self::$toolbar))
+			require_once dirname(__FILE__) . '/debug.toolbar.phtml';
+	}
+
+
+	/**
+	 * Exception handler
+	 * Catchs exception and show detail informations
+	 * @param   Exception
+	 * @return  void
+	 */
 	public static function exceptionHandler(Exception $exception)
 	{
 		$rendered = ob_get_contents();
@@ -83,10 +96,9 @@ class Debug
 	/**
 	 * Prints or sends to firebug (in ajax request) debug message/variable content
 	 * @param   mixed     varbiable
-	 * @param   bool      send eventually to firebug?
 	 * @return  void
 	 */
-	public static function debug($var, $firebug = true)
+	public static function debug($var)
 	{
 		if (Config::read('Core.debug') < 2)
 			return;
@@ -104,24 +116,28 @@ class Debug
 			$var = $array;
 		}
 
-		if ($firebug && Http::isAjax() && self::$isFirebug) {
+		if ((self::$isFirebug && Config::read('Core.logTo', 'toolbar') == 'firebug') || Http::isAjax())
 			self::fireSend($var);
-		} else {
+		else
 			echo $var;
-		}
 	}
 
 
 	/**
-	 * Debugs runtime settings and logs
+	 * Debugs to debug toolbar / firebug
 	 * @param   string  message
 	 */
-	public static function profile($message)
+	public static function toolbar($message, $group = '')
 	{
-		if (self::$isFirebug || Http::isAjax())
-			self::fireSend($message);
-		else
-			self::$profiler[] = $message;
+		if (Config::read('Core.debug') < 3)
+			return false;
+
+		# redirect content to firebug
+		if (Config::read('Debug.logto') == 'firebug' && self::$isFirebug)
+			return self::fireSend($message, $group);
+
+		self::$toolbar[$group][] = $message;
+		return true;
 	}
 
 
@@ -144,8 +160,11 @@ class Debug
 	 * @throws  Exception
 	 * @return  bool
 	 */
-	public static function fireSend($content, $type = 'log', $label = null)
+	private static function fireSend($content, $type = 'log', $label = null)
 	{
+		if (!self::$isFirebug)
+			return false;
+
 		# cheack headers
 		if (headers_sent($file, $line))
 			throw new Exception("Headers has been alerady sent. ($file, $line)");
@@ -166,7 +185,6 @@ class Debug
 		$last = array_pop($parts);
 		foreach ($parts as $part)
 			header('X-Wf-hf-1-1-h' . ++$counter .": |$part|\\");
-
 		header('X-Wf-hf-1-1-h' . ++$counter . ": |$last|");
 
 		return true;

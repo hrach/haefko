@@ -169,15 +169,12 @@ class HtmlHelper extends Object
 	/**
 	 * Returns HTML title tag
 	 * @param   string    title 
-	 * @param   string    title suffix
 	 * @return  string
 	 */
-	public function title($title = null, $suffix = null)
+	public function title($title = null)
 	{
 		$el = Html::el('title');
-		$el->setText(empty($title) ? Controller::get()->view->title : $title)
-		   ->setText($suffix);
-
+		$el->setText(empty($title) ? Controller::get()->view->title : $title);
 		return $el->render();
 	}
 

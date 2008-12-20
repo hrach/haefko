@@ -84,7 +84,9 @@ class DbConnection extends Object
 			$result = new DbResult($sql, $this->driver);
 			return $result->execute();
 		} else {
+			$time = microtime(true);
 			$driver = $this->driver->query($sql);
+			Db::debug($sql, $time);
 
 			if (stripos($sql, 'select') === 0 && in_array(get_class($this->driver), array('MysqlDbDriver', 'MysqliDbDriver', 'PdoDbDriver', 'SqliteDbDriver')))
 				return $driver->insertedId('');
@@ -133,6 +135,16 @@ class DbConnection extends Object
 		$args = func_get_args();
 		$query = call_user_func_array(array($this, 'query'), $args);
 		return $query->fetchAll();
+	}
+
+
+	/**
+	 * Return number of affected rows
+	 * @return  int
+	 */
+	public function affectedRows()
+	{
+		return $this->driver->affectedRows();
 	}
 
 
