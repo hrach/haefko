@@ -37,11 +37,11 @@ class DbResult extends Object implements Countable, IteratorAggregate
 	/** @var bool */
 	private $tables = false;
 
-	/** @var null|array Stored rows */
-	private $rows;
+	/** @var array Stored rows */
+	private $rows = array();
 
 	/** @var null|array Stored row */
-	private $stored;
+	private $stored = array();
 
 	/** @var array */
 	private $association = array();
@@ -123,10 +123,14 @@ class DbResult extends Object implements Countable, IteratorAggregate
 	 * @param   int        page
 	 * @param   int        limit
 	 * @param   int        count pages
+	 * @throws  Exception
 	 * @return  DbResult   $this
 	 */
 	public function paginate($page, $limit = 10, $count = null)
 	{
+		if ($this->executed)
+			throw new Exception("You can't paginate excecuted query.");
+
 		if ($page < 1)
 			$page = 1;
 
@@ -187,7 +191,7 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 		$row = $this->getRow(!$this->tables);
 		if (is_null($row))
-				return null;
+			return null;
 
 		if ($this->tables) {
 			$row = $this->combineColumns($row);
@@ -211,16 +215,15 @@ class DbResult extends Object implements Countable, IteratorAggregate
 						if ($row[$t][$c] != $newRow[$t][$c])
 							break;
 
-						$this->stored = null;
 						unset($newRow[$t]);
 					} else { 
 					# compare table
 						if (!isset($row[$this->association[0]]) || $row[$this->association[0]] != $newRow[$this->association[0]])
 							break;
 
-						$this->stored = null;
 						unset($newRow[$this->association[0]]);
 					}
+					$this->stored = null;
 
 					# copy tables
 					foreach ($newRow as $table => $data) {
@@ -236,7 +239,7 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 		}
 
-		return new DbResultNode($row);
+		return $this->rows[] = new DbResultNode($row);
 	}
 
 
@@ -247,9 +250,8 @@ class DbResult extends Object implements Countable, IteratorAggregate
 	public function fetchAll()
 	{
 		$this->checkExecution();
-		while (($row = $this->fetch()) !== null)
-			$this->rows[] = $row;
 
+		while (($row = $this->fetch()) != null);
 		return $this->rows;
 	}
 
