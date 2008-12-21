@@ -139,6 +139,20 @@ class DbConnection extends Object
 
 
 	/**
+	 * Wrapper for called result
+	 * @see     DbResult::fetchPairs()
+	 * @param   string    sql query
+	 * @return  array
+	 */
+	public function fetchPairs($args)
+	{
+		$args = func_get_args();
+		$query = call_user_func_array(array($this, 'query'), $args);
+		return $query->fetchPairs();
+	}
+
+
+	/**
 	 * Return number of affected rows
 	 * @return  int
 	 */

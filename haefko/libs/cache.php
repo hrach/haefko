@@ -12,39 +12,96 @@
  */
 
 
-abstract class Cache
+class Cache extends Object
 {
 
-	public static $enabled = false;
-	public static $store = 'temp/cache';
 
-	public static function write($group, $id, $data, $expires = null)
+	/** @var bool */
+	public static $enabled = true;
+
+	/** @var string */
+	public static $store = '/temp/cache';
+
+	/** @var int */
+	public static $lifeTime = 18000;    # 5 minutes
+
+
+	/**
+	 * Writes data to cache
+	 * @param   string    group name
+	 * @param   string    id
+	 * @param   mixed     data
+	 * @param   mixed
+	 * @return  void
+	 */
+	public function write($group, $id, $data, $expires = null)
+	{
+		$this->__write($group, $id, serialize($data), $expires);
+	}
+
+
+	/**
+	 * Reads unserialized cached data
+	 * @param   string      group name
+	 * @param   string      id
+	 * @return  mixed|null  return null when data are not cached
+	 */
+	public function read($group, $id)
+	{
+		if ($this->isCached($group, $id))
+			return unserialize($this->__read($group, $id));
+
+		return null;
+	}
+
+
+	/**
+	 * Writes data to cache
+	 * @param   string    group name
+	 * @param   string    id
+	 * @param   string    serialized data
+	 * @param   int       time
+	 * @return  void
+	 */
+	protected function __write($group, $id, $data, $lifeTime = null)
 	{
 		if (empty($expires))
-			$expires = 60 * 60;
+			$lifeTime = self::$lifeTime;
 
-		$file = self::getFilename($group, $id);
+		$file = $this->getFilename($group, $id);
 
 		if ($fp = fopen($file, 'xb')) {
 			if (flock($fp, LOCK_EX))
 				fwrite($fp, $data);
 
 			fclose($fp);
-			touch($file, time() + $expires);
+			touch($file, time() + $lifeTime);
 		}
 	}
 
 
-	protected static function read($group, $id)
+	/**
+	 * Reads cached data
+	 * @param   string      group name
+	 * @param   string      id
+	 * @return  string
+	 */
+	protected function __read($group, $id)
 	{
-		$file = self::getFilename($group, $id);
+		$file = $this->getFilename($group, $id);
 		return file_get_contents($file);
 	}
 
 
-	protected static function isCached($group, $id)
+	/**
+	 * Checks whether data are cached
+	 * @param   string      group name
+	 * @param   string      id
+	 * @return  void
+	 */
+	protected function isCached($group, $id)
 	{
-		$file = self::getFilename($group, $id);
+		$file = $this->getFilename($group, $id);
 
 		if (self::$enabled && file_exists($file)) {
 			if (filemtime($file) > time())
@@ -56,22 +113,17 @@ abstract class Cache
 		return false;
 	}
 
-	public static function get($group, $id)
-	{
-		if (self::isCached($group, $id))
-			return unserialize(self::read($group, $id));
 
-		return null;
-	}
-
-	public static function put($group, $id, $data, $expires = null)
-	{
-		self::write($group, $id, serialize($data), $expires);
-	}
-
-	protected static function getFilename($group, $id)
+	/**
+	 * Returns path with filename of cached file
+	 * @param   string    group name
+	 * @param   string    id
+	 * @return  string
+	 */
+	protected function getFilename($group, $id)
 	{
 		return self::$store . $group . '_' . md5($id);
 	}
+
 
 }
