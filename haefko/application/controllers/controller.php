@@ -16,9 +16,9 @@
 abstract class Controller extends Object
 {
 
-	/** @var string */
-	private $urlPrefix;
-	
+
+	/** @var bool Ajax request? */
+	public $ajax = false;
 
 	/** @var Application */
 	protected $application;
@@ -26,12 +26,8 @@ abstract class Controller extends Object
 	/** @var View */
 	protected $view;
 
-	/** @var bool Ajax request? */
-	public $ajax = false;
-
-	/** @var array */
-	public $helpers = array();
-
+	/** @var string */
+	private $urlPrefix;
 
 	/**
 	 * Returns self instance
@@ -54,8 +50,9 @@ abstract class Controller extends Object
 
 		# load view
 		$class = 'View';
-		if (!empty($this->application->router->service))
-			$class = Config::read('Service.' . $this->application->router->service, 'View');
+		if (!empty($this->application->router->service) && !Application::$error)
+			$class = Tools::camelize($this->application->router->service . 'View');
+
 		$this->application->loadFile('views/' . Tools::dash($class) . '.php');
 		$this->view = new $class($this);
 
@@ -220,8 +217,6 @@ abstract class Controller extends Object
 
 		if (!$exists && !Application::$error)
 			throw new ApplicationException('missing-method', $method);
-
-		$this->view->loadHelpers();
 
 		try {
 			if ($exists) {

@@ -57,6 +57,9 @@ class View extends Object implements IView
 
 		$this->set('escape', 'htmlSpecialChars');
 		$this->set('title', '');
+
+		$this->helper('html');
+		$this->helper('js');
 	}
 
 
@@ -134,6 +137,16 @@ class View extends Object implements IView
 
 
 	/**
+	 * Returns controller
+	 * @return  Controller
+	 */
+	public function getController()
+	{
+		return $this->controller;
+	}
+
+
+	/**
 	 * Loads heleper
 	 * @param   string  helper name
 	 * @param   string  var name
@@ -150,19 +163,6 @@ class View extends Object implements IView
 		}
 
 		return $this->helpers[$var];
-	}
-
-
-
-	/**
-	 * Loads defined helpers in controller
-	 * @return  void
-	 */
-	public function loadHelpers()
-	{
-		$this->helper('html');
-		foreach ($this->controller->helpers as $helper)
-			$this->helper($helper);
 	}
 
 
