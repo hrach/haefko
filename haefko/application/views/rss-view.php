@@ -90,7 +90,7 @@ class RssView extends View implements IView
 		echo "<channel>\n";
 			echo "\t<title>", htmlspecialchars($this->title), "</title>\n";
 			echo "\t<description>", htmlspecialchars($this->description), "</description>\n";
-			echo "\t<link>", $this->controller->url($this->link, true), "</link>\n";
+			echo "\t<link>", $this->controller->url($this->link, null, true), "</link>\n";
 			echo "\t<docs>http://blogs.law.harvard.edu/tech/rss</docs>\n";
 			echo "\t<lastBuildDate>", $this->date(), "</lastBuildDate>\n";
 			echo "\t<generator>Haefko - your php5 framework</generator>\n";
@@ -99,7 +99,7 @@ class RssView extends View implements IView
 				echo "\t<image>\n";
 					echo "\t\t<title>", $this->image['title'], "</title>\n";
 					echo "\t\t<url>", (substr($this->image['scr'], 0, 7) == 'http://' ? Http::$serverUri . $this->base : '' ) . $this->image['src'], "</url>\n";
-					echo "\t\t<link>", $this->controller->url($this->image['link'], true), "</link>\n";
+					echo "\t\t<link>", $this->controller->url($this->image['link'], null, true), "</link>\n";
 				echo "\t</image>\n";
 			}
 
@@ -185,12 +185,12 @@ class RssItem extends Object
 			echo "\t\t<title>", htmlspecialchars(strip_tags($this->title)), "</title>\n";
 
 		if (!empty($this->link))
-			echo "\t\t<link>", $this->controller->url($this->link, true), "</link>\n";
+			echo "\t\t<link>", $this->controller->url($this->link, null, true), "</link>\n";
 
 		if (!empty($this->guid))
-			echo "\t\t<guid>", $this->controller->url($this->guid, true), "</guid>\n";
+			echo "\t\t<guid>", $this->controller->url($this->guid, null, true), "</guid>\n";
 		elseif (!empty($this->link))
-			echo "\t\t<guid>", $this->controller->url($this->link, true), "</guid>\n";
+			echo "\t\t<guid>", $this->controller->url($this->link, null, true), "</guid>\n";
 
 		if (!empty($this->description))
 			echo "\t\t<description><![CDATA[", $this->description, "]]></description>\n";
@@ -202,7 +202,7 @@ class RssItem extends Object
 			echo "\t\t<category>", htmlspecialchars($this->category), "</category>\n";
 
 		if (!empty($this->comments))
-			echo "\t\t<comments>", $this->controller->url($this->comments, true), "</comments>\n";
+			echo "\t\t<comments>", $this->controller->url($this->comments, null, true), "</comments>\n";
 
 		if (!empty($this->date))
 			echo "\t\t<pubDate>", $this->view->date(strtotime($this->date)), "</pubDate>\n";
