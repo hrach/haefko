@@ -135,7 +135,7 @@ abstract class DbTable extends Object
 	{
 		if (Tools::startWith($method, 'set')) {
 			$column = Tools::underscore(str_replace('_', '.', Tools::lTrim($method, 'set')));
-			if (self::$pk[0] == $column) {
+			if (key(self::$pk) == $column) {
 			# primary key
 				$this->pkVal = array_shift($args);
 			} else {
@@ -171,7 +171,8 @@ abstract class DbTable extends Object
 		if (empty($this->pkVal)) {
 			db::query('INSERT INTO [' . self::$table . '] %v', $fields);
 		} else {
-			list($col, $mod) = self::$pk;
+			$col = key(self::$pk);
+			$mod = self::$pk[$col];
 			db::query('UPDATE [' . self::$table . '] SET %a', $fields, " WHERE [$col] = $mod", $this->pkVal);
 		}
 
