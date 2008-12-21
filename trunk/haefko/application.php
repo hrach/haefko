@@ -261,7 +261,6 @@ class Application extends Object
 					$this->controller->view->message = $exception->getMessage();
 				}
 
-				$this->controller->view->loadHelpers();
 				$this->controller->init();
 				echo $this->controller->view->render();
 

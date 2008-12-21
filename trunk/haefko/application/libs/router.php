@@ -12,10 +12,6 @@
  */
 
 
-/**
- * Router
- * @subpackage Application
- */
 class Router
 {
 
@@ -56,6 +52,27 @@ class Router
 
 
 	/**
+	 * Catchs service request
+	 * @param   string    service name
+	 * @return  bool
+	 */
+	public function service()
+	{
+		$services = func_get_args();
+		foreach ($services as $service) {
+			$service = strtolower($service);
+			if ($this->url == $service || Tools::endWith($this->url, "/$service")) {
+				$this->url = Tools::rTrim($this->url, "$service");
+				$this->routing['service'] = $service;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	/**
 	 * Connects to url
 	 * @param   string    routing expression
 	 * @param   array     defaults
@@ -72,8 +89,8 @@ class Router
 		# set the defaults
 		$newRoute = '';
 		$route = trim($route, '/');
-		$routing = array('controller' => '', 'action' => 'index', 'module' => array(), 'service' => '');
-		$routing = $this->normalize(array_merge($routing, $this->defaults, $defaults));
+		$routing = array('controller' => '', 'action' => 'index', 'module' => array());
+		$routing = $this->normalize(array_merge($this->routing, $routing, $this->defaults, $defaults));
 
 
 		# explode by variables
@@ -228,8 +245,12 @@ class Router
 	{
 		$routing['module'] = (array) $routing['module'];
 		$routing['controller'] = Tools::camelize($routing['controller']);
-		$routing['service'] = strtolower($routing['service']);
 		$routing['action'] = lcfirst(Tools::camelize($routing['action']));
+
+		if (!isset($routing['service']))
+			$routing['service'] = '';
+		else
+			$routing['service'] = strtolower($routing['service']);
 
 		foreach ($routing['module'] as & $module)
 			$module = Tools::camelize($module);
