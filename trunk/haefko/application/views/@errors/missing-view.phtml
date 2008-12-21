@@ -14,9 +14,10 @@
 
 
 ?>
-<?php $this->title = 'Nenalezen view | Háefko - your php5 framework' ?>
+<?php
+	$this->title = 'Missing view | haefko';
+?>
 <div class="error">
-    <h1>CHYBA: Nenalezen soubor view</h1>
-    <p>Zkontrolujte, zda-li jste vytvořili soubor view: <em><?= $message ?></em>.</p>
-    <p><strong>Poznámka:</strong> Po vypnutí ladícího režimu bude tato chyba nahrazena E404.</p>
+	<h1>ERROR: Missing view</h1>
+	<p>Check whether you created view file <code><?= $variable ?></code>.</p>
 </div>

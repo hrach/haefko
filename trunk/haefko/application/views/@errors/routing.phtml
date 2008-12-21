@@ -14,9 +14,11 @@
 
 
 ?>
-<?php $this->title = 'Nenalezen view | Háefko - your php5 framework' ?>
+<?php
+	$this->title = 'No routing | haefko';
+?>
+
 <div class="error">
-	<h1>CHYBA: Nenalezen soubor '<?= basename($message) ?>'</h1>
-	<p>Zkontrolujte, zda-li jste vytvořili soubor: <em><?= $message ?></em>.</p>
-	<p><strong>Poznámka:</strong> Po vypnutí ladícího režimu bude tato chyba nahrazena E404.</p>
+	<h1>ERROR: No routing</h1>
+	<p>Check URL and routing for keying mistakes.</p>
 </div>

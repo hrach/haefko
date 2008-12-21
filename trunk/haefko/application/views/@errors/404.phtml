@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * Haefko - your php5 framework
+ *
+ * @author      Jan Skrasek
+ * @copyright   Copyright (c) 2008, Jan Skrasek
+ * @link        http://haefko.programujte.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
+ * @version     0.8
+ * @package     Haefko_Application
+ * @subpackage  View
+ */
+
+
+?>
+<?php
+	Http::headerError(404);
+	$this->title = 'Page wasn\'t found | haefko';
+?>
+<div class="error">
+	<h1>Page wasn't found</h1>
+	<p>We are apologizing. The requested page wasn't found.</p>
+	<ul>
+		<li>Wait a moment and then repeat the action please.</li>
+		<li>If the error doesn't disappear, contact administrator / author please.</li>
+		<li>You can go to <?= $html->link('', 'site-home') ?>.</li>
+</ul></p>
+</div>
