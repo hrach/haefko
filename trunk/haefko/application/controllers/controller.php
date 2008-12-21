@@ -71,12 +71,12 @@ abstract class Controller extends Object
 		switch (strtolower($section)) {
 			case 'db':
 				$this->application->loadCore('db');
-				Db::connect(Config::read('Db.connection', array()));
-
+				Db::connect(Config::read('Db.connection'));
 				$this->application->loadCore('db-table');
-				$this->application->loadCore('db-table-structure');
 				break;
+			case 'l10n':
 			case 'translation':
+			case 'localization':
 			case 'translations':
 				$this->application->loadCore('l10n');
 				break;

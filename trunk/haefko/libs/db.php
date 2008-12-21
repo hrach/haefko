@@ -172,7 +172,7 @@ class Db
 	 */
 	public static function debug($sql, $time)
 	{
-		if (Config::read('Db.debug') == 0 || Config::read('Core.debug') < 3)
+		if (Config::read('Core.debug') < 3 || Config::read('Db.debug', 1) == 0)
 			return false;
 
 		$abbr = 'time: ' . Debug::getTime($time) . 'ms; affected: ' . self::affectedRows();
