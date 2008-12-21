@@ -88,7 +88,7 @@ class DbConnection extends Object
 			$driver = $this->driver->query($sql);
 			Db::debug($sql, $time);
 
-			if (stripos($sql, 'select') === 0 && in_array(get_class($this->driver), array('MysqlDbDriver', 'MysqliDbDriver', 'PdoDbDriver', 'SqliteDbDriver')))
+			if (stripos($sql, 'insert') === 0 && in_array(get_class($this->driver), array('MysqlDbDriver', 'MysqliDbDriver', 'PdoDbDriver', 'SqliteDbDriver')))
 				return $driver->insertedId('');
 			else
 				return null;

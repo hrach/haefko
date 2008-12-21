@@ -166,7 +166,6 @@ abstract class FormRenderer extends Object implements IFormRenderer
 		$this->block->setHtml($this->renderLabel($attrs[0]))
 		            ->setHtml($this->renderControl($attrs[0]));
 
-		$this->form[$attrs[0]]->increment();
 		return $this->block->render();
 	}
 

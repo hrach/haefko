@@ -60,9 +60,6 @@ abstract class FormControl extends Object
 	/** @var string */
 	protected $htmlTag;
 
-	/** @var int */
-	protected $htmlCounter;
-
 	/** @var array */
 	protected $htmlRequired = false;
 
@@ -245,9 +242,9 @@ abstract class FormControl extends Object
 	 */
 	public function errors()
 	{
-		$errors = Html::el('div', null, array('id' => "{$this->htmlId}-errors-{$this->htmlCounter}"));
+		$errors = Html::el('div', null, array('id' => "{$this->htmlId}-errors", 'class' => 'input-errors'));
 		foreach ($this->errors as $error)
-			$errors->setHtml("<label class=\"error\" for=\"{$this->htmlId}{$this->htmlCounter}\">$error</label>\n");
+			$errors->setHtml("<label class=\"error\" for=\"{$this->htmlId}\">$error</label>\n");
 
 		return $errors->render();
 	}
@@ -306,16 +303,6 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Increments and return number of renderer control
-	 * @return  int
-	 */
-	public function increment()
-	{
-		return ++$this->htmlCounter;
-	}
-
-
-	/**
 	 * Magic method
 	 */
 	public function __get($key)
@@ -346,8 +333,8 @@ abstract class FormControl extends Object
 	 */
 	protected function prepareLabel()
 	{
-		$this->label->for = $this->htmlId . $this->htmlCounter;
-		$this->label->id = "{$this->htmlId}-label{$this->htmlCounter}";
+		$this->label->for = $this->htmlId;
+		$this->label->id = "{$this->htmlId}-label";
 	}
 
 
@@ -357,7 +344,7 @@ abstract class FormControl extends Object
 	 */
 	protected function prepareControl()
 	{
-		$this->control->id = $this->htmlId . $this->htmlCounter;
+		$this->control->id = $this->htmlId;
 	}
 
 
