@@ -1,6 +1,6 @@
 servers:
 	localhost:
-		Core.debug: 2
+		Core.debug: 3
 		Db.connection:
 			driver: mysqli
 			host: localhost
