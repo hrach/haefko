@@ -129,6 +129,8 @@ class Application extends Object
 			throw new Exception('Missing configuration file ' . Tools::relativePath($file) . '.');
 
 		Config::multiWrite(Config::parseFile($file));
+		Cache::$store = Config::read('Cache.store', $this->path . '/temp/cache/');
+		ini_set('error_log', Config::read('Debug.log', $this->path . '/temp/errors.log'));
 
 		switch (Config::read('Core.debug')) {
 		case 0:
@@ -149,12 +151,10 @@ class Application extends Object
 			ini_set('display_errors', true);
 			ini_set('error_reporting', E_ALL);
 		case 3:
-			Cache::$lifeTime = 30; # thitry seconds
+			Cache::$lifeTime = 30; # thirty seconds
 			break;
 		}
 
-		ini_set('error_log', Config::read('Debug.log', $this->path . '/temp/errors.log'));
-		Cache::$store = Config::read('Cache.store', $this->path . '/temp/cache/');
 
 		if (Config::read('Cache.enabled', true))
 			Cache::$enabled = true;

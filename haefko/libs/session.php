@@ -12,7 +12,7 @@
  */
 
 
-require_once dirname(__FILE__) . '/Http.php';
+require_once dirname(__FILE__) . '/http.php';
 
 
 class Session
