@@ -204,6 +204,12 @@ class DbResult extends Object implements Countable, IteratorAggregate
 						$row[$table] = array($data);
 				}
 
+				foreach ($this->association[1] as $table) {
+					if (!isset($row[$table]))
+						$row[$table] = array();
+				}
+
+
 				# add associated rows
 				while (($newRow = $this->getRow(false)) !== null) {
 					$this->stored = $newRow;
@@ -323,12 +329,14 @@ class DbResult extends Object implements Countable, IteratorAggregate
 	 */
 	private function combineColumns($row)
 	{
-		$i = 0;
-		foreach ($this->cols as $col) {
+		foreach ($this->cols as $i => $col) {
+			if ($row[$i] === null)
+				continue;
+
 			if (empty($col[0]))
-				$r[$col[1]] = $row[$i++];
+				$r[$col[1]] = $row[$i];
 			else
-				$r[$col[0]][$col[1]] = $row[$i++];
+				$r[$col[0]][$col[1]] = $row[$i];
 		}
 
 		foreach ($r as & $data) {
