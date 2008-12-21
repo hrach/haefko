@@ -243,10 +243,10 @@ class Application extends Object
 	{
 		try {
 
+			self::$error = true;
 			# render application layout
 			if ($exception instanceof ApplicationException || Config::read('Core.debug') == 0) {
 
-				//$this->router->service = null;
 				$this->controller = new AppController();
 
 				if (Config::read('Core.debug') == 0) {
@@ -258,6 +258,7 @@ class Application extends Object
 					}
 				} else {
 					$this->controller->view->view($exception->error);
+					$this->controller->view->variable = $exception->variable;
 					$this->controller->view->message = $exception->getMessage();
 				}
 

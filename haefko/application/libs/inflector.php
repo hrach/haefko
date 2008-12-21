@@ -65,7 +65,7 @@ class Inflector
 	 */
 	public static function helperFile($name)
 	{
-		return 'views/helpers/' . Tools::dash($name) . '.php';
+		return 'views/@helpers/' . Tools::dash($name) . '.php';
 	}
 
 
@@ -135,7 +135,7 @@ class Inflector
 	{
 		$path  = "views/";
 		$path .= ($theme) ? "$theme/" : '';
-		$path .= "errors/$name.$ext";
+		$path .= "@errors/$name.$ext";
 
 		return $path;
 	}

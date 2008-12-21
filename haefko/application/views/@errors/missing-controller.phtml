@@ -1,0 +1,34 @@
+<?php
+
+/**
+ * Haefko - your php5 framework
+ *
+ * @author      Jan Skrasek
+ * @copyright   Copyright (c) 2008, Jan Skrasek
+ * @link        http://haefko.programujte.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
+ * @version     0.8
+ * @package     Haefko_Application
+ * @subpackage  View
+ */
+
+
+?>
+<?php
+	$this->title = 'Missing controller class | haefko';
+?>
+<div class="error">
+	<h1>ERROR: Missing controller class</h1>
+	<p>Create missing controller <code><?= $variable ?></code> by skeleton:</p>
+<pre><code>&lt;?php
+
+class <?= $variable ?> extends AppController
+{
+	public function <?= $application->router->action ?>Action()
+	{
+		// váš kód
+	}
+}
+
+?&gt;</code></pre>
+</div>
