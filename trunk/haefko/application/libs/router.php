@@ -62,7 +62,7 @@ class Router
 		foreach ($services as $service) {
 			$service = strtolower($service);
 			if ($this->url == $service || Tools::endWith($this->url, "/$service")) {
-				$this->url = Tools::rTrim($this->url, "$service");
+				$this->url = trim(Tools::rTrim($this->url, "$service"), '/');
 				$this->routing['service'] = $service;
 				return true;
 			}
