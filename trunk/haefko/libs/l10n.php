@@ -13,23 +13,20 @@
  */
 
 
-
-/**
- * Lokalizacni trida
- */
 class L10n
 {
 
-	/** @var string Domena */
+
+	/** @var string */
 	public static $domain = 'messages';
 
-	/** @var string Jazyk */
+	/** @var string */
 	public static $lang = 'cs';
 
-	/** @var array Pole dostupnych jazyku */
+	/** @var array Alowed langs */
 	private static $langs = array();
 
-	/** @var array Tabulka pro prevod */
+	/** @var array */
 	private static $map = array(
 		'be' => 'be_BY', 'bg' => 'bg_BG', 'bs' => 'bs_BA',
 		'ca' => 'ca_ES', 'cs' => 'cs_CZ', 'da' => 'da_DK',
@@ -46,35 +43,39 @@ class L10n
 	);
 
 
+	/**
+	 * Inits default configuration
+	 * @return  void
+	 */
+	public static function init()
+	{
+		self::domain(self::$domain);
+	}
+
 
 	/**
-	 * Nastavi vychozi hodnoty
-	 * @return
+	 * Inits configurations from Config
+	 * @return  void
 	 */
-	public static function initialize()
+	public static function initConfig()
 	{
 		self::$langs = Config::read('L10n.langs', array());
+		self::$domain = Config::read('L10n.domain', self::$domain);
 
 		switch (Config::read('L10n.autodetect', 'config')) {
-		case 'browser':
-			self::langByBrowser();
-			break;
-		case 'url':
-			self::langByUrl(Config::read('L10n.url.var', 'lang'));
-			break;
-		default:
-			self::langByConfig();
+			case 'browser': self::langByBrowser(); break;
+			case 'url': self::langByUrl(Config::read('L10n.url.var', 'lang')); break;
+			default: self::langByConfig();
 		}
 
 		self::domain(self::$domain);
 	}
 
 
-
 	/**
-	 * Prelozi vyraz
-	 * @param   string  klic k prelozeni
-	 * @param   string  domena
+	 * Translates expression
+	 * @param   string    key for tranlation
+	 * @param   string    domain
 	 * @return  string
 	 */
 	public static function __($string, $domain = null)
@@ -86,34 +87,36 @@ class L10n
 	}
 
 
-
 	/**
-	 * Prelozi vyraz s ohledem na mnozne cisla
-	 * @param   string  klic k prelozeni - en singular
-	 * @param   string  klic k prelozeni - en plural
-	 * @param   int     cislo
-	 * @param   string  domena
+	 * Translates expression in plural form
+	 * @param   string    key for translation - one
+	 * @param   string    key for translation - many
+	 * @param   int       count
+	 * @param   string    domain
+	 * @param   bool      replace count?
 	 * @return  string
 	 */
-	public static function __n($singular, $plural, $count, $domain = null)
+	public static function __n($singular, $plural, $count, $domain = null, $replace = true)
 	{
 		if (is_null($domain))
 			$domain = self::$domain;
 
-		return sprintf(dngettext($domain, $singular, $plural, $count), $count, true);
+		if ($replace)
+			return sprintf(dngettext($domain, $singular, $plural, $count), $count, true);
+		else
+			return dngettext($domain, $singular, $plural, $count);
 	}
 
 
-
 	/**
-	 * Prida domenu
-	 * @param   string  jmeno domeny
-	 * @param   string  kodovani
-	 * @param   bool    aktivavat domenu jako vyhozi
+	 * Adds domain
+	 * @param   string    domain
+	 * @param   string    enconding
+	 * @param   bool      set as default?
 	 */
 	public static function domain($name, $encoding = 'utf-8', $activate = true)
 	{
-		$path = Application::get()->path . 'locales';
+		$path = Application::get()->path . '/locales';
 		bindtextdomain($name, $path);
 		bind_textdomain_codeset($name, $encoding);
 
@@ -124,10 +127,9 @@ class L10n
 	}
 
 
-
 	/**
-	 * Nastavi jazyk
-	 * @param   string  jazyk
+	 * Sets language
+	 * @param   string    language
 	 * @return  bool
 	 */
 	public static function lang($lang)
@@ -141,9 +143,8 @@ class L10n
 	}
 
 
-
 	/**
-	 * Detekuje jazyk podle prohlizecem zaslane hlavicky
+	 * Detects lang by browser headers
 	 * @return  bool
 	 */
 	public static function langByBrowser()
@@ -163,9 +164,8 @@ class L10n
 	}
 
 
-
 	/**
-	 * Nastavi jazyk podle konfigurace
+	 * Detects lang by configuration
 	 * @param   void
 	 */
 	public static function langByConfig()
@@ -174,10 +174,9 @@ class L10n
 	}
 
 
-
 	/**
-	 * Detekuje a nastavi jazyk podle url
-	 * @param   string  jmeno promenne s nazvem jazyka
+	 * Detects lang by url variable
+	 * @param   string    routing variable name
 	 * @return  bool
 	 */
 	public static function langByUrl($variable = 'lang')
@@ -194,11 +193,9 @@ class L10n
 	}
 
 
-
 	/**
-	 * Zjisti, zda je jazyk dostupny/povoleny
-	 * Pokud je seznam prazdny, je automaticky povolen
-	 * @param   string  jazyk
+	 * Is lang allowed?
+	 * @param   string    language
 	 * @return  bool
 	 */
 	public static function isAllowed($lang)
@@ -210,37 +207,29 @@ class L10n
 	}
 
 
-
 }
 
 
-
 /**
- * Prelozi vyraz
- * @param   string  klic k prelozeni
- * @param   string  domena
- * @return  string
+ * Wrapper for L10n::__()
+ * @see L10n::__();
  */
 function __($string, $domain = null)
 {
-	return L10n::__($string, $domain);
+	$args = func_get_args();
+	return call_user_func_array(array('L10n', '__'), $args);
 }
-
 
 
 /**
- * Prelozi vyraz s ohledem na mnozne cisla
- * @param   string  klic k prelozeni - en singular
- * @param   string  klic k prelozeni - en plural
- * @param   int     cislo
- * @param   string  domena
- * @return  string
+ * Wrapper for L10n::__n()
+ * @see L10n::__n();
  */
 function __n($singular, $plural, $count, $domain = null)
 {
-	return L10n::__n($singular, $plural, $count, $domain = null);
+	$args = func_get_args();
+	return call_user_func_array(array('L10n', '__n'), $args);
 }
 
 
-
-L10n::initialize();
+L10n::init();

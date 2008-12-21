@@ -13,10 +13,6 @@
  */
 
 
-/**
- *
- * @subpackage Database
- */
 class DbTableStructure
 {
 
@@ -36,21 +32,57 @@ class DbTableStructure
 		'smallint' => '%i',
 	);
 
+	/** @var DbTableStructure */
+	protected static $self;
+
 	/** @var bool */
-	public static $updated = false;
+	public $updated = false;
 
 	/** @var array */
-	public static $structure = array();
+	public $structure = array();
 
 
-	public static function initialize()
+	/**
+	 * Returns instance
+	 * @param DbTableStructure
+	 */
+	public static function get()
 	{
-		self::$structure = Cache::get('sql', 'tables');
+		if (empty(self::$self))
+			self::$self = new DbTableStructure();
 
-		if (!isset(self::$structure['__tablesList__'])) {
-			self::$structure['__tablesList__'] = db::query('show tables')->fetchPairs();
-			self::$updated = true;
+		return self::$self;
+	}
+
+
+	/**
+	 * Constructor
+	 * @return  void
+	 */
+	public function __construct()
+	{
+		self::$self = & $this;
+		if (class_exists('Application', false))
+			$this->cache = Application::get()->cache;
+		else
+			$this->cache = new Cache();
+
+		$this->structure = $this->cache->read('sql', 'tables');
+		if (!isset($this->structure['__tables__'])) {
+			$this->structure['__tables__'] = db::fetchPairs('show tables');
+			$this->updated = true;
 		}
+	}
+
+
+	/**
+	 * Desctuctor
+	 * @return  void
+	 */
+	public function __destruct()
+	{
+		if ($this->updated)
+			$this->cache->write('sql', 'tables', $this->structure);
 	}
 
 
@@ -60,16 +92,16 @@ class DbTableStructure
 	 * @param   string     column
 	 * @return  string
 	 */
-	public static function getMod($table, $column = null)
+	public function getMod($table, $column = null)
 	{
 		if (empty($column))
 			list($table, $column) = explode('.', $table);
 
-		self::initTable($table);
-		if (empty(self::$structure[$table][$column]))
+		$this->initTable($table);
+		if (empty($this->structure[$table][$column]))
 			throw new Exception("Unknow column '$table.$column'.");
 
-		return self::$structure[$table][$column]['mod'];
+		return $this->structure[$table][$column]['mod'];
 	}
 
 
@@ -80,10 +112,10 @@ class DbTableStructure
 	 */
 	public function getPk($table)
 	{
-		self::initTable($table);
+		$this->initTable($table);
 
 		$pk = array();
-		foreach (self::$structure[$table] as $name => $data) {
+		foreach ($this->structure[$table] as $name => $data) {
 			if ($data['primary'])
 				$pk[$name] = $data['mod'];
 		}
@@ -96,17 +128,28 @@ class DbTableStructure
 
 
 	/**
+	 * Checks whether table exists
+	 * @param   string    table name
+	 * @return  bool
+	 */
+	public function existTable($table)
+	{
+		return in_array(Tools::underscore($table), $this->structure['__tables__']);
+	}
+
+
+	/**
 	 * Fetchs table structure
 	 * @param   string  table name
 	 * @return  void
 	 */
-	private function initTable($table)
+	protected function initTable($table)
 	{
-		if (!empty(self::$structure[$table]))
-			return true;
+		if (!empty($this->structure[$table]))
+			return;
 
-		foreach (db::query("DESCRIBE [$table]")->fetchAll() as $row) {
-			self::$structure[$table][$row->Field] = array();
+		foreach (db::fetchAll("DESCRIBE [$table]") as $row) {
+			$this->structure[$table][$row->Field] = array();
 
 			$type = $row->Type;
 			$length = null;
@@ -115,21 +158,13 @@ class DbTableStructure
 				$length = $match[2];
 			}
 
-			self::$structure[$table][$row->Field]['mod'] = self::$modificators[$type];
-			self::$structure[$table][$row->Field]['length'] = $length;
-			self::$structure[$table][$row->Field]['primary'] = $row->Key === 'PRI';
+			$this->structure[$table][$row->Field]['mod'] = self::$modificators[$type];
+			$this->structure[$table][$row->Field]['length'] = $length;
+			$this->structure[$table][$row->Field]['primary'] = $row->Key === 'PRI';
 		}
 
-		self::$updated = true;
-	}
-
-	public static function existTable($table)
-	{
-		return in_array(Tools::underscore($table), self::$structure['__tablesList__']);
+		$this->updated = true;
 	}
 
 
 }
-
-
-DbTableStructure::initialize();

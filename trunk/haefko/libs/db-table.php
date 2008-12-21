@@ -13,22 +13,27 @@
  */
 
 
-/**
- * Provide interface for fetching data from the db tables
- * @subpackage Database
- */
+require_once dirname(__FILE__) . '/db-table-structure.php';
+
+
 abstract class DbTable extends Object
 {
 
 
+	/** @var DbTableStructure */
+	public static $structure;
+
 	/** @var string */
 	public static $table;
 
-	/** @var array */
-	private static $pk = array();
-
 	/** @var bool */
-	public static $initialized = false;
+	public static $init = false;
+
+	/** @var array */
+	protected static $pk;
+
+
+
 
 	/** @var mixed */
 	private $pkVal;
@@ -44,13 +49,13 @@ abstract class DbTable extends Object
 	 * Initializes defaults values
 	 * @return  void
 	 */
-	public static function initialize()
+	public static function init()
 	{
 		if (empty(self::$table))
 			throw new Exception('Undefined table name.');
 
-		self::$pk = DbTableStructure::getPk(self::$table);
-		self::$initialized = true;
+		self::$pk = self::$structure->getPk(self::$table);
+		self::$init = true;
 	}
 
 
@@ -62,13 +67,13 @@ abstract class DbTable extends Object
 	 */
 	public static function get($pk, $cols = '*')
 	{
-		if (!self::$initialized)
-			self::initialize();
+		if (!self::$init)
+			self::init();
 
-		list($col, $mod) = self::getPK($pk);
+		list($col, $mod) = self::$pk;
 		$cols = is_array($cols) ? implode(', ', $cols) : $cols;
-		return db::query("select $cols from [" . self::$table . "]"
-		               . "where [$col] = $mod limit 1", $pk)->fetch();
+		return db::fetch("select $cols from [" . self::$table . "]"
+		               . "where [$col] = $mod limit 1", $pk);
 	}
 
 
@@ -81,14 +86,16 @@ abstract class DbTable extends Object
 	 */
 	public static function getBy($col, $val, $cols = '*')
 	{
-		if (!self::$initialized)
-			self::initialize();
+		if (!self::$init)
+			self::init();
 
-		$mod = DbTableStructure::getMod(self::$table, $col);
+		$mod = self::$structure->getMod(self::$table, $col);
 		$cols = is_array($cols) ? implode(', ', $cols) : $cols;
-		return db::query("select $cols from [" . self::$table . "]"
-		               . "where [$col] = $mod limit 1", $val)->fetch();
+		return db::fetch("select $cols from [" . self::$table . "]"
+		               . "where [$col] = $mod limit 1", $val);
 	}
+
+
 
 
 	/**
@@ -98,7 +105,7 @@ abstract class DbTable extends Object
 	 */
 	public function __construct($pkVal = null)
 	{
-		self::initialize();
+		self::init();
 		$this->pkVal = $pkVal;
 	}
 
@@ -128,7 +135,7 @@ abstract class DbTable extends Object
 	{
 		if (Tools::startWith($method, 'set')) {
 			$column = Tools::underscore(str_replace('_', '.', Tools::lTrim($method, 'set')));
-			if (empty($this->pkVal) && isset(self::$pk[$column])) {
+			if (self::$pk[0] == $column) {
 			# primary key
 				$this->pkVal = array_shift($args);
 			} else {
@@ -164,8 +171,8 @@ abstract class DbTable extends Object
 		if (empty($this->pkVal)) {
 			db::query('INSERT INTO [' . self::$table . '] %v', $fields);
 		} else {
-			list($col, $mod) = self::getPK($this->pkVal);
-			$this->pkVal = db::query('UPDATE [' . self::$table . '] SET %a', $fields, " WHERE [$col] = $mod", $this->pkVal);
+			list($col, $mod) = self::$pk;
+			db::query('UPDATE [' . self::$table . '] SET %a', $fields, " WHERE [$col] = $mod", $this->pkVal);
 		}
 
 		$this->fields = array();
@@ -185,36 +192,13 @@ abstract class DbTable extends Object
 
 		$parts = explode('.', $column);
 		if (count($parts) > 1)
-			return DbTableStructure::getMod($parts[0], $parts[1]);
+			return self::$structure->getMod($parts[0], $parts[1]);
 		else
-			return DbTableStructure::getMod(self::$table, $parts[0]);
-	}
-
-
-	/**
-	 * Returns the primary column
-	 * If table has more primary keys, then selects the right by the types of variable $pk
-	 * @param   mixed       primary key value
-	 * @throws  Exception
-	 * @return  array       column name, modificator
-	 */
-	private static function getPK($pk)
-	{
-		if (empty(self::$pk))
-			throw new Exception('Table ' . self::$talbe . ' has not the primary key.');
-
-		reset(self::$pk);
-
-		if (count(self::$pk) != 1) {
-			$m = db::getConnection()->getType($pk);
-			foreach (self::$pk as $column => $mod) {
-				if ($mod == $m)
-					return array($column, $m);
-			}
-		}
-
-		return array(key(self::$pk), current(self::$pk));
+			return self::$structure->getMod(self::$table, $parts[0]);
 	}
 
 
 }
+
+
+DbTable::$structure = DbTableStructure::get();

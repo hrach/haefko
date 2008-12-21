@@ -146,7 +146,7 @@ class Session
 
 
 	/**
-	 * Init default configuration
+	 * Inits default configuration
 	 * @return  void
 	 */
 	public static function init()
@@ -163,7 +163,7 @@ class Session
 
 
 	/**
-	 * Init configurations from Config
+	 * Inits configurations from Config
 	 * @return  void
 	 */
 	public static function initConfig()

@@ -142,6 +142,19 @@ class Db
 
 	/**
 	 * Wrapper for active connection
+	 * @see     DbConnection::fetchPairs()
+	 * @param   string    sql query
+	 * @return  mixed
+	 */
+	public static function fetchPairs($sql)
+	{
+		$args = func_get_args();
+		return call_user_func_array(array(self::getConnection(), 'fetchPairs'), $args);
+	}
+
+
+	/**
+	 * Wrapper for active connection
 	 * @see     DbConnection::affectedRows()
 	 * @return  int
 	 */

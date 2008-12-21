@@ -45,6 +45,9 @@ class Application extends Object
 	 */
 	public static function get()
 	{
+		if (empty(self::$self))
+			throw new Exception ('Application hasn\'t been alerady created.');
+
 		return self::$self;
 	}
 
@@ -59,6 +62,9 @@ class Application extends Object
 
 	/** @var Router */
 	private $router;
+
+	/** @var Cache */
+	private $cache;
 
 	/** @var CustomController */
 	private $controller;
@@ -79,10 +85,11 @@ class Application extends Object
 		spl_autoload_register(array($this, 'autoloadHandler'));
 		set_exception_handler(array($this, 'exceptionHandler'));
 
+		$this->router = new Router();
+		$this->cache = new Cache();
+
 		if ($config !== false)
 			$this->loadConfig($this->path . $config);
-
-		$this->router = new Router();
 	}
 
 
@@ -123,9 +130,36 @@ class Application extends Object
 
 		Config::multiWrite(Config::parseFile($file));
 
-		$this->setDebugMode();
+		switch (Config::read('Core.debug')) {
+		case 0:
+			Cache::$lifeTime = 60*60*24; # one day
+			ini_set('log_errors', true);
+			ini_set('display_errors', false);
+			ini_set('error_reporting', E_ERROR | E_WARNING | E_PARSE);
+			break;
+		case 1:
+			Cache::$lifeTime = 60*60; # one hour
+			ini_set('log_errors', false);
+			ini_set('display_errors', true);
+			ini_set('error_reporting', E_ERROR | E_PARSE);
+			break;
+		case 2:
+			Cache::$lifeTime = 60*5; # five minutes
+			ini_set('log_errors', false);
+			ini_set('display_errors', true);
+			ini_set('error_reporting', E_ALL);
+		case 3:
+			Cache::$lifeTime = 30; # thitry seconds
+			break;
+		}
+
+		ini_set('error_log', Config::read('Debug.log', $this->path . '/temp/errors.log'));
 		Cache::$store = Config::read('Cache.store', $this->path . '/temp/cache/');
-		Cache::$enabled = true;
+
+		if (Config::read('Cache.enabled', true))
+			Cache::$enabled = true;
+		else
+			Cache::$enabled = false;
 	}
 
 
@@ -297,7 +331,7 @@ class Application extends Object
 		$ci_class = strtolower($class);
 		if (in_array($ci_class, $libs))
 			$this->loadCore($class, false);
-		elseif (class_exists('DbTableStructure', false) && DbTableStructure::existTable($class))
+		elseif (class_exists('DbTableStructure', false) && DbTableStructure::get()->existTable($class))
 			eval("class $class extends DbTable {} $class::\$table = '" . Tools::underscore($class) . "';");
 		elseif (Tools::endWith($ci_class, 'controller'))
 			$this->loadClass('controller', $class);
@@ -306,26 +340,6 @@ class Application extends Object
 
 		if (method_exists($class, 'initConfig'))
 			call_user_func(array($class, 'initConfig'));
-	}
-
-
-	/**
-	 * Sets debug configuration
-	 * @return  void
-	 */
-	private function setDebugMode()
-	{
-		ini_set('error_log', Config::read('Core.log', "{$this->path}/temp/errors.log"));
-
-		if (Config::read('Core.debug') > 0) {
-			ini_set('display_errors', true);
-			ini_set('error_reporting', E_ALL);
-			ini_set('log_errors', false);
-		} else {
-			ini_set('display_errors', false);
-			ini_set('error_reporting', E_ERROR | E_WARNING | E_PARSE);
-			ini_set('log_errors', true);
-		}
 	}
 
 
@@ -360,12 +374,22 @@ class Application extends Object
 
 
 	/**
-	 * Returns framework core path
-	 * @return  string
+	 * Returns Router
+	 * @return  Router
 	 */
 	public function getRouter()
 	{
 		return $this->router;
+	}
+
+
+	/**
+	 * Returns Cache
+	 * @return  Cache
+	 */
+	public function getCache()
+	{
+		return $this->cache;
 	}
 
 
