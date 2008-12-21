@@ -12,7 +12,8 @@ $application = new Application();
 
 
 # routing
-# Router::connect();
+# $router = $application->getRouter();
+# $router->connect(...);
 
 
 $application->run();
