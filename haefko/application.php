@@ -137,19 +137,19 @@ class Application extends Object
 			Cache::$lifeTime = 60*60*24; # one day
 			ini_set('log_errors', true);
 			ini_set('display_errors', false);
-			ini_set('error_reporting', E_ERROR | E_WARNING | E_PARSE);
+			error_reporting(E_ERROR | E_WARNING | E_PARSE);
 			break;
 		case 1:
 			Cache::$lifeTime = 60*60; # one hour
 			ini_set('log_errors', false);
 			ini_set('display_errors', true);
-			ini_set('error_reporting', E_ERROR | E_PARSE);
+			error_reporting(E_ERROR | E_PARSE);
 			break;
 		case 2:
 			Cache::$lifeTime = 60*5; # five minutes
 			ini_set('log_errors', false);
 			ini_set('display_errors', true);
-			ini_set('error_reporting', E_ALL);
+			error_reporting(E_ALL);
 		case 3:
 			Cache::$lifeTime = 30; # thirty seconds
 			break;

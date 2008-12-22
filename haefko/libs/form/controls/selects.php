@@ -81,7 +81,7 @@ class FormSelectControl extends FormControl
 		$el = Html::el('option', $value);
 		$el->value = $name;
 
-		if ($this->getHtmlValue() === $name)
+		if ($this->getHtmlValue() == $name)
 			$el->selected = 'selected';
 
 		return $el->render();
