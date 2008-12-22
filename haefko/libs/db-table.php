@@ -70,7 +70,8 @@ abstract class DbTable extends Object
 		if (!self::$init)
 			self::init();
 
-		list($col, $mod) = self::$pk;
+		$col = key(self::$pk);
+		$mod = self::$pk[$col];
 		$cols = is_array($cols) ? implode(', ', $cols) : $cols;
 		return db::fetch("select $cols from [" . self::$table . "]"
 		               . "where [$col] = $mod limit 1", $pk);
