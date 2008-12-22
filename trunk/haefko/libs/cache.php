@@ -70,7 +70,7 @@ class Cache extends Object
 
 		$file = $this->getFilename($group, $id);
 
-		if ($fp = fopen($file, 'xb')) {
+		if ($fp = fopen($file, 'w+b')) {
 			if (flock($fp, LOCK_EX))
 				fwrite($fp, $data);
 
