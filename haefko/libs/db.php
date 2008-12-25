@@ -172,6 +172,9 @@ class Db
 	 */
 	public static function debug($sql, $time)
 	{
+		if (!class_exists('Config', false) || !class_exists('Debug', false))
+			return false;
+
 		if (Config::read('Core.debug') < 3 || Config::read('Db.debug', 1) == 0)
 			return false;
 

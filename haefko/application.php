@@ -132,29 +132,36 @@ class Application extends Object
 		Cache::$store = Config::read('Cache.store', $this->path . '/temp/cache/');
 		ini_set('error_log', Config::read('Debug.log', $this->path . '/temp/errors.log'));
 
-		switch (Config::read('Core.debug')) {
+		switch (Config::read('Core.debug', 0)) {
 		case 0:
+			$this->loadCore('debug');
 			Cache::$lifeTime = 60*60*24; # one day
 			ini_set('log_errors', true);
 			ini_set('display_errors', false);
 			error_reporting(E_ERROR | E_WARNING | E_PARSE);
 			break;
 		case 1:
+			$this->loadCore('debug');
 			Cache::$lifeTime = 60*60; # one hour
 			ini_set('log_errors', false);
 			ini_set('display_errors', true);
 			error_reporting(E_ERROR | E_PARSE);
 			break;
 		case 2:
+			$this->loadCore('debug');
 			Cache::$lifeTime = 60*5; # five minutes
 			ini_set('log_errors', false);
 			ini_set('display_errors', true);
 			error_reporting(E_ALL);
-		case 3:
+			break;
+		default: # other levels
+			$this->loadCore('debug');
 			Cache::$lifeTime = 30; # thirty seconds
+			ini_set('log_errors', false);
+			ini_set('display_errors', true);
+			error_reporting(E_ALL);
 			break;
 		}
-
 
 		if (Config::read('Cache.enabled', true))
 			Cache::$enabled = true;
@@ -177,7 +184,6 @@ class Application extends Object
 
 		if (!file_exists($file))
 			throw new Exception('Missing core file \'' . Tools::relativePath($file) . '\'.');
-
 		require_once $file;
 	}
 
@@ -217,7 +223,7 @@ class Application extends Object
 
 
 		$file = call_user_func_array(array('Inflector', "{$type}File"), array($class));
-		$this->loadFile($file, true);
+		$this->loadFile($file);
 
 		if (!class_exists($class, false))
 			throw new ApplicationException('missing-' . $type, $class);
@@ -251,12 +257,7 @@ class Application extends Object
 	 */
 	public function run()
 	{
-		try {
-			$this->loadClass('controller', 'AppController');
-		} catch (ApplicationException $e) {
-			eval('class AppController extends Controller {}');
-		}
-
+		$this->loadAppController();
 		if ($this->router->routed === false)
 			throw new ApplicationException('routing');
 
@@ -281,6 +282,7 @@ class Application extends Object
 			# render application layout
 			if ($exception instanceof ApplicationException || Config::read('Core.debug') == 0) {
 
+				$this->loadAppController();
 				$this->controller = new AppController();
 
 				if (Config::read('Core.debug') == 0) {
@@ -390,6 +392,23 @@ class Application extends Object
 	public function getCache()
 	{
 		return $this->cache;
+	}
+
+
+	/**
+	 * Loads or creates AppController
+	 * @return  void
+	 */
+	private function loadAppController()
+	{
+		if (class_exists('AppController', false))
+			return true;
+
+		try {
+			$this->loadClass('controller', 'AppController');
+		} catch (ApplicationException $e) {
+			eval('class AppController extends Controller {}');
+		}
 	}
 
 

@@ -175,7 +175,9 @@ class DbConnection extends Object
 		$cond = array();
 		while (($frag = array_shift($args)) !== null) {
 
-			$frag = preg_replace("#\[(.+)\]#Ue", '$this->escapeColumn("\\1")', $frag);
+			if (is_string($frag))
+				$frag = preg_replace("#\[(.+)\]#Ue", '$this->escapeColumn("\\1")', $frag);
+
 			if (is_string($frag) && preg_match_all('#(%(?:r|c|s|i|f|b|d|t|dt|a|l|v|if|end))(?!\w)#', $frag, $matches, PREG_OFFSET_CAPTURE + PREG_SET_ORDER)) {
 				$temp = '';
 				$start = 0;

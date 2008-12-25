@@ -94,36 +94,6 @@ class Debug
 
 
 	/**
-	 * Prints or sends to firebug (in ajax request) debug message/variable content
-	 * @param   mixed     varbiable
-	 * @return  void
-	 */
-	public static function debug($var)
-	{
-		if (Config::read('Core.debug') < 2)
-			return;
-
-		if (is_array($var)) {
-			$array = 'array(';
-			if (array_keys($var) == range(0, count($var) - 1)) {
-				foreach ($var as $val)
-					$array .= "'$val', ";
-			} else {
-				foreach ($var as $key => $val)
-					$array .= "'$key' => '$val', ";
-			}
-			$array .= ');';
-			$var = $array;
-		}
-
-		if ((self::$isFirebug && Config::read('Core.logTo', 'toolbar') == 'firebug') || Http::isAjax())
-			self::fireSend($var);
-		else
-			echo $var;
-	}
-
-
-	/**
 	 * Debugs to debug toolbar / firebug
 	 * @param   string  message
 	 */
@@ -205,15 +175,4 @@ function dump()
 {
 	$args = func_get_args();
 	return call_user_func_array(array('Debug', 'dump'), $args);
-}
-
-
-/**
- * Wrapper for Debug::debug()
- * @see Debug::debug();
- */
-function debug()
-{
-	$args = func_get_args();
-	return call_user_func_array(array('Debug', 'debug'), $args);
 }
