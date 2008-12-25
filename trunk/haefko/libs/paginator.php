@@ -121,7 +121,7 @@ class Paginator extends Object
 
 			# close to beginning; only hide later pages
 			if ($this->page < ($round * 2) + 4 && $this->page < $round + 4) {
-				for ($counter = 1; $counter < ($round * 2) + 4; $counter++)
+				for ($counter = 1; $counter <= max(2 * $round, $this->page + 1 + $round); $counter++)
 					$render .= $this->listLink($mask, $counter, $this->page == $counter);
 
 				$render .= '<li class="hellip">&hellip;</li>';
@@ -134,7 +134,7 @@ class Paginator extends Object
 				$render .= $this->listLink($mask, 2);
 				$render .= '<li class="hellip">&hellip;</li>';
 
-				for ($counter = $this->pages - ($round * 2) - 2; $counter <= $this->pages; $counter++)
+				for ($counter = min($this->pages - 2 * $round + 1, $this->page - $round); $counter <= $this->pages; $counter++)
 					$render .= $this->listLink($mask, $counter, $this->page == $counter);
 
 			# in middle; hide some front and some back

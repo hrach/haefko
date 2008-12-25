@@ -35,8 +35,6 @@ class ApplicationException extends Exception
 		if (!in_array($error, $errors))
 			throw new Exception("Unsupported ApplicationException type '$error'.");
 
-		Application::$error = true;
-
 		$this->error = $error;
 		$this->variable = $variable;
 		parent::__construct("$error: $variable");

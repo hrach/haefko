@@ -24,7 +24,7 @@ abstract class Controller extends Object
 	protected $application;
 
 	/** @var View */
-	protected $view;
+	protected $view = 'View';
 
 	/** @var string */
 	private $urlPrefix;
@@ -49,7 +49,7 @@ abstract class Controller extends Object
 		$this->ajax = Http::isAjax();
 
 		# load view
-		$class = 'View';
+		$class = $this->view;
 		if (!empty($this->application->router->service) && !Application::$error)
 			$class = Tools::camelize($this->application->router->service . 'View');
 
@@ -114,28 +114,15 @@ abstract class Controller extends Object
 	}
 
 
-	/**
-	 * Metoda init je zavolana vzdy pred zavolanim action
+	/**#@+
+	 * Empty callbacks
 	 */
-	public function init()
-	{}
-
-
-
-	/**
-	 * Metoda renderInit je zavolana vzdy pred vyrenderovanim sablony, po zavolani action
-	 */
-	public function prepareView()
-	{}
-
-
-
-	/**
-	 * Metoda prepareLayout je zavolana vzdy pred vyrenderovanim layout sablony
-	 */
-	public function prepareLayout()
-	{}
-
+	public function init() {}
+	public function beforeAction() {}
+	public function afterAction() {}
+	public function prepareView() {}
+	public function prepareLayout() {}
+	/**#@-*/
 
 	/**
 	 * Jumps out of application and display error $view
@@ -212,7 +199,7 @@ abstract class Controller extends Object
 
 		$exists = method_exists(get_class($this), $method);
 
-		if ($exists && $this->view->getView() == '')
+		if ($exists && $this->view->getView() == '' && $this->view->getView() !== false)
 			$this->view->view($this->application->router->action);
 
 		if (!$exists && !Application::$error)
@@ -222,7 +209,9 @@ abstract class Controller extends Object
 			if ($exists) {
 				$args = $this->application->router->getArgs();
 				unset($args['controller'], $args['module'], $args['action'], $args['service']);
+				call_user_func(array($this, 'beforeAction'));
 				call_user_func_array(array($this, $method), $args);
+				call_user_func(array($this, 'afterAction'));
 			}
 		} catch (ApplicationError $e) {
 			$this->view->view($e->view);

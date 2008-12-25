@@ -170,7 +170,7 @@ abstract class DbTable extends Object
 		}
 
 		if (empty($this->pkVal)) {
-			db::query('INSERT INTO [' . self::$table . '] %v', $fields);
+			$this->pkVal = db::query('INSERT INTO [' . self::$table . '] %v', $fields);
 		} else {
 			$col = key(self::$pk);
 			$mod = self::$pk[$col];
