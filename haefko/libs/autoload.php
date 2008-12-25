@@ -12,20 +12,21 @@
  */
 
 
-class Autoload
+require_once dirname(__FILE__) . '/object.php';
+require_once dirname(__FILE__) . '/cache.php';
+
+
+class Autoload extends Object
 {
 
 
 	/** @var array Allowed extension */
 	public $exts = array('php');
 
-	/** @var string Cache file */
-	public $cache = 'autoload.dat';
-
-	/** @var bool Automatic rebuild when missing class? */
+	/** @var bool */
 	public $autoRebuild = false;
 
-	/** @var bool Can rebuild? */
+	/** @var bool */
 	public $rebuild = false;
 
 	/** @var array */
@@ -37,14 +38,23 @@ class Autoload
 	/** @var array */
 	private $dirs = array();
 
+	/** @var Cache */
+	private $cache;
+
 
 	/**
 	 * Contructor
 	 * Registers autoload
+	 * @param   string|Cache    cache path or Cache instance
 	 * @return  void
 	 */
-	public function __construct()
+	public function __construct($store = './')
 	{
+		if ($store instanceof Cache)
+			$this->cache = $store;
+		else
+			$this->cache = new Cache(true, $store, false);
+
 		spl_autoload_register(array($this, 'autoloadHandler'));
 	}
 
@@ -89,11 +99,7 @@ class Autoload
 		$this->findClasses();
 		$this->rebuild = true;
 
-		$cache = dirname($this->cache);
-		if (!is_dir($cache))
-			throw new Exception("Cache directory '$cache' doesn't exists.");
-
-		file_put_contents($this->cache, serialize($this->classes));
+		$this->cache->write('autoload', 'classes', $this->classes);
 		return $this;
 	}
 
@@ -104,12 +110,21 @@ class Autoload
 	 */
 	public function load()
 	{
-		if (file_exists($this->cache))
-			$this->classes = unserialize(file_get_contents($this->cache));
-		else
+		$this->classes = $this->cache->read('autoload', 'classes', false);
+		if ($this->classes === null)
 			$this->rebuild();
 
 		return $this;
+	}
+
+
+	/**
+	 * Returns list of classes
+	 * @return  array
+	 */
+	public function getClasses()
+	{
+		return $this->classes;
 	}
 
 

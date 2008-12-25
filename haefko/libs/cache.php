@@ -12,18 +12,36 @@
  */
 
 
+require_once dirname(__FILE__) . '/object.php';
+
+
 class Cache extends Object
 {
 
 
 	/** @var bool */
-	public static $enabled = true;
+	public $enabled;
 
 	/** @var string */
-	public static $store = '/temp/cache';
+	public $store;
 
 	/** @var int */
-	public static $lifeTime = 18000;    # 5 minutes
+	public $lifeTime;
+
+
+	/**
+	 * Constructor
+	 * @param   bool      enabled?
+	 * @param   string    cache path
+	 * @param   int|bool  lifeTime - default 5 minutes
+	 * @return  void
+	 */
+	public function __construct($enabled = true, $store = './', $lifeTime = 18000)
+	{
+		$this->enabled = $enabled;
+		$this->store = $store;
+		$this->lifeTime = $lifeTime;
+	}
 
 
 	/**
@@ -66,7 +84,7 @@ class Cache extends Object
 	protected function __write($group, $id, $data, $lifeTime = null)
 	{
 		if (empty($expires))
-			$lifeTime = self::$lifeTime;
+			$lifeTime = $this->lifeTime;
 
 		$file = $this->getFilename($group, $id);
 
@@ -75,7 +93,8 @@ class Cache extends Object
 				fwrite($fp, $data);
 
 			fclose($fp);
-			touch($file, time() + $lifeTime);
+			if ($lifeTime !== false)
+				touch($file, time() + $lifeTime);
 		}
 	}
 
@@ -103,7 +122,7 @@ class Cache extends Object
 	{
 		$file = $this->getFilename($group, $id);
 
-		if (self::$enabled && file_exists($file)) {
+		if ($this->enabled && file_exists($file)) {
 			if (filemtime($file) > time())
 				return true;
 			else
@@ -122,7 +141,7 @@ class Cache extends Object
 	 */
 	protected function getFilename($group, $id)
 	{
-		return self::$store . $group . '_' . md5($id);
+		return $this->store . $group . '_' . md5($id);
 	}
 
 

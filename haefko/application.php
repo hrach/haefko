@@ -80,16 +80,19 @@ class Application extends Object
 	{
 		self::$self = & $this;
 
+		header('X-Powered-By: Haefko/0.8');
 		$this->path = rtrim(dirname($_SERVER['SCRIPT_FILENAME']) . $path, '/');
 		$this->corePath = rtrim(dirname(__FILE__), '/');
 		spl_autoload_register(array($this, 'autoloadHandler'));
 		set_exception_handler(array($this, 'exceptionHandler'));
 
-		$this->router = new Router();
-		$this->cache = new Cache();
 
 		if ($config !== false)
 			$this->loadConfig($this->path . $config);
+
+
+		$this->router = new Router();
+		$this->cache = new Cache(true, Config::read('Cache.store', $this->path . '/temp/cache/'));
 	}
 
 
@@ -129,34 +132,33 @@ class Application extends Object
 			throw new Exception('Missing configuration file ' . Tools::relativePath($file) . '.');
 
 		Config::multiWrite(Config::parseFile($file));
-		Cache::$store = Config::read('Cache.store', $this->path . '/temp/cache/');
 		ini_set('error_log', Config::read('Debug.log', $this->path . '/temp/errors.log'));
 
 		switch (Config::read('Core.debug', 0)) {
 		case 0:
 			$this->loadCore('debug');
-			Cache::$lifeTime = 60*60*24; # one day
+			$this->cache->lifeTime = 60*60*24; # one day
 			ini_set('log_errors', true);
 			ini_set('display_errors', false);
 			error_reporting(E_ERROR | E_WARNING | E_PARSE);
 			break;
 		case 1:
 			$this->loadCore('debug');
-			Cache::$lifeTime = 60*60; # one hour
+			$this->cache->lifeTime = 60*60; # one hour
 			ini_set('log_errors', false);
 			ini_set('display_errors', true);
 			error_reporting(E_ERROR | E_PARSE);
 			break;
 		case 2:
 			$this->loadCore('debug');
-			Cache::$lifeTime = 60*5; # five minutes
+			$this->cache->lifeTime = 60*5; # five minutes
 			ini_set('log_errors', false);
 			ini_set('display_errors', true);
 			error_reporting(E_ALL);
 			break;
 		default: # other levels
 			$this->loadCore('debug');
-			Cache::$lifeTime = 30; # thirty seconds
+			$this->cache->lifeTime = 30; # thirty seconds
 			ini_set('log_errors', false);
 			ini_set('display_errors', true);
 			error_reporting(E_ALL);
@@ -164,9 +166,9 @@ class Application extends Object
 		}
 
 		if (Config::read('Cache.enabled', true))
-			Cache::$enabled = true;
+			$this->cache->enabled = true;
 		else
-			Cache::$enabled = false;
+			$this->cache->enabled = false;
 	}
 
 
@@ -237,9 +239,8 @@ class Application extends Object
 	 */
 	public function autoload($dirs = array())
 	{
-		$autoload = new Autoload();
+		$autoload = new Autoload($this->cache);
 		$autoload->exts = Config::read('Autoload.exts', $autoload->exts);
-		$autoload->cache = Config::read('Autoload.cache', "{$this->path}/temp/cache/{$autoload->cache}");
 		$autoload->autoRebuild = Config::read('Core.debug') > 1;
 
 		array_unshift($dirs, "{$this->path}/extends/");

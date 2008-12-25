@@ -54,19 +54,22 @@ class ApplicationError extends Exception
 
 	/**
 	 * Constructor
-	 * @param   string  error view
-	 * @param   string  is view debugable?
+	 * @param   string    error view
+	 * @param   string    is view debugable?
+	 * @param   boool     sent automaticly error headers?
 	 * @return  void
 	 */
-	public function __construct($view, $debug)
+	public function __construct($view, $debug, $autoheaders = true)
 	{
 		Application::$error = true;
 
 		if ($debug === true && Config::read('Core.debug') == 0)
-			$this->view = '404';
-		else
-			$this->view = $view;
+			$view = '404';
 
+		if ($autoheaders)
+			Http::headerError(404);
+
+		$this->view = $view;
 		parent::__construct("Application error: $view.");
 	}
 
