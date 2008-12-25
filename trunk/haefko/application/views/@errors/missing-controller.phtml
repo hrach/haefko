@@ -19,16 +19,12 @@
 ?>
 <div class="error">
 	<h1>ERROR: Missing controller class</h1>
-	<p>Create missing controller <code><?= $variable ?></code> by skeleton:</p>
-<pre><code>&lt;?php
-
-class <?= $variable ?> extends AppController
+	<p>Create missing controller <code><?= $variable ?></code>. Use this basic skeleton:
+<pre><code class="php">class <?= $variable ?> extends AppController
 {
 	public function <?= $application->router->action ?>Action()
 	{
 		// váš kód
 	}
-}
-
-?&gt;</code></pre>
+}</code></pre></p>
 </div>

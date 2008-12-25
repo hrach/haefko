@@ -128,11 +128,12 @@ abstract class Controller extends Object
 	 * Jumps out of application and display error $view
 	 * @param   string    error view
 	 * @param   bool      is error page only for debug mode?
+	 * @param   boool     sent automaticly error headers?
 	 * @return  void
 	 */
-	public function error($view = '404', $debug = false)
+	public function error($view = '404', $debug = false, $autoheaders = true)
 	{
-		throw new ApplicationError($view, $debug);
+		throw new ApplicationError($view, $debug, $autoheaders);
 	}
 
 
