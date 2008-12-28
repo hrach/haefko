@@ -3,6 +3,7 @@
 /**
  * Haefko - your php5 framework
  *
+ * @name 
  * @author      Jan Skrasek
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.programujte.com
