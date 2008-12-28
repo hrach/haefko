@@ -151,9 +151,6 @@ class RssItem extends Object
 	/** @var string RssItem */
 	public $date;
 
-	/** @var string RssItem */
-	public $source;
-
 	/** @var View */
 	protected $view;
 
@@ -179,38 +176,36 @@ class RssItem extends Object
 	 */
 	public function render()
 	{
-		echo "\t<item>\n";
+		$render = "\t<item>\n";
 
 		if (!empty($this->title))
-			echo "\t\t<title>", htmlspecialchars(strip_tags($this->title)), "</title>\n";
+			$render .= "\t\t<title>" . htmlspecialchars(strip_tags($this->title)) . "</title>\n";
 
 		if (!empty($this->link))
-			echo "\t\t<link>", $this->controller->url($this->link, null, true), "</link>\n";
+			$render .= "\t\t<link>" . $this->controller->url($this->link, null, true) . "</link>\n";
 
 		if (!empty($this->guid))
-			echo "\t\t<guid>", $this->controller->url($this->guid, null, true), "</guid>\n";
+			$render .= "\t\t<guid>" . $this->controller->url($this->guid, null, true) . "</guid>\n";
 		elseif (!empty($this->link))
-			echo "\t\t<guid>", $this->controller->url($this->link, null, true), "</guid>\n";
+			$render .= "\t\t<guid>" . $this->controller->url($this->link, null, true) . "</guid>\n";
 
 		if (!empty($this->description))
-			echo "\t\t<description><![CDATA[", $this->description, "]]></description>\n";
+			$render .= "\t\t<description><![CDATA[" . $this->description . "]]></description>\n";
 
 		if (!empty($this->author))
-			echo "\t\t<author>", htmlspecialchars($this->author), "</author>\n";
+			$render .= "\t\t<author>" . htmlspecialchars($this->author) . "</author>\n";
 
 		if (!empty($this->category))
-			echo "\t\t<category>", htmlspecialchars($this->category), "</category>\n";
+			$render .= "\t\t<category>" . htmlspecialchars($this->category) . "</category>\n";
 
 		if (!empty($this->comments))
-			echo "\t\t<comments>", $this->controller->url($this->comments, null, true), "</comments>\n";
+			$render .= "\t\t<comments>" . $this->controller->url($this->comments, null, true) . "</comments>\n";
 
 		if (!empty($this->date))
-			echo "\t\t<pubDate>", $this->view->date(strtotime($this->date)), "</pubDate>\n";
+			$render .= "\t\t<pubDate>" . $this->view->date(strtotime($this->date)) . "</pubDate>\n";
 
-		if (!empty($this->source))
-			echo "\t\t<source>", $this->source, "</source>\n";
-
-		echo "\t</item>\n";
+		$render .= "\t</item>\n";
+		return $render;
 	}
 
 

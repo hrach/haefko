@@ -65,7 +65,7 @@ abstract class Controller extends Object
 	 * @param   string    section name (db|)
 	 * @return  void
 	 */
-	public function initialize($section)
+	public function load($section)
 	{
 		switch (strtolower($section)) {
 			case 'db':
@@ -127,12 +127,12 @@ abstract class Controller extends Object
 	 * Jumps out of application and display error $view
 	 * @param   string    error view
 	 * @param   bool      is error page only for debug mode?
-	 * @param   boool     sent automaticly error headers?
+	 * @param   int|null  error code
 	 * @return  void
 	 */
-	public function error($view = '404', $debug = false, $autoheaders = true)
+	public function error($view = '404', $debug = false, $errorCode = 404)
 	{
-		throw new ApplicationError($view, $debug, $autoheaders);
+		throw new ApplicationError($view, $debug, $errorCode);
 	}
 
 

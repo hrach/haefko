@@ -22,7 +22,7 @@
 	<h1>ERROR: No routing match</h1>
 	<p>Check URL and routing for keying mistakes.</p>
 	<p>Basic routing suggestion: <pre><code class="php">$router = $application->getRouter();
-$router->defaults(array('controller' => 'Default'));
+$router->defaults(array('controller' => 'default'));
 $router->connect('/');
 $router->connect('/<:controller>');
 $router->connect('/<:controller>/<:action>', null, true);
