@@ -93,7 +93,7 @@ class Paginator extends Object
 	public function render($mask, $options = array())
 	{
 		$options = array_merge(array(
-			'round' => 3,
+			'round' => 2,
 			'prev' => '&laquo; ' . __('Previous'),
 			'next' => __('Next') . ' &raquo;'
 		), $options);

@@ -277,6 +277,16 @@ class Application extends Object
 	 */
 	public function exceptionHandler(Exception $exception)
 	{
+		# ajax support
+		if ($this->controller->isAjax) {
+			if (Config::read('Core.debug') == 0)
+				echo json_encode(array('response' => 'Internal server error.'));
+			else
+				echo json_encode(array('response' => $exception->getMessage()));
+
+			exit;
+		}
+
 		try {
 
 			self::$error = true;
