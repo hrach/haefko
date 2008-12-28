@@ -7,7 +7,7 @@ require './../haefko/application.php';
 $application = new Application();
 
 
-# activate utoload for "/app/extends"
+# activate autoload for "/app/extends"
 # $application->autoload();
 
 
