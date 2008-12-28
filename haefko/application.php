@@ -279,7 +279,7 @@ class Application extends Object
 	public function exceptionHandler(Exception $exception)
 	{
 		# ajax support
-		if ($this->controller->isAjax) {
+		if (isset($this->contorller) && $this->controller->isAjax) {
 			if (Config::read('Core.debug') == 0)
 				echo json_encode(array('response' => 'Internal server error.'));
 			else
@@ -351,9 +351,6 @@ class Application extends Object
 			$this->loadClass('controller', $class);
 		elseif (Tools::endWith($ci_class, 'helper'))
 			$this->loadClass('helper', $class);
-
-		if (method_exists($class, 'initConfig'))
-			call_user_func(array($class, 'initConfig'));
 	}
 
 

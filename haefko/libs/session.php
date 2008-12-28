@@ -158,6 +158,9 @@ class Session
 		self::$crossDomain = false;
 		self::$secure = false;
 
+		if (class_exists('Config', false))
+			self::initConfig();
+
 		self::writeConfig();
 	}
 
@@ -174,8 +177,6 @@ class Session
 		self::$domain = Config::read('Session.domain', self::$domain);
 		self::$crossDomain = Config::read('Session.crossDomain', self::$crossDomain);
 		self::$secure = Config::read('Session.secure', self::$secure);
-
-		self::writeConfig();
 	}
 
 

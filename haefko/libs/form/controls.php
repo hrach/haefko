@@ -237,6 +237,17 @@ abstract class FormControl extends Object
 
 
 	/**
+	 * Adds error
+	 * @param   string    error text
+	 * @return  void
+	 */
+	public function addError($text)
+	{
+		$this->errors[] = $text;
+	}
+
+
+	/**
 	 * Renders html error label(s)
 	 * @return  string
 	 */
