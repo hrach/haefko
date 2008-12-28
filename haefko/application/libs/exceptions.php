@@ -59,7 +59,7 @@ class ApplicationError extends Exception
 	 * @param   int|null  error code
 	 * @return  void
 	 */
-	public function __construct($view, $debug, $erroCode = 404)
+	public function __construct($view, $debug, $errorCode = 404)
 	{
 		Application::$error = true;
 
@@ -67,7 +67,7 @@ class ApplicationError extends Exception
 			$view = '404';
 
 		if ($errorCode !== null)
-			Http::headerError(errorCode);
+			Http::headerError($errorCode);
 
 		$this->view = $view;
 		parent::__construct("Application error: $view.");
