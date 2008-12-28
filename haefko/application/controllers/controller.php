@@ -18,13 +18,13 @@ abstract class Controller extends Object
 
 
 	/** @var bool Ajax request? */
-	public $ajax = false;
+	public $isAjax = false;
 
 	/** @var Application */
-	protected $application;
+	private $application;
 
 	/** @var View */
-	protected $view = 'View';
+	private $view;
 
 	/** @var string */
 	private $urlPrefix;
@@ -43,20 +43,19 @@ abstract class Controller extends Object
 	 * Constructor
 	 * @return  void
 	 */
-	public function __construct()
+	public function __construct($class = 'View')
 	{
 		$this->application = Application::get();
-		$this->ajax = Http::isAjax();
+		$this->isAjax = Http::isAjax();
 
 		# load view
-		$class = $this->view;
 		if (!empty($this->application->router->service) && !Application::$error)
 			$class = Tools::camelize($this->application->router->service . 'View');
 
 		$this->application->loadFile('views/' . Tools::dash($class) . '.php');
 		$this->view = new $class($this);
 
-		if ($this->ajax)
+		if ($this->isAjax)
 			$this->view->layout(false);
 	}
 
@@ -193,23 +192,45 @@ abstract class Controller extends Object
 		call_user_func(array($this, 'init'));
 		$method = Tools::camelize($this->application->router->action);
 
-		if ($this->ajax && method_exists(get_class($this), $method . 'AjaxAction'))
-			$method .= 'AjaxAction';
-		else
-			$method .= 'Action';
-
-		$exists = method_exists(get_class($this), $method);
-
-		if ($exists && $this->view->getView() == '' && $this->view->getView() !== false)
-			$this->view->view($this->application->router->action);
-
-		if (!$exists && !Application::$error)
-			throw new ApplicationException('missing-method', $method);
 
 		try {
-			if ($exists) {
+			# ajax call
+			if ($this->isAjax && method_exists(get_class($this), $method . 'AjaxAction')) {
+				$method .= 'AjaxAction';
+
+				if ($this->view->getView() !== false)
+					$this->view->view($this->application->router->action);
+
 				$args = $this->application->router->getArgs();
 				unset($args['controller'], $args['module'], $args['action'], $args['service']);
+
+				call_user_func(array($this, 'beforeAction'));
+				$return = call_user_func_array(array($this, $method), $args);
+				call_user_func(array($this, 'afterAction'));
+
+				if ($return !== null) {
+					if (!is_array($return)) {
+						if (is_object($return))
+							$return = (array) $return;
+						else
+							$return = array('response' => $return);
+					}
+
+					echo json_encode($return);
+					exit;
+				}
+			} else {
+				$method .= 'Action';
+				$exists = method_exists(get_class($this), $method);
+				if (!$exists)
+					throw new ApplicationException('missing-method', $method);
+
+				if ($this->view->getView() !== false)
+					$this->view->view($this->application->router->action);
+
+				$args = $this->application->router->getArgs();
+				unset($args['controller'], $args['module'], $args['action'], $args['service']);
+
 				call_user_func(array($this, 'beforeAction'));
 				call_user_func_array(array($this, $method), $args);
 				call_user_func(array($this, 'afterAction'));
@@ -217,6 +238,7 @@ abstract class Controller extends Object
 		} catch (ApplicationError $e) {
 			$this->view->view($e->view);
 		}
+
 
 		return $this->view->render();
 	}

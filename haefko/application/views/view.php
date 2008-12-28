@@ -13,7 +13,6 @@
  */
 
 
-
 require_once dirname(__FILE__) . '/iview.php';
 
 
@@ -27,8 +26,11 @@ class View extends Object implements IView
 	/** @var string */
 	protected $base;
 
-	/** @var CustomController */
+	/** @var Controller */
 	protected $controller;
+
+	/** @var Application */
+	protected $application;
 
 	/** @var array */
 	protected $vars = array();
@@ -53,6 +55,7 @@ class View extends Object implements IView
 	public function __construct(& $controller)
 	{
 		$this->controller = $controller;
+		$this->application = Application::get();
 		$this->base = Http::$baseUri;
 
 		$this->set('escape', 'htmlSpecialChars');
@@ -148,8 +151,8 @@ class View extends Object implements IView
 
 	/**
 	 * Loads heleper
-	 * @param   string  helper name
-	 * @param   string  var name
+	 * @param   string    helper name
+	 * @param   string    var name
 	 */
 	public function helper($name, $var = null)
 	{
@@ -168,14 +171,13 @@ class View extends Object implements IView
 
 	/**
 	 * Loads snippet
-	 * @param   string  filename without ext
+	 * @param   string    filename without ext
 	 * @throws  ApplicationException
 	 * @return  void
 	 */
 	public function renderSnippet($name)
 	{
 		$file = $this->controller->application->path . Inflector::snippetViewFile($this->ext, $name);
-
 		if (!file_exists($file))
 			throw new ApplicationException('missing-view', $file);
 
@@ -189,24 +191,8 @@ class View extends Object implements IView
 
 
 	/**
-	 * Ulozi do seznamu promennych pro sablonu
-	 * Probiha s kontrolou ochrany promenne
-	 * @param   string  jmeno promenne
-	 * @param   mixed   hodnota promenne
-	 * @return  void
-	 */
-	public function set($name, $value)
-	{
-		if (empty($name))
-			throw new Exception('Nelze nastavit hodnotu nejmenne promenne!');
-
-		$this->vars[$name] = $value;
-	}
-
-
-	/**
-	 * Je nastavena promenna
-	 * @param   string  jmenno promenne
+	 * Checks whether the variable is set
+	 * @param   string    var name
 	 * @return  boll
 	 */
 	public function __isset($name)
@@ -215,38 +201,48 @@ class View extends Object implements IView
 	}
 
 
-
 	/**
-	 * Smaze promennou
-	 * @param   string  jmeno promenne
+	 * Unsets variable value
+	 * @param   string    var name
 	 * @return  void
 	 */
 	public function __unset($name)
 	{
-		if (isset($this->protected[$name]))
-			throw new Exception("Nelze smazat hodnotu chranene promenne \$$name!");
-
 		unset($this->vars[$name]);
 	}
 
 
-
 	/**
-	 * Ulozi do seznamu promennych pro sablonu
-	 * @param   string  jmeno promenne
-	 * @param   mixed   hodnota promenne
+	 * Sets variable value
+	 * @param   string    var name
+	 * @param   mixed     var value
 	 * @return  void
 	 */
 	public function __set($name, $value)
 	{
-		$this->set($name, $value, false);
+		$this->set($name, $value);
 	}
 
 
+	/**
+	 * Sets variable value
+	 * @param   string    var name
+	 * @param   mixed     var value
+	 * @throws  Exception
+	 * @return  void
+	 */
+	public function set($name, $value)
+	{
+		if (empty($name))
+			throw new Exception('You can\'t set variable with empty name.');
+
+		$this->vars[$name] = $value;
+	}
+
 
 	/**
-	 * Vrati hodnotu z promennych pro sablonu
-	 * @param   string  jmeno promenne
+	 * Returns variable value
+	 * @param   string    var name
 	 * @return  mixed
 	 */
 	public function __get($name)
@@ -259,7 +255,7 @@ class View extends Object implements IView
 
 
 	/**
-	 * Vyrenderuje view sablonu
+	 * Renders web templates
 	 * @return  void
 	 */
 	public function render()
@@ -282,20 +278,20 @@ class View extends Object implements IView
 
 
 	/**
-	 * Vytvori cestu k layout sablone
-	 * @return  string
+	 * Creates layout template path
+	 * @return  string|void
 	 */
 	protected function layoutFactory()
 	{
-		if ($this->layout === false)
+		if ($this->layout === false || $this->controller->isAjax)
 			return false;
 
-		$app = Application::get()->path . '/';
+		$app = $this->application->path . '/';
 		$core = dirname(__FILE__) . '/../';
 
 		$layouts = array(
-			$app  . Inflector::layoutFile($this->ext, $this->layout, $this->controller->application->router->module, $this->theme),
-			$app  . Inflector::layoutFile($this->ext, $this->layout, '', ''),
+			$app  . Inflector::layoutFile($this->ext, $this->layout, $this->application->router->module, $this->theme),
+			$app  . Inflector::layoutFile($this->ext, $this->layout, '', $this->theme),
 			$core . Inflector::layoutFile($this->ext, $this->layout, '', ''),
 			$core . Inflector::layoutFile('phtml', 'layout', '', '')
 		);
@@ -310,41 +306,16 @@ class View extends Object implements IView
 
 
 	/**
-	 * Vytvori cestu k view sablone
+	 * Creates view template path
 	 * @return  string
 	 */
 	protected function viewFactory()
 	{
-		$app = Application::get()->path . '/';
+		$app = $this->application->path . '/';
 		$core = dirname(__FILE__) . '/../';
 
-		if (!Application::$error) {
-			if ($this->controller->ajax) {
-
-				$ajaxView = Inflector::viewFile("ajax.{$this->ext}", $this->view, Router::$routing['module'], $this->theme, Router::$routing['controller'], !empty(Router::$service));
-
-				if (file_exists("$app$ajaxView"))
-					return "$app$ajaxView";
-				else
-					return false;
-			} else {
-
-				$view = Inflector::viewFile(
-					$this->ext,
-					$this->view,
-					$this->controller->application->router->module,
-					$this->theme,
-					$this->controller->application->router->controller,
-					!empty($this->controller->application->router->service)
-				);
-
-				if (file_exists("$app$view"))
-					return "$app$view";
-				else
-					throw new ApplicationException('missing-view', $view);
-
-			}
-		} else {
+		# error views
+		if (Application::$error) {
 			$views = array(
 				$app  . Inflector::errorViewFile($this->ext, $this->view, $this->theme),
 				$core . Inflector::errorViewFile('phtml', $this->view, '')
@@ -356,6 +327,39 @@ class View extends Object implements IView
 			}
 
 			throw new Exception("Missing error view '$views[0]'.");
+		# normal views
+		} else {
+
+			if ($this->controller->isAjax) {
+				$view = Inflector::viewFile(
+					"ajax.{$this->ext}",
+					$this->view,
+					$this->application->router->module,
+					$this->theme,
+					$this->application->router->controller,
+					!empty($this->application->router->service)
+				);
+
+				if (file_exists("$app$view"))
+					return "$app$view";
+				else
+					return false;
+			} else {
+				$view = Inflector::viewFile(
+					$this->ext,
+					$this->view,
+					$this->application->router->module,
+					$this->theme,
+					$this->application->router->controller,
+					!empty($this->application->router->service)
+				);
+
+				if (file_exists("$app$view"))
+					return "$app$view";
+				else
+					throw new ApplicationException('missing-view', $view);
+			}
+
 		}
 	}
 
@@ -376,7 +380,9 @@ class View extends Object implements IView
 		$return = ob_get_contents();
 		ob_clean();
 
-		$return = preg_replace('#(<[^>]+ (src|href|action))\s*=\s*"(hf://)#i', '$1="' . $this->base, $return);
+		if (Config::read('View.filterInternalUrl', false))
+			$return = preg_replace('#(<[^>]+ (src|href|action))\s*=\s*"(hf://)#i', '$1="' . $this->base, $return);
+
 		return $return;
 	}
 
