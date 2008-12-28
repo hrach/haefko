@@ -381,7 +381,7 @@ class View extends Object implements IView
 		ob_clean();
 
 		if (Config::read('View.filterInternalUrl', false))
-			$return = preg_replace('#(<[^>]+ (src|href|action))\s*=\s*"(hf://)#i', '$1="' . $this->base, $return);
+			$return = preg_replace('#(<[^>]+ (src|href|action))\s*=\s*"(hf://)#i', '$1="' . (empty($this->base) ? '/' : $this->base), $return);
 
 		return $return;
 	}
