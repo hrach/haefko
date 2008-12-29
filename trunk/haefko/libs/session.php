@@ -74,7 +74,7 @@ class Session
 		if (!self::$started)
 			self::start();
 
-		if (isset($_SESSION[$var]))
+		if (array_key_exists($var, $_SESSION))
 			return $_SESSION[$var];
 		else
 			$default;
@@ -90,7 +90,7 @@ class Session
 	 */
 	public static function safeRead($var, $default = null)
 	{
-		if (isset($_COOKIE[ini_get('session.name')]))
+		if (isset($_COOKIE[self::$name]))
 			return self::read($var, $default);
 
 		return $default;
@@ -107,7 +107,7 @@ class Session
 		if (!self::$started)
 			self::start();
 
-		return isset($_SESSION[$var]);
+		return array_key_exists($var, $_SESSION);
 	}
 
 
@@ -187,6 +187,7 @@ class Session
 	 */
 	private static function checkHeaders()
 	{
+		$line = $file = null;
 		if (headers_sent($file, $line))
 			throw new Exception("Headers has been already sent in $file on line $line.");
 	}
@@ -201,12 +202,15 @@ class Session
 		if (function_exists('ini_set'))
 			ini_set('session.use_cookies', 1);
 
+
 		$domain = self::$domain;
 		if (substr_count($domain, ".") == 1 && self::$crossDomain)
 			$domain = ".$domain";
 		else
 			$domain = preg_replace('#^([^.])*#i', null, $domain);
 
+		self::$path = '/';
+		session_name(self::$name);
 		session_set_cookie_params(self::$lifeTime, self::$path, $domain, self::$secure);
 	}
 
