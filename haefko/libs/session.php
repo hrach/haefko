@@ -77,7 +77,7 @@ class Session
 		if (array_key_exists($var, $_SESSION))
 			return $_SESSION[$var];
 		else
-			$default;
+			return $default;
 	}
 
 
@@ -209,7 +209,6 @@ class Session
 		else
 			$domain = preg_replace('#^([^.])*#i', null, $domain);
 
-		self::$path = '/';
 		session_name(self::$name);
 		session_set_cookie_params(self::$lifeTime, self::$path, $domain, self::$secure);
 	}
