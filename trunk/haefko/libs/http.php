@@ -173,6 +173,7 @@ class Http
 	 */
 	private static function checkHeaders()
 	{
+		$file = $line = null;
 		if (headers_sent($file, $line))
 			throw new Exception("Headers has been already sent in '$file' on the line $line.");
 	}

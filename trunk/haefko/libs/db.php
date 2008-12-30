@@ -179,7 +179,7 @@ class Db
 			return false;
 
 		$abbr = 'time: ' . Debug::getTime($time) . 'ms; affected: ' . self::affectedRows();
-		$text = "<abbre title=\"$abbr\">$sql</abbr>";
+		$text = "<abbre title=\"$abbr\">" . htmlspecialchars($sql) . '</abbr>';
 		Debug::toolbar($text, 'sql');
 	}
 

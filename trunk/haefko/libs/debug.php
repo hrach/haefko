@@ -136,6 +136,7 @@ class Debug
 			return false;
 
 		# cheack headers
+		$file = $line = null;
 		if (headers_sent($file, $line))
 			throw new Exception("Headers has been alerady sent. ($file, $line)");
 
