@@ -50,6 +50,9 @@ class L10n
 	public static function init()
 	{
 		self::domain(self::$domain);
+
+		if (class_exists('Config', false))
+			self::initConfig();
 	}
 
 
@@ -62,11 +65,11 @@ class L10n
 		self::$langs = Config::read('L10n.langs', array());
 		self::$domain = Config::read('L10n.domain', self::$domain);
 
-		switch (Config::read('L10n.autodetect', 'config')) {
-			case 'browser': self::langByBrowser(); break;
-			case 'url': self::langByUrl(Config::read('L10n.url.var', 'lang')); break;
-			default: self::langByConfig();
-		}
+
+		if (Config::read('L10n.autodetect') !== null)
+			self::langByBrowser();
+		else
+			self::langByConfig();
 
 		self::domain(self::$domain);
 	}
@@ -171,25 +174,6 @@ class L10n
 	public static function langByConfig()
 	{
 		self::lang(Config::read('L10n.lang', self::$lang));
-	}
-
-
-	/**
-	 * Detects lang by url variable
-	 * @param   string    routing variable name
-	 * @return  bool
-	 */
-	public static function langByUrl($variable = 'lang')
-	{
-		if (isset(Router::$args[$variable])) {
-			if (self::isAllowed($lang)) {
-				self::lang(Router::$args[$variable]);
-				return true;
-			}
-		}
-
-		self::langByConfig();
-		return false;
 	}
 
 
