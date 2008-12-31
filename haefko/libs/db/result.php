@@ -154,9 +154,6 @@ class DbResult extends Object implements Countable, IteratorAggregate
 		if (empty($this->rows))
 			$this->rows = array($this->fetch());
 
-		if (empty($this->rows[0]))
-			throw new Exception('No result');
-
 		return current($this->rows[0]);
 	}
 
