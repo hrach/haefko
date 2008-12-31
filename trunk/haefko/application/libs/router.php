@@ -208,11 +208,17 @@ class Router
 
 	/**
 	 * Setter
+	 * @param   string    variable name
+	 * @param   mixed     value
 	 * @throws  Exception
+	 * @return  void
 	 */
 	public function __set($key, $value)
 	{
-		throw new Exception("You can't set the 'Router::\$$key' variable.");
+		if (empty($key))
+			throw new Exception ('You can\'t set routing variable with empty name.');
+
+		$this->routing[$key] = $value;
 	}
 
 

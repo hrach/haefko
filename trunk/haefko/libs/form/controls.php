@@ -262,6 +262,36 @@ abstract class FormControl extends Object
 
 
 	/**
+	 * Checks whether control has errors
+	 * @returns  bool
+	 */
+	public function hasErrors()
+	{
+		return !empty($this->errors);
+	}
+
+
+	/**
+	 * Returns html label
+	 * @return  Html
+	 */
+	public function getLabel()
+	{
+		return $this->label;
+	}
+
+
+	/**
+	 * Returns html control
+	 * @return  Html
+	 */
+	public function getControl()
+	{
+		return $this->control;
+	}
+
+
+	/**
 	 * Returns form tag
 	 * @return  Html
 	 */
@@ -344,6 +374,9 @@ abstract class FormControl extends Object
 	 */
 	protected function prepareLabel()
 	{
+		if ($this->htmlRequired)
+			$this->label->class = 'required';
+
 		$this->label->for = $this->htmlId;
 		$this->label->id = "{$this->htmlId}-label";
 	}

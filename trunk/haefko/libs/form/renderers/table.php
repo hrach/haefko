@@ -42,10 +42,10 @@ class FormTableRenderer extends FormRenderer
 	}
 
 
-	protected function prepareControl()
+	protected function prepareBlock()
 	{
-		parent::prepareControl();
-		$this->control->toggleClass('odd');
+		parent::prepareBlock();
+		$this->block->toggleClass('odd');
 	}
 
 

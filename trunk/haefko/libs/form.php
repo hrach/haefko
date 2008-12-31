@@ -63,11 +63,11 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	/**
 	 * Constructor
 	 * @param   string  url
-	 * @param   string  method
 	 * @param   string  form name
+	 * @param   string  method
 	 * @return  string  form name
 	 */
-	public function __construct($url = '', $method = 'post', $name = 'form')
+	public function __construct($url = '', $name = 'form', $method = 'post')
 	{
 		# application url proccesing
 		if (class_exists('Application', false))
@@ -344,6 +344,21 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
+	 * Checks whether form has errors
+	 * @return  bool
+	 */
+	public function hasErrors()
+	{
+		foreach ($this->controls as $control) {
+			if ($control->hasErrors())
+				return true;
+		}
+
+		return false;
+	}
+
+
+	/**
 	 * Set default values for controls
 	 * @param   array   values - format is array with $controlName => $value
 	 * @return  void
@@ -367,6 +382,11 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	}
 
 
+	/**
+	 * Loads renderer class
+	 * @param   string    renderer name
+	 * @return  Renderer
+	 */
 	public function renderer($name)
 	{
 		require_once dirname(__FILE__) . '/form/irenderer.php';
@@ -442,12 +462,20 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	}
 
 
+	/**
+	 * ArrayIterator interface
+	 * @return  ArrayIterator
+	 */
 	public function getIterator()
 	{
 		return new ArrayIterator($this->controls);
 	}
 
 
+	/**
+	 * Interface
+	 * @return  string
+	 */
 	public function __toString()
 	{
 		try {

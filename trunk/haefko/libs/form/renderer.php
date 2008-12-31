@@ -53,7 +53,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 		$this->form = $form;
 
 		$this->container = Html::el($this->container);
-		$this->body = Html::el($this->body);
+		$this->body = Html::el($this->body, null, array('class' => 'form-container'));
 		$this->block = Html::el($this->block);
 		$this->control = Html::el($this->control);
 		$this->controlSeparator = Html::el($this->controlSeparator);
@@ -198,8 +198,6 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	{
 		$this->prepareLabel();
 
-		if ($this->form[$name]->htmlRequired)
-			$this->label->class = 'required';
 
 		if ($this->form[$name] instanceof FormCheckboxControl)
 			return $this->label->render();

@@ -36,7 +36,7 @@ class Cache extends Object
 	 * @param   int|bool  lifeTime - default 5 minutes
 	 * @return  void
 	 */
-	public function __construct($enabled = true, $store = './', $lifeTime = 18000)
+	public function __construct($enabled = true, $store = './', $lifeTime = 300)
 	{
 		$this->enabled = $enabled;
 		$this->store = $store;
