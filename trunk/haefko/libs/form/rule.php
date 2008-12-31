@@ -87,6 +87,9 @@ class Rule
 		case 'inarray':
 			$valid = in_array($value, (array) $arg);
 			break;
+		case 'regexp':
+			$valid = preg_match($arg, $value);
+			break;
 		case 'email':
 			$valid = preg_match('#^[^@]+@[^@]+\.[a-z]{2,6}$#i', $value);
 			break;

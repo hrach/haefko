@@ -67,7 +67,7 @@ class DbResultNode implements ArrayAccess
 	 */
 	public function offsetUnset($key)
 	{
-		throw new Exception("You can not unset the '$key'.");
+		unset($this->$key);
 	}
 
 

@@ -180,6 +180,22 @@ class HtmlHelper extends Object
 
 
 	/**
+	 * Returns tracking code for Google Analytics
+	 * @param   string     id
+	 * @return  string
+	 */
+	public function analytics($id)
+	{
+		return "<script type=\"text/javascript\">\n"
+		     . "!var gaJsHost = ((\"https:\" == document.location.protocol) ? \"https://ssl.\" : \"http://www.\");\n"
+		     . "document.write(unescape(\"%3Cscript src='\" + gaJsHost + \"google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E\"));\n"
+		     . "</script>\n<script type=\"text/javascript\">\n"
+		     . "try {\nvar pageTracker = _gat._getTracker(\"$id\");\n"
+		     . "pageTracker._trackPageview();\n} catch(err) {}</script>\n";
+	}
+
+
+	/**
 	 * Returns parsed and danitized URL
 	 * @param   string  url
 	 * @return  string

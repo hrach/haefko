@@ -94,8 +94,12 @@ class DbResult extends Object implements Countable, IteratorAggregate
 		# columns & tables
 		$tables = array();
 		foreach ($this->driver->columnsMeta() as $col) {
-			$this->cols[] = array($col['table'], $col['name']);
-			$tables[$col['table']] = true;
+			if ($col['orgname'] != $col['name']) {
+				$this->cols[] = array('', $col['name']);
+			} else {
+				$this->cols[] = array($col['table'], $col['name']);
+				$tables[$col['table']] = true;
+			}
 		}
 		$this->tables = count($tables) > 1;
 
