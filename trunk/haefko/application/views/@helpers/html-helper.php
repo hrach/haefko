@@ -187,7 +187,7 @@ class HtmlHelper extends Object
 	public function analytics($id)
 	{
 		return "<script type=\"text/javascript\">\n"
-		     . "!var gaJsHost = ((\"https:\" == document.location.protocol) ? \"https://ssl.\" : \"http://www.\");\n"
+		     . "var gaJsHost = ((\"https:\" == document.location.protocol) ? \"https://ssl.\" : \"http://www.\");\n"
 		     . "document.write(unescape(\"%3Cscript src='\" + gaJsHost + \"google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E\"));\n"
 		     . "</script>\n<script type=\"text/javascript\">\n"
 		     . "try {\nvar pageTracker = _gat._getTracker(\"$id\");\n"
