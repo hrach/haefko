@@ -15,14 +15,15 @@
 
 ?>
 <?php
-	$this->title = 'Page wasn\'t found | haefko';
+	$this->title = 'Error: Page not found';
 ?>
 <div class="error">
-	<h1>Page wasn't found</h1>
-	<p>We are apologizing. The requested page wasn't found.</p>
+	<h1>Error: Page not found</h1>
+	<p>We apologize for the inconvenience, but the page you are looking for
+	does not exists in our system.</p>
 	<ul>
-		<li>Wait a moment and then repeat the action please.</li>
-		<li>If the error doesn't disappear, contact administrator / author please.</li>
-		<li>You can go to <?= $html->link('', 'site-home') ?>.</li>
-</ul></p>
+		<li>If you typed in the address, try to re-check the spelling.</li>
+		<li>If you followed link from somewhere, please let them know the page does not exist.</li>
+	</ul></p>
+	<p>It might just be the best to start at our <?= $html->link('', 'homepage') ?>.</p>
 </div>

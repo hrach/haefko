@@ -203,7 +203,7 @@ class DbConnection extends Object
 						else
 							$arg = $this->escape(array_shift($args), $match[0][0]);
 
-						$temp .= $arg;
+						$temp .= $arg . ' ';
 					}
 				}
 

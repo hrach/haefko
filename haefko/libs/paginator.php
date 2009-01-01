@@ -66,9 +66,9 @@ class Paginator extends Object
 
 	/**
 	 * Returns true when exists prev page
-	 * @return  int
+	 * @return  bool
 	 */
-	public function getHasPrev()
+	public function hasPrev()
 	{
 		return $this->hasPrev;
 	}
@@ -76,29 +76,49 @@ class Paginator extends Object
 
 	/**
 	 * Returns true when exists next page
-	 * @return  int
+	 * @return  bool
 	 */
-	public function getHasNext()
+	public function hasNext()
 	{
 		return $this->hasNext;
 	}
 
 
 	/**
+	 * Returns true when current page is the first
+	 * @return  bool
+	 */
+	public function isFirst()
+	{
+		return $this->page == 1;
+	}
+
+
+	/**
+	 * Returns true when current page is the last
+	 * @return  bool
+	 */
+	public function isLast()
+	{
+		return $this->page == $this->pages;
+	}
+
+
+	/**
 	 * Renders pagination bar
 	 * @param   string    mask of link with page
-	 * @param   array     options: round => num of pages around actual; prev => label; next => label
+	 * @param   array     options: surround => count of surrounding links, prev => label text, next => label text
 	 * @return  string
 	 */
 	public function render($mask, $options = array())
 	{
 		$options = array_merge(array(
-			'round' => 2,
+			'surround' => 2,
 			'prev' => '&laquo; ' . __('Previous'),
 			'next' => __('Next') . ' &raquo;'
 		), $options);
 
-		$round = $options['round'];
+		$surround = $options['surround'];
 		$render = '<div class="pagination"><ul>';
 
 
@@ -112,7 +132,7 @@ class Paginator extends Object
 
 
 		# not enough pages to bother breaking it up
-		if ($round === false || $this->pages < 7 + ($round * 2)) {
+		if ($surround === false || $this->pages < 7 + ($surround * 2)) {
 			for ($counter = 1; $counter <= $this->pages; $counter++)
 				$render .= $this->listLink($mask, $counter, $this->page == $counter);
 
@@ -120,8 +140,8 @@ class Paginator extends Object
 		} else {
 
 			# close to beginning; only hide later pages
-			if ($this->page < ($round * 2) + 4 && $this->page < $round + 4) {
-				for ($counter = 1; $counter <= max(2 * $round, $this->page + 1 + $round); $counter++)
+			if ($this->page < ($surround * 2) + 4 && $this->page < $surround + 4) {
+				for ($counter = 1; $counter <= max(2 + $surround, $this->page + $surround); $counter++)
 					$render .= $this->listLink($mask, $counter, $this->page == $counter);
 
 				$render .= '<li class="hellip">&hellip;</li>';
@@ -129,12 +149,12 @@ class Paginator extends Object
 				$render .= $this->listLink($mask, $this->pages);
 
 			# close to end; only hide early pages
-			} elseif ($this->page >= $this->pages - $round - 2) {
+			} elseif ($this->page >= $this->pages - $surround - 2) {
 				$render .= $this->listLink($mask, 1);
 				$render .= $this->listLink($mask, 2);
 				$render .= '<li class="hellip">&hellip;</li>';
 
-				for ($counter = min($this->pages - 2 * $round + 1, $this->page - $round); $counter <= $this->pages; $counter++)
+				for ($counter = min($this->pages - 2 * $surround + 1, $this->page - $surround); $counter <= $this->pages; $counter++)
 					$render .= $this->listLink($mask, $counter, $this->page == $counter);
 
 			# in middle; hide some front and some back
@@ -143,7 +163,7 @@ class Paginator extends Object
 				$render .= $this->listLink($mask, 2);
 				$render .= '<li class="hellip">&hellip;</li>';
 
-				for ($counter = $this->page - $round; $counter <= $this->page + $round; $counter++)
+				for ($counter = $this->page - $surround; $counter <= $this->page + $surround; $counter++)
 					$render .= $this->listLink($mask, $counter, $this->page == $counter);
 
 				$render .= '<li class="hellip">&hellip;</li>';
