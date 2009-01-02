@@ -114,20 +114,20 @@ class Paginator extends Object
 	{
 		$options = array_merge(array(
 			'surround' => 2,
-			'prev' => '&laquo; ' . __('Previous'),
-			'next' => __('Next') . ' &raquo;'
+			'prev' => '&laquo; Previous',
+			'next' => 'Next &raquo;'
 		), $options);
 
 		$surround = $options['surround'];
-		$render = '<div class="pagination"><ul>';
+		$render = "<div class=\"pagination\"><ul>\n";
 
 
 		# render previous
 		if ($this->hasPrev) {
 			$prev = $this->link($mask, $this->page - 1, $options['prev']);
-			$render .= "<li class=\"previous\">$prev</li>";
+			$render .= "<li class=\"prev\">$prev</li>\n";
 		} else {
-			$render .= "<li class=\"previous-off\">$options[prev]</li>";
+			$render .= "<li class=\"prev-off\">$options[prev]</li>\n";
 		}
 
 
@@ -144,7 +144,7 @@ class Paginator extends Object
 				for ($counter = 1; $counter <= max(2 + $surround, $this->page + $surround); $counter++)
 					$render .= $this->listLink($mask, $counter, $this->page == $counter);
 
-				$render .= '<li class="hellip">&hellip;</li>';
+				$render .= "<li class=\"hellip\">&hellip;</li>\n";
 				$render .= $this->listLink($mask, $this->pages - 1);
 				$render .= $this->listLink($mask, $this->pages);
 
@@ -152,7 +152,7 @@ class Paginator extends Object
 			} elseif ($this->page >= $this->pages - $surround - 2) {
 				$render .= $this->listLink($mask, 1);
 				$render .= $this->listLink($mask, 2);
-				$render .= '<li class="hellip">&hellip;</li>';
+				$render .= "<li class=\"hellip\">&hellip;</li>\n";
 
 				for ($counter = min($this->pages - 2 * $surround + 1, $this->page - $surround); $counter <= $this->pages; $counter++)
 					$render .= $this->listLink($mask, $counter, $this->page == $counter);
@@ -161,12 +161,12 @@ class Paginator extends Object
 			} else {
 				$render .= $this->listLink($mask, 1);
 				$render .= $this->listLink($mask, 2);
-				$render .= '<li class="hellip">&hellip;</li>';
+				$render .= "<li class=\"hellip\">&hellip;</li>\n";
 
 				for ($counter = $this->page - $surround; $counter <= $this->page + $surround; $counter++)
 					$render .= $this->listLink($mask, $counter, $this->page == $counter);
 
-				$render .= '<li class="hellip">&hellip;</li>';
+				$render .= "<li class=\"hellip\">&hellip;</li>\n";
 				$render .= $this->listLink($mask, $this->pages - 1);
 				$render .= $this->listLink($mask, $this->pages);
 			}
@@ -175,24 +175,31 @@ class Paginator extends Object
 		# render next
 		if ($this->hasNext) {
 			$next = $this->link($mask, $this->page + 1, $options['next']);
-			$render .= "<li class=\"next\">$next</li>";
+			$render .= "<li class=\"next\">$next</li>\n";
 		} else {
-			$render .= "<li class=\"next-off\">$options[next]</li>";
+			$render .= "<li class=\"next-off\">$options[next]</li>\n";
 		}
 
-		$render .= "</ul></div>";
+		$render .= "</ul></div>\n";
 		return $render;
 	}
 
 
+	/**
+	 * Renders link for list html element
+	 * @param   string   mask
+	 * @param   int      page
+	 * @param   bool     is page current?
+	 * @return  string
+	 */
 	private function listLink($mask, $i, $current = false)
 	{
 		$link = $this->link($mask, $i);
 
 		if ($current)
-			return "<li class=\"active\">$link</li>";
+			return "<li class=\"active\">$link</li>\n";
 		else
-			return "<li>$link</li>";
+			return "<li>$link</li>\n";
 	}
 
 
