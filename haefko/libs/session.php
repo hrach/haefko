@@ -153,7 +153,7 @@ class Session
 	{
 		self::$name = 'haefko-session';
 		self::$lifeTime = 259200; // 3 days
-		self::$path = Http::$baseUri;
+		self::$path = Http::$baseUri . '/';
 		self::$domain = Http::$domain;
 		self::$crossDomain = false;
 		self::$secure = false;
