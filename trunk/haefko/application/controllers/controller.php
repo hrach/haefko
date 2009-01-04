@@ -253,6 +253,10 @@ abstract class Controller extends Object
 	private function processUrl($url, $args = array())
 	{
 		$args = array_merge($this->application->router->getArgs(), $args);
+		$args['controller'] = Tools::dash($args['controller']);
+		$args['action'] = Tools::dash($args['action']);
+		unset($args['module']);
+
 		$url = preg_replace('#(\<\:(\w+)\>)#e', 'isset($args["\\2"]) ? $args["\\2"] : "\\1"', $url);
 		$url = preg_replace_callback('#\<\:url\:\>#', array('Http', 'getRequest'), $url);
 
