@@ -204,10 +204,14 @@ class Session
 
 
 		$domain = self::$domain;
-		if (substr_count($domain, ".") == 1 && self::$crossDomain)
-			$domain = ".$domain";
-		else
-			$domain = preg_replace('#^([^.])*#i', null, $domain);
+		if (self::$crossDomain) {
+			if (substr_count($domain, '.') == 1)
+				$domain = ".$domain";
+			else
+				$domain = preg_replace('#^([^.])*#i', null, $domain);
+		} elseif (substr_count($domain, '.') == 0) {
+			$domain = '';
+		}
 
 		session_name(self::$name);
 		session_set_cookie_params(self::$lifeTime, self::$path, $domain, self::$secure);

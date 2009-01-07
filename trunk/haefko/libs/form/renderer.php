@@ -110,8 +110,8 @@ abstract class FormRenderer extends Object implements IFormRenderer
 		# set attributes
 		$this->container->setAttrs(&$attrs[0]);
 
-		return $this->form->startTag()
-		     . $this->container->startTag();
+		return $this->container->startTag()
+		     . $this->form->startTag();
 	}
 
 
@@ -122,8 +122,8 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	 */
 	protected function renderEnd()
 	{
-		return $this->container->endTag()
-		     . $this->form->endTag();
+		return $this->form->endTag()
+		     . $this->container->endTag();
 	}
 
 

@@ -322,9 +322,9 @@ class Application extends Object
 		} catch (Exception $e) {
 			if (Config::read('Core.debug') == 0) {
 				Debug::log($e->getMessage());
-				die("<strong>Uncatchable application excetion!</strong>"
+				die("<strong>Uncatchable application exception!</strong>"
 				  . "<br /><span style='font-size:small'>"
-				  . "Plesase, contact the server administrator. Error was logged.</span>");
+				  . "Please contact server administrator. The error has been logged.</span>");
 			} else {
 				Debug::exceptionHandler($e);
 			}
