@@ -190,7 +190,7 @@ class RssItem extends Object
 			$render .= "\t\t<guid>" . $this->controller->url($this->link, null, true) . "</guid>\n";
 
 		if (!empty($this->description))
-			$render .= "\t\t<description><![CDATA[" . $this->description . "]]></description>\n";
+			$render .= "\t\t<description><![CDATA[\n" . $this->description . "\n]]></description>\n";
 
 		if (!empty($this->author))
 			$render .= "\t\t<author>" . htmlspecialchars($this->author) . "</author>\n";

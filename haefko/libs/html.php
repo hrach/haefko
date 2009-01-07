@@ -132,6 +132,18 @@ class Html extends Object
 
 
 	/**
+	 * Sets tag name
+	 * @param   string    tag name
+	 * @return  Html
+	 */
+	public function setTag($name)
+	{
+		$this->tag = $name;
+		return $this;
+	}
+
+
+	/**
 	 * Sets attributes
 	 * @param   array
 	 * @return  Html
