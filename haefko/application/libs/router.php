@@ -170,7 +170,7 @@ class Router
 
 	/**
 	 * Return arg
-	 * @param   strign    arg name
+	 * @param   string    arg name
 	 * @param   bool      inline named variable?
 	 * @return  mixed     if doesn't exists return null
 	 */

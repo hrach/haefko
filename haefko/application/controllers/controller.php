@@ -146,7 +146,7 @@ abstract class Controller extends Object
 	{
 		Http::headerRedirect($this->url($url, array(), true), 303);
 		if ($exit)
-			$this->application->terminate();
+			exit;
 	}
 
 

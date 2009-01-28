@@ -56,4 +56,11 @@ class FormPasswordControl extends FormInputControl
 	protected $htmlType = 'password';
 	protected $htmlTypeClass = 'text';
 
+
+	protected function getHtmlValue()
+	{
+		return '';
+	}
+
+
 }
