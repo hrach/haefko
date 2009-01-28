@@ -114,7 +114,7 @@ abstract class Controller extends Object
 
 
 	/**#@+
-	 * Empty callbacks
+	 * Controller callbacks
 	 */
 	public function init() {}
 	public function beforeAction() {}
@@ -212,8 +212,8 @@ abstract class Controller extends Object
 					if (!is_array($return)) {
 						if (is_object($return))
 							$return = (array) $return;
-						else
-							$return = array('response' => $return);
+
+						$return = array('response' => $return);
 					}
 
 					echo json_encode($return);
@@ -238,7 +238,6 @@ abstract class Controller extends Object
 		} catch (ApplicationError $e) {
 			$this->view->view($e->view);
 		}
-
 
 		return $this->view->render();
 	}

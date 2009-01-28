@@ -265,15 +265,16 @@ class View extends Object implements IView
 
 		$viewPath = $this->viewFactory();
 		call_user_func(array($this->controller, 'prepareView'));
-		$view = $this->parse($viewPath);
+		$render = $this->parse($viewPath);
 
 		$layoutPath = $this->layoutFactory();
-		if ($layoutPath === false)
-			return $view;
+		if ($layoutPath !== false) {
+			$this->vars['content'] = $render;
+			call_user_func(array($this->controller, 'prepareLayout'));
+			$render = $this->parse($layoutPath);
+		}
 
-		$this->vars['content'] = $view;
-		call_user_func(array($this->controller, 'prepareLayout'));
-		return $this->parse($layoutPath);
+		return $render;
 	}
 
 
@@ -290,8 +291,8 @@ class View extends Object implements IView
 		$core = dirname(__FILE__) . '/../';
 
 		$layouts = array(
-			$app  . Inflector::layoutFile($this->ext, $this->layout, $this->application->router->module, $this->theme),
-			$app  . Inflector::layoutFile($this->ext, $this->layout, '', $this->theme),
+			$app . Inflector::layoutFile($this->ext, $this->layout, $this->application->router->module, $this->theme),
+			$app . Inflector::layoutFile($this->ext, $this->layout, '', $this->theme),
 			$core . Inflector::layoutFile($this->ext, $this->layout, '', ''),
 			$core . Inflector::layoutFile('phtml', 'layout', '', '')
 		);
@@ -317,7 +318,7 @@ class View extends Object implements IView
 		# error views
 		if (Application::$error) {
 			$views = array(
-				$app  . Inflector::errorViewFile($this->ext, $this->view, $this->theme),
+				$app . Inflector::errorViewFile($this->ext, $this->view, $this->theme),
 				$core . Inflector::errorViewFile('phtml', $this->view, '')
 			);
 
@@ -327,39 +328,25 @@ class View extends Object implements IView
 			}
 
 			throw new Exception("Missing error view '$views[0]'.");
+
 		# normal views
 		} else {
 
-			if ($this->controller->isAjax) {
-				$view = Inflector::viewFile(
-					"ajax.{$this->ext}",
-					$this->view,
-					$this->application->router->module,
-					$this->theme,
-					$this->application->router->controller,
-					!empty($this->application->router->service)
-				);
+			# ajax
+			if ($this->controller->isAjax)
+				$view = Inflector::viewFile('ajax.'. $this->ext, $this->view, $this->application->router->module,
+				                            $this->theme, $this->application->router->controller,
+				                            !empty($this->application->router->service));
+			# normal
+			else
+				$view = Inflector::viewFile($this->ext, $this->view, $this->application->router->module,
+				                            $this->theme, $this->application->router->controller,
+				                            !empty($this->application->router->service));
 
-				if (file_exists("$app$view"))
-					return "$app$view";
-				else
-					return false;
-			} else {
-				$view = Inflector::viewFile(
-					$this->ext,
-					$this->view,
-					$this->application->router->module,
-					$this->theme,
-					$this->application->router->controller,
-					!empty($this->application->router->service)
-				);
+			if (file_exists("$app$view"))
+				return "$app$view";
 
-				if (file_exists("$app$view"))
-					return "$app$view";
-				else
-					throw new ApplicationException('missing-view', $view);
-			}
-
+			throw new ApplicationException('missing-view', $view);
 		}
 	}
 
