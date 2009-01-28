@@ -170,7 +170,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addCheckbox($control, $label = null)
 	{
-		$this->controls[$control] = new FormCheckboxControl($this, $control);
+		$this->controls[$control] = new FormCheckboxControl($this, $control, $label);
 		return $this;
 	}
 

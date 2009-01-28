@@ -177,7 +177,7 @@ class View extends Object implements IView
 	 */
 	public function renderSnippet($name)
 	{
-		$file = $this->controller->application->path . Inflector::snippetViewFile($this->ext, $name);
+		$file = $this->controller->application->path . '/' . Inflector::snippetViewFile($this->ext, $name);
 		if (!file_exists($file))
 			throw new ApplicationException('missing-view', $file);
 
