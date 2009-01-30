@@ -346,7 +346,7 @@ class DbConnection extends Object
 
 		$class = $this->config['driver'] . 'DbDriver';
 		if (!class_exists($class))
-			throw new DbException("Missing driver class $class.");
+			throw new Exception("Missing database driver $class.");
 
 		$this->driver = new $class;
 		$this->driver->connect($this->config);
