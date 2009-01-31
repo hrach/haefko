@@ -13,6 +13,7 @@
 
 
 require_once dirname(__FILE__) . '/object.php';
+require_once dirname(__FILE__) . '/tools.php';
 require_once dirname(__FILE__) . '/cache.php';
 
 
@@ -82,8 +83,8 @@ class Autoload extends Object
 	 */
 	public function autoloadHandler($class)
 	{
-		if (isset($this->classes[$class]) && file_exists($this->classes[$class]))
-			require_once $this->classes[$class];
+		if (isset($this->classes[$class]) && file_exists($_SERVER['DOCUMENT_ROOT'] . $this->classes[$class]))
+			require_once $_SERVER['DOCUMENT_ROOT'] . $this->classes[$class];
 		elseif (!$this->rebuild && $this->autoRebuild)
 			$this->rebuild();
 	}
@@ -147,7 +148,7 @@ class Autoload extends Object
 					if ($token[0] == T_CLASS || $token[0] == T_INTERFACE) {
 						$catch = true;
 					} elseif ($token[0] == T_STRING && $catch) {
-						$this->classes[$token[1]] = $file;
+						$this->classes[$token[1]] = Tools::relativePath($file);
 						$catch = false;
 					}
 				}
