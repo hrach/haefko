@@ -144,7 +144,22 @@ abstract class FormRenderer extends Object implements IFormRenderer
 				(empty($attrs[1]) && $control->isRendered())
 			) continue;
 
-			$this->body->setHtml($this->renderBlock(array($control->name)));
+			# all buttons render in one row
+			if ($control instanceof FormSubmitControl) {
+				$this->prepareBlock();
+				$this->prepareControl();
+				$this->block->setHtml($this->renderLabel($control->name));
+
+				foreach ($this->form as $c) {
+					if (!$c->isRendered() && ($c instanceof FormSubmitControl))
+						$this->control->setHtml($c->control());
+				}
+
+				$this->block->setHtml($this->control->render());
+				$this->body->setHtml($this->block->render());
+			} else {
+				$this->body->setHtml($this->renderBlock(array($control->name)));
+			}
 		}
 
 		return $this->body->render();

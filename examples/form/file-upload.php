@@ -16,7 +16,7 @@ if ($form->isSubmit() && $form->isValid()) {
 	Debug::dump($form->data);
 	$file = $form->data['photo'];
 	if ($file->ok())
-		$file->move("./test$i.jpeg");
+		$file->move("./test.jpeg");
 
 }
 
