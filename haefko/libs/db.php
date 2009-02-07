@@ -173,10 +173,10 @@ class Db
 	public static function debug($sql, $time)
 	{
 		if (!class_exists('Config', false) || !class_exists('Debug', false))
-			return false;
+			return;
 
 		if (Config::read('Core.debug') < 3 || Config::read('Db.debug', 1) == 0)
-			return false;
+			return;
 
 		$abbr = 'time: ' . Debug::getTime($time) . 'ms; affected: ' . self::affectedRows();
 		$text = "<abbr title=\"$abbr\">" . htmlspecialchars($sql) . '</abbr>';
@@ -186,6 +186,7 @@ class Db
 
 	/**
 	 * Returns active connection
+	 * @throws  Exception
 	 * @return  DbConnection
 	 */
 	public static function getConnection()
@@ -194,6 +195,17 @@ class Db
 			throw new Exception('No database connection.');
 
 		return self::$connections[self::$active];
+	}
+	
+	
+	/**
+	 * Returns db driver
+	 * @return  DbDriver
+	 */
+	public static function getDriver()
+	{
+	    $connection = self::getConnection();
+	    return $connection->getDriver();
 	}
 
 

@@ -12,7 +12,7 @@
  */
 
 
-class Condition
+class Condition extends Object
 {
 
 

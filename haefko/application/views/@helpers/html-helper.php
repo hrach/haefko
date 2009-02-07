@@ -196,7 +196,7 @@ class HtmlHelper extends Object
 
 
 	/**
-	 * Returns parsed and danitized URL
+	 * Returns parsed and sanitized URL
 	 * @param   string  url
 	 * @return  string
 	 */

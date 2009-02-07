@@ -173,6 +173,9 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	 */
 	protected function renderBlock($attrs)
 	{
+		if (!isset($this->form[$attrs[0]]))
+			throw new Exception('Undefined form control in render-block.');
+
 		if ($this->form[$attrs[0]] instanceof FormHiddenControl)
 			return;
 

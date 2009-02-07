@@ -70,13 +70,6 @@ abstract class DbDriver extends Object
 
 
 	/**
-	 * Returns array of information about columns
-	 * @return  array
-	 */
-	abstract public function columnsMeta();
-
-
-	/**
 	 * Counts rows in result
 	 * @return  int
 	 */
@@ -89,6 +82,28 @@ abstract class DbDriver extends Object
 	 * @return  int
 	 */
 	abstract public function insertedId($sequence);
+
+
+	/**
+	 * Returns list of tables
+	 * @return  array
+	 */
+	abstract public function getTables();
+
+
+	/**
+	 * Returns description of table columns
+	 * @param   string    table name
+	 * @return  array
+	 */
+	abstract public function getTableColumnsDescription($table);
+
+
+	/**
+	 * Returns result columns
+	 * @return  array
+	 */
+	abstract public function getResultColomns();
 
 
 }
