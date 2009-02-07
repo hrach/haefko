@@ -12,12 +12,9 @@
  */
 
 
-class Rule
+class Rule extends Object
 {
 
-
-	/** @var mixed */
-	public $this;
 
 	/** @var FormControl */
 	public $control;
@@ -25,11 +22,11 @@ class Rule
 	/** @var mixed */
 	public $arg;
 
-	/** @var array */
-	public $thiss = array();
+	/** @var string */
+	public $message;
 
-	/** @var bool */
-	public $isNegative = false;
+	/** @var string */
+	public $rule;
 
 	/** @var array Default messages */
 	public static $messages = array(

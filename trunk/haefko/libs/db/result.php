@@ -92,16 +92,16 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 
 		# columns & tables
+		$this->cols = $this->driver->getResultColomns();
+		
 		$tables = array();
-		foreach ($this->driver->columnsMeta() as $col) {
-			if ($col['orgname'] != $col['name']) {
-				$this->cols[] = array('', $col['name']);
-			} else {
-				$this->cols[] = array($col['table'], $col['name']);
-				$tables[$col['table']] = true;
-			}
+		foreach ($this->cols as $col) {
+			if (!empty($col[0]))
+				$tables[$col[0]] = true;
 		}
+
 		$this->tables = count($tables) > 1;
+
 
 		return $this;
 	}
@@ -110,7 +110,7 @@ class DbResult extends Object implements Countable, IteratorAggregate
 	/**
 	 * Sets association
 	 * @param   string     main table
-	 * @param   array      other tables
+	 * @param   array      other tables in relation hasMany
 	 * @return  DbResult   $this
 	 */
 	public function associate($main, $hasMany = array())
@@ -331,7 +331,7 @@ class DbResult extends Object implements Countable, IteratorAggregate
 	private function combineColumns($row)
 	{
 		foreach ($this->cols as $i => $col) {
-			if ($row[$i] === null)
+			if (!array_key_exists($i, $row))
 				continue;
 
 			if (empty($col[0]))

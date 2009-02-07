@@ -69,7 +69,7 @@ class DbTableStructure
 
 		$this->structure = $this->cache->read('sql', 'tables');
 		if (!isset($this->structure['__tables__'])) {
-			$this->structure['__tables__'] = db::fetchPairs('show tables');
+			$this->structure['__tables__'] = db::getDriver()->getTables();
 			$this->updated = true;
 		}
 	}
@@ -148,20 +148,9 @@ class DbTableStructure
 		if (!empty($this->structure[$table]))
 			return;
 
-		foreach (db::fetchAll("DESCRIBE [$table]") as $row) {
-			$this->structure[$table][$row->Field] = array();
-
-			$type = $row->Type;
-			$length = null;
-			if (preg_match('#^(.*)\((\d+)\)$#', $row->Type, $match)) {
-				$type = $match[1];
-				$length = $match[2];
-			}
-
-			$this->structure[$table][$row->Field]['mod'] = self::$modificators[$type];
-			$this->structure[$table][$row->Field]['length'] = $length;
-			$this->structure[$table][$row->Field]['primary'] = $row->Key === 'PRI';
-		}
+		$this->structure[$table] = db::getDriver()->getTableColumnsDescription($table);
+		foreach ($this->structure[$table] as & $row)
+			$row['mod'] = self::$modificators[$row['type']];
 
 		$this->updated = true;
 	}

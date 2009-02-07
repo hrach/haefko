@@ -322,7 +322,7 @@ class DbConnection extends Object
 	{
 		switch (gettype($var)) {
 			case 'integer':    return '%i';
-			case 'double':     return '%f';  # float
+			case 'double':     return '%f'; # float
 			case 'array':      return '%a';
 			case 'boolean':    return '%b';
 			default:           return '%s';
@@ -331,8 +331,19 @@ class DbConnection extends Object
 
 
 	/**
+	 * Returns db driver
+	 * @return  DbDriver
+	 */
+	public function getDriver()
+	{
+	    $this->needConnection();
+	    return clone $this->driver;
+	}
+
+
+	/**
 	 * Checks connection and creates it
-	 * @throws  DbException
+	 * @throws  Exception
 	 * @return  void
 	 */
 	private function needConnection()

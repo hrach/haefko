@@ -61,18 +61,6 @@ class MysqliDbDriver extends DbDriver
 	}
 
 
-	public function columnsMeta()
-	{
-		$count = $this->result->field_count;
-
-		$meta = array();
-		for ($i = 0; $i < $count; $i++)
-			$meta[] = (array) $this->result->fetch_field_direct($i);
-
-		return $meta;
-	}
-
-
 	public function rowCount()
 	{
 		return $this->result->num_rows;
@@ -82,6 +70,47 @@ class MysqliDbDriver extends DbDriver
 	public function insertedId($sequence)
 	{
 		return $this->resource->insert_id;
+	}
+
+
+	public function getTables()
+	{
+		return db::fetchPairs('SHOW TABLES');
+	}
+
+
+	public function getTableColumnsDescription($table)
+	{
+		$structure = array();
+		foreach (db::fetchAll("DESCRIBE [$table]") as $row) {
+			$type = $row->Type;
+			$length = null;
+			if (preg_match('#^(.*)\((\d+)\)$#', $row->Type, $match)) {
+				$type = $match[1];
+				$length = $match[2];
+			}
+
+			$structure[$row->Field]['null'] = $row->Null === 'YES';
+			$structure[$row->Field]['primary'] = $row->Key === 'PRI';
+			$structure[$row->Field]['length'] = $length;
+			$structure[$row->Field]['type'] = $type;
+		}
+
+		return $structure;
+	}
+
+
+	public function	getResultColomns()
+	{
+		$count = $this->result->field_count;
+
+		$cols = array();
+		for ($i = 0; $i < $count; $i++) {
+			$col = $this->result->fetch_field_direct($i);
+			$cols[] = array($col->table, $col->name);
+		}
+
+		return $cols;
 	}
 
 
