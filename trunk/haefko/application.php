@@ -138,28 +138,28 @@ class Application extends Object
 		switch (Config::read('Core.debug', 0)) {
 		case 0:
 			$this->loadCore('debug');
-			$this->cache->lifeTime = 60*60*24; # one day
+			$this->cache->lifeTime = 60*60*24; # 1 day
 			ini_set('log_errors', true);
 			ini_set('display_errors', false);
-			error_reporting(E_ERROR | E_WARNING | E_PARSE);
+			error_reporting(E_ERROR | E_PARSE);
 			break;
 		case 1:
 			$this->loadCore('debug');
-			$this->cache->lifeTime = 60*60; # one hour
+			$this->cache->lifeTime = 60*60; # 1 hour
 			ini_set('log_errors', false);
 			ini_set('display_errors', true);
-			error_reporting(E_ERROR | E_PARSE);
+			error_reporting(E_ERROR | E_WARNING | E_PARSE);
 			break;
 		case 2:
 			$this->loadCore('debug');
-			$this->cache->lifeTime = 60*5; # five minutes
+			$this->cache->lifeTime = 60*5; # 5 minutes
 			ini_set('log_errors', false);
 			ini_set('display_errors', true);
 			error_reporting(E_ALL);
 			break;
 		default: # other levels
 			$this->loadCore('debug');
-			$this->cache->lifeTime = 30; # thirty seconds
+			$this->cache->lifeTime = 30; # 30 seconds
 			ini_set('log_errors', false);
 			ini_set('display_errors', true);
 			error_reporting(E_ALL);

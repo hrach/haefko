@@ -239,6 +239,8 @@ class DbConnection extends Object
 		switch ($type) {
 			case '%r': # raw sql format
 				return $value;
+			case '%n':
+				return 'NULL';
 			case '%c': # sql column
 				return $this->escapeColumn($value);
 			case '%s': # string
@@ -325,6 +327,7 @@ class DbConnection extends Object
 			case 'double':     return '%f'; # float
 			case 'array':      return '%a';
 			case 'boolean':    return '%b';
+			case 'NULL':       return '%n';
 			default:           return '%s';
 		}
 	}
