@@ -169,6 +169,32 @@ class Router
 
 
 	/**
+	 * Returns args array for creating url
+	 * @return  array
+	 */
+	public function getUrlArgs()
+	{
+		static $args;
+
+		if ($args === null) {
+			$args = $this->getArgs();
+			$args['controller'] = Tools::dash($args['controller']);
+			$args['action'] = Tools::dash($args['action']);
+
+			foreach ($args['module'] as &$arg)
+				$arg = Tools::dash($arg);
+
+			foreach ($args['module'] as $i => $arg)
+				$args["module[$i]"] = $arg;
+
+			$args['module'] = implode('/', $args['module']);
+		}
+
+		return $args;
+	}
+
+
+	/**
 	 * Return arg
 	 * @param   string    arg name
 	 * @param   bool      inline named variable?
