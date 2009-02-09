@@ -21,8 +21,10 @@ class DbTableStructure
 	public static $modificators = array(
 		'varchar' => '%s',
 		'char' => '%s',
+		'bpchar' => '%s',
 		'text' => '%s',
 		'longtext' => '%s',
+		'bool' => '%s',
 		'date' => '%d',
 		'time' => '%t',
 		'datetime' => '%dt',
@@ -88,8 +90,8 @@ class DbTableStructure
 
 	/**
 	 * Returns column's modificator
-	 * @param   string     table
-	 * @param   string     column
+	 * @param   string    table
+	 * @param   string    column
 	 * @return  string
 	 */
 	public function getMod($table, $column = null)
@@ -107,8 +109,9 @@ class DbTableStructure
 
 	/**
 	 * Returns table primary keys with modificators
-	 * @param   string      table name
-	 * @return  array|false
+	 * @param   string    table name
+	 * @throws  Exception
+	 * @return  array
 	 */
 	public function getPk($table)
 	{
@@ -120,10 +123,10 @@ class DbTableStructure
 				$pk[$name] = $data['mod'];
 		}
 
-		if (!empty($pk))
-			return $pk;
+		if (empty($pk))
+			throw new Exception("DbTable is only for tables with primary key. Table '$table' doesn't contain any primary key.");
 
-		return false;
+		return $pk;
 	}
 
 
@@ -140,7 +143,7 @@ class DbTableStructure
 
 	/**
 	 * Fetchs table structure
-	 * @param   string  table name
+	 * @param   string    table name
 	 * @return  void
 	 */
 	protected function initTable($table)
