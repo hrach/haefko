@@ -178,7 +178,7 @@ class DbConnection extends Object
 			if (is_string($frag))
 				$frag = preg_replace("#\[(.+)\]#Ue", '$this->escapeColumn("\\1")', $frag);
 
-			if (is_string($frag) && preg_match_all('#(%(?:r|c|s|i|f|b|d|t|dt|a|l|v|if|end))(?!\w)#', $frag, $matches, PREG_OFFSET_CAPTURE + PREG_SET_ORDER)) {
+			if (is_string($frag) && preg_match_all('#((?:!)?%(?:r|c|s|i|f|b|d|t|dt|a|l|v|if|end))(?!\w)#', $frag, $matches, PREG_OFFSET_CAPTURE + PREG_SET_ORDER)) {
 				$temp = '';
 				$start = 0;
 				foreach ($matches as $match) {
@@ -233,8 +233,14 @@ class DbConnection extends Object
 	{
 		$this->needConnection();
 
-		if (empty($type))
+		if (empty($type)) {
 			$type = $this->getType($value);
+		} elseif ($type{0} == '!') {
+			if ($value === null)
+				$type = '%n';
+			else
+				$type = substr($type, 1);
+		}
 
 		switch ($type) {
 			case '%r': # raw sql format
