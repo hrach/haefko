@@ -21,7 +21,7 @@ class Config
 
 
 	/**
-	 * Write configuration
+	 * Writes configuration
 	 * Where $key == 'servers' is parser only configuration for actual server-name
 	 * @param   mixed   key name
 	 * @param   mixed   value
@@ -29,6 +29,7 @@ class Config
 	 */
 	public static function write($key, $val)
 	{
+		$key = strtolower($key);
 		if ($key == 'servers' && is_array($val)) {
 
 			$server = $_SERVER['SERVER_NAME'];
@@ -59,8 +60,8 @@ class Config
 
 
 	/**
-	 * Multi configuration write
-	 * @param   array
+	 * Writes array of configuration
+	 * @param   array     array of cofigurations pairs
 	 * @return  void
 	 */
 	public static function multiWrite($config)
@@ -71,14 +72,15 @@ class Config
 
 
 	/**
-	 * Read configuration value
+	 * Reads configuration value
 	 * If $key doesn't exists, return $default
-	 * @param   string  key
-	 * @param   mixed   default value
+	 * @param   string    key
+	 * @param   mixed     default value
 	 * @return  mixed
 	 */
 	public static function read($key, $default = null)
 	{
+		$key = strtolower($key);
 		$levels = explode('.', $key);
 		$level = & self::$config;
 
@@ -94,8 +96,8 @@ class Config
 
 
 	/**
-	 * Parse YAML configuration file
-	 * @param   string  filename
+	 * Parses YAML configuration file
+	 * @param   string    filename
 	 * @return  array
 	 */
 	public static function parseFile($file)
@@ -109,38 +111,33 @@ class Config
 
 
 	/**
-	 * Parse node
-	 * @param   string  config node
+	 * Parses config node
+	 * @param   string    config node
 	 * @return  array
 	 */
 	protected static function parseNode($data)
 	{
 		$array = array();
 		for ($i = 0, $to = count($data); $i < $to; $i++) {
-
 			if (preg_match('#^([a-z0-9\-\.]+):(.*)$#Ui', trim($data[$i]), $match)) {
 				if (empty($match[2])) {
-
 					$node = array();
 					while (isset($data[++$i]) && substr($data[$i], 0, 4) == '    ')
 						$node[] = substr($data[$i], 4);
 
 					--$i;
 					$array[$match[1]] = self::parseNode($node);
-
 				} else {
-
 					if (preg_match('#\[[\'"](.+)[\'"](?:,\s[\'"](.+)[\'"])*\]#U', $match[2], $value))
 						array_shift($value);
 					else
 						$value = trim(trim($match[2]), '\'"');
 
 					$array[$match[1]] = $value;
-
 				}
 			}
-
 		}
+
 		return $array;
 	}
 
