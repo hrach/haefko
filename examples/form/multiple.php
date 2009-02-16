@@ -7,9 +7,9 @@ require_once '../../haefko/libs/debug.php';
 
 
 $form = new Form();
-$form->addMultiCheckbox('spotrebice', array('pc' => 'PC', 'dvd' => 'DVD', 'bluray' => 'Blu-Ray'))
-	 ->addMultiSelect('spotrebice2', array('pc' => 'PC', 'dvd' => 'DVD', 'bluray' => 'Blu-Ray'))
-	 ->addSubmit();
+$form->addMultiCheckbox('spotrebice', array('pc' => 'PC', 'dvd' => 'DVD', 'bluray' => 'Blu-Ray'),"Spotřebiče")
+     ->addMultiSelect('spotrebice2', array('pc' => 'PC', 'dvd' => 'DVD', 'bluray' => 'Blu-Ray'),"Mé druhé spotřebiče")
+     ->addSubmit();
 
 
 $form->setDefaults(array('spotrebice' => array('pc', 'bluray', 'dvd')));
@@ -18,8 +18,8 @@ $form->setDefaults(array('spotrebice2' => array('pc', 'bluray')));
 
 if ($form->isSubmit() && $form->isValid()) {
 
-	echo "<h1>Odeslano:</h1>";
-	Debug::dump($form->data);
+    echo "<h1>Odeslano:</h1>";
+    Debug::dump($form->data);
 
 }
 
