@@ -39,9 +39,9 @@ class FormMultiCheckboxControl extends FormControl
 
 	protected $options = array();
 
-	public function __construct($form, $name, $options)
+	public function __construct($form, $name, $options, $label)
 	{
-		parent::__construct($form, $name);
+		parent::__construct($form, $name, $label);
 		$this->options = $options;
 	}
 
@@ -55,7 +55,7 @@ class FormMultiCheckboxControl extends FormControl
 		foreach ($this->options as $key => $value) {
 			$el->value($key)
 			   ->id("{$this->htmlId}-$key")
-			   ->checked(in_array($key, $this->getHtmlValue()) ? 'checked' : null);
+			   ->checked(in_array($key, (array) $this->getHtmlValue()) ? 'checked' : null);
 
 			$label->for("{$this->htmlId}-$key")
 				  ->id("{$this->htmlId}-$key-label")

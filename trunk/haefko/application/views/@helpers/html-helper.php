@@ -37,7 +37,7 @@ class HtmlHelper extends Object
 		else
 			$el->setHtml($text === null ? $url : $text);
 
-		return $el->render();
+		return $el->render(false);
 	}
 
 
@@ -66,7 +66,7 @@ class HtmlHelper extends Object
 		else
 			$el->setHtml($text);
 
-		return $el->render();
+		return $el->render(false);
 	}
 
 
@@ -82,7 +82,7 @@ class HtmlHelper extends Object
 		$el = Html::el('img')->setAttrs($attrs)
 		                     ->src($url);
 
-		return $el->render();
+		return $el->render(false);
 	}
 
 
