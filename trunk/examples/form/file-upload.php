@@ -9,6 +9,8 @@ require_once '../../haefko/libs/debug.php';
 $form = new Form();
 $form->addFile('photo')
 	 ->addSubmit();
+	 
+$form['photo']->addRule(Form::FILLED);
 
 if ($form->isSubmit() && $form->isValid()) {
 
