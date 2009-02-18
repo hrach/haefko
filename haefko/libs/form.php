@@ -496,19 +496,14 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	{
 		foreach ($this->controls as $id => $control) {
 			if ($control instanceof FormFileControl && isset($_FILES[$this->name]['name'][$id])) {
-				if (is_array($_FILES[$this->name]['name'][$id])) {
-					$this->data[$id] = array();
-					for ($i = 0, $to = count($_FILES[$this->name]['name'][$id]); $i < $to; $i++)
-						$this->data[$id][] = new FormUploadedFile($control, $_FILES[$this->name]);
-				} else {
-					$this->data[$id] = new FormUploadedFile($control, $_FILES[$this->name]);
-				}
+				$this->data[$id] = new FormUploadedFile($control, $_FILES[$this->name]);
+				$control->setValue($this->data[$id]->name);
 			} elseif (isset($_POST[$this->name][$id])) {
 				if ($control instanceof FormSubmitControl) {
 					$this->submitBy = $id;
 				} else {
 					$control->setValue($_POST[$this->name][$id]);
-					$this->data[$id] = $control->getvalue();
+					$this->data[$id] = $control->getValue();
 				}
 			}
 		}
