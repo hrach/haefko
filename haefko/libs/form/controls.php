@@ -132,7 +132,7 @@ abstract class FormControl extends Object
 	 */
 	public function addRuleOn(FormControl $control, $rule, $arg = null, $message = null)
 	{
-		if ($rule == Form::FILLED)
+		if ($rule == Form::FILLED || ($rule == Form::LENGTH && $arg > 0))
 			$this->htmlRequired = true;
 
 		$r = new Rule();

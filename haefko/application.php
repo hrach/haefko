@@ -91,7 +91,6 @@ class Application extends Object
 		if ($config !== false)
 			$this->loadConfig($this->path . $config);
 
-
 		$this->router = new Router();
 		$this->cache = new Cache(true, Config::read('Cache.store', $this->path . '/temp/cache/'));
 	}
@@ -260,7 +259,7 @@ class Application extends Object
 	public function run()
 	{
 		$this->loadAppController();
-		if ($this->router->routed === false)
+		if ($this->router->routed === false || empty($this->router->controller))
 			throw new ApplicationException('routing');
 
 		$class = Inflector::controllerClass($this->router->controller, $this->router->module);
