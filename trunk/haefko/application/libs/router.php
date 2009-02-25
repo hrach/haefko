@@ -90,7 +90,7 @@ class Router
 		$newRoute = '';
 		$route = trim($route, '/');
 		$routing = array('controller' => '', 'action' => 'index', 'module' => array());
-		$routing = $this->normalize(array_merge($this->routing, $routing, $this->defaults, $defaults));
+		$routing = $this->normalize(array_merge($this->routing, $routing, $this->defaults, (array) $defaults));
 
 
 		# explode by variables
@@ -164,6 +164,7 @@ class Router
 	 */
 	public function getArgs()
 	{
+		$this->routing = $this->normalize($this->routing);
 		return $this->routing;
 	}
 
@@ -275,6 +276,8 @@ class Router
 	 */
 	private function normalize($routing)
 	{
+		$def = array('controller' => '', 'action' => 'index', 'module' => array());
+		$routing = array_merge($def, $routing);
 		$routing['module'] = (array) $routing['module'];
 		$routing['controller'] = Tools::camelize($routing['controller']);
 		$routing['action'] = lcfirst(Tools::camelize($routing['action']));
