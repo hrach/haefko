@@ -113,20 +113,28 @@ class Html extends Object
 
 	/**
 	 * Overloaded attribut's getter
+	 * @throws  Exception
 	 * @return  mixed
 	 */
 	public function __get($name)
 	{
+		if (!array_key_exists($name, $this->attrs))
+			throw new Exception("Undefined attribut $name.");
+
 		return $this->attrs[$name];
 	}
 
 
 	/**
 	 * Overloaded attribut's unsetter
+	 * @throws  Exception
 	 * @return  void
 	 */
 	public function __unset($name)
 	{
+		if (!array_key_exists($name, $this->attrs))
+			throw new Exception("Undefined attribut $name.");
+
 		unset($this->attrs[$name]);
 	}
 

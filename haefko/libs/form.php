@@ -91,7 +91,6 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 		return $this->name;
 	}
 
-
 	/* ======== Controls ======== */
 
 
@@ -378,7 +377,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function getUrl()
 	{
-		return $this->form['url'];
+		return $this->form->action;
 	}
 
 
