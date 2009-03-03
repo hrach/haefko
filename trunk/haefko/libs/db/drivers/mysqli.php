@@ -51,6 +51,8 @@ class MysqliDbDriver extends DbDriver
 				return "`$value`";
 			case 'text':
 				return "'" . $this->resource->escape_string($value) . "'";
+			case 'bool':
+				return $value ? 1 : 0;
 		}
 	}
 

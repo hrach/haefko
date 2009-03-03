@@ -12,6 +12,9 @@
  */
 
 
+require_once dirname(__FILE__) . '/object.php';
+
+
 class Paginator extends Object
 {
 
@@ -218,7 +221,7 @@ class Paginator extends Object
 		if (class_exists('Application', false))
 			$link = Controller::get()->url($mask, array('page' => $i));
 		else
-			$link = preg_replace('#<:page>#', $i, $link);
+			$link = preg_replace('#<:page>#', $i, $mask);
 
 		return "<a href=\"$link\">$text</a>";
 	}

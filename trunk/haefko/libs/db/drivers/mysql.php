@@ -59,6 +59,8 @@ class MysqlDbDriver extends DbDriver
 				return "`$value`";
 			case 'text':
 				return "'" . mysql_real_escape_string($value, $this->resource) . "'";
+			case 'bool':
+				return $value ? 1 : 0;
 		}
 	}
 

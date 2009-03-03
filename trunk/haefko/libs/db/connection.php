@@ -45,7 +45,7 @@ class DbConnection extends Object
 			'server' => 'localhost',
 			'username' => 'root',
 			'password' => '',
-			'database' => '',
+			'database' => 'test',
 			'encoding' => 'utf8',
 			'lazy' => false
 		);
@@ -256,7 +256,7 @@ class DbConnection extends Object
 			case '%f': # float
 				return (float) $value;
 			case '%b': # boolean
-				return (boolean) $value;
+				return $this->driver->escape('bool', $value);
 			case '%t': # time
 				return $this->driver->escape('text', date('H:i:s', is_int($value) ? $value : strtotime($value)));
 			case '%d': # date

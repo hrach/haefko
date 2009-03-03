@@ -339,7 +339,7 @@ class Application extends Object
 	public function autoloadHandler($class)
 	{
 		static $libs = array('autoload', 'cookie', 'session', 'debug', 'html', 'l10n', 'form',
-		                     'db', 'db-table', 'db-table-structure');
+		                     'db', 'db-table', 'db-table-structure', 'paginator');
 
 		$ci_class = strtolower($class);
 		if (in_array($ci_class, $libs))
