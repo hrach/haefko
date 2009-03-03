@@ -156,12 +156,15 @@ class View extends Object implements IView
 	 */
 	public function helper($name, $var = null)
 	{
-		if (is_null($var))
-			$var = strtolower($name);
+		static $pairs = array();
 
-		if (!isset($this->helpers[$var])) {
+		if (!array_key_exists($name, $pairs) || $pairs[$name] != $var) {
+			if (empty($var))
+				$var = strtolower($name);
+
 			$class = Inflector::helperClass($name);
 			$this->controller->application->loadClass('helper', $class);
+			$pairs[$name] = $var;
 			$this->helpers[$var] = new $class;
 		}
 

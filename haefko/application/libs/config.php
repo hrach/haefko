@@ -38,8 +38,8 @@ class Config
 
 			if (isset($val[$server]))
 				self::multiWrite($val[$server]);
-			else
-				throw new Exception("Undefined server configuration for '$server'.");
+			elseif (class_exists('Debug'))
+				Debug::log("Undefined server configuration for '$server'.");
 
 		} else {
 

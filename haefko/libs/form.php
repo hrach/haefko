@@ -290,7 +290,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Render form end tag with hidden inputs
+	 * Renders form end tag with hidden inputs
 	 * @return  string
 	 */
 	public function endTag()
@@ -307,7 +307,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Return true/false if the form has been submitted
+	 * Returns true/false if the form has been submitted
 	 * Arguments: no submit button name = check only if form has been submitted
 	 *            buton name/names = check if form has been submitted by button/buttons
 	 * @param   string  button name
@@ -327,7 +327,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Return true/false if the form is valid
+	 * Returns true/false if the form is valid
 	 * @return  bool
 	 */
 	public function isValid()
@@ -358,7 +358,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Set default values for controls
+	 * Sets default values for controls
 	 * @param   array   values - format is array with $controlName => $value
 	 * @return  void
 	 */
@@ -372,7 +372,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Return form url
+	 * Returns form url
 	 * @return  string
 	 */
 	public function getUrl()
@@ -399,7 +399,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Render form controls and tags
+	 * Renders form controls and tags
 	 * @param   string  render part
 	 * @param   mixed   arg n0
 	 * @return  string
@@ -472,7 +472,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Interface
+	 * To string interface
 	 * @return  string
 	 */
 	public function __toString()
@@ -488,7 +488,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Load submited data into the form
+	 * Loads submited data into the form
 	 * @return  void
 	 */
 	private function loadData()

@@ -189,11 +189,11 @@ abstract class Controller extends Object
 	 */
 	public function render()
 	{
-		call_user_func(array($this, 'init'));
-		$method = Tools::camelize($this->application->router->action);
-
-
 		try {
+			call_user_func(array($this, 'init'));
+			$method = Tools::camelize($this->application->router->action);
+
+
 			# ajax call
 			if ($this->isAjax && method_exists(get_class($this), $method . 'AjaxAction')) {
 				$method .= 'AjaxAction';

@@ -77,6 +77,8 @@ class PgsqlDbDriver extends DbDriver
 				return " $value ";
 			case 'text':
 				return "'" . pg_escape_string($this->resource, $value) . "'";
+			case 'bool':
+				return $value ? 1 : 0;
 		}
 	}
 
