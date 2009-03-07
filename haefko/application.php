@@ -21,12 +21,10 @@ require_once dirname(__FILE__) . '/libs/tools.php';
 require_once dirname(__FILE__) . '/libs/http.php';
 require_once dirname(__FILE__) . '/libs/object.php';
 require_once dirname(__FILE__) . '/libs/cache.php';
+require_once dirname(__FILE__) . '/libs/config.php';
 require_once dirname(__FILE__) . '/application/libs/exceptions.php';
 require_once dirname(__FILE__) . '/application/libs/inflector.php';
 require_once dirname(__FILE__) . '/application/libs/router.php';
-require_once dirname(__FILE__) . '/application/libs/config.php';
-
-
 
 
 class Application extends Object

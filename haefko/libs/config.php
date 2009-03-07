@@ -7,7 +7,7 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.programujte.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8 - $Id$
+ * @version     0.8 - $Id: config.php 89 2009-03-03 19:10:39Z skrasek.jan $
  * @package     Haefko_Application
  */
 
