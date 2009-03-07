@@ -83,7 +83,9 @@ abstract class FormControl extends Object
 		$this->control = Html::el($this->htmlTag);
 		$this->control->name = "{$this->form->name}[$name]";
 
-		if ($label !== false)
+		if ($label instanceof Html)
+			$this->label = $label;
+		elseif ($label !== false)
 			$this->label = Html::el('label', is_null($label) ? ucfirst($name) : $label);
 	}
 

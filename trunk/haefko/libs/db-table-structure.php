@@ -13,6 +13,9 @@
  */
 
 
+require_once dirname(__FILE__) . '/cache.php';
+
+
 class DbTableStructure
 {
 

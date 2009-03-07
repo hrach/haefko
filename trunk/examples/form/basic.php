@@ -6,9 +6,12 @@ require_once '../../haefko/libs/debug.php';
 
 $form = new Form();
 
+$label_age = Html::el('label', 'Věk');
+$label_age->append = ' (nepovinné)';
+
 $form->addText('name', 'Jméno')
 	 ->addTextarea('aboutMe', 'O mě')
-	 ->addText('age', 'Věk')
+	 ->addText('age', $label_age)
 	 ->addRadio('sex', aa('male', 'Muž', 'female', 'Žena'), 'Pohlaví')
 	 ->addSelect('city', aa('brno', 'Brno', 'ostrava', 'Ostrava', 'praha', 'Praha'))
 	 ->addPassword('password', 'Heslo')
