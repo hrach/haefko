@@ -83,10 +83,15 @@ class Autoload extends Object
 	 */
 	public function autoloadHandler($class)
 	{
-		if (isset($this->classes[$class]) && file_exists($_SERVER['DOCUMENT_ROOT'] . $this->classes[$class]))
+		$class = strtolower($class);
+		if (isset($this->classes[$class]) && file_exists($_SERVER['DOCUMENT_ROOT'] . $this->classes[$class])) {
 			require_once $_SERVER['DOCUMENT_ROOT'] . $this->classes[$class];
-		elseif (!$this->rebuild && $this->autoRebuild)
+		} elseif (!$this->rebuild && $this->autoRebuild) {
 			$this->rebuild();
+			
+			if (isset($this->classes[$class]) && file_exists($_SERVER['DOCUMENT_ROOT'] . $this->classes[$class]))
+				require_once $_SERVER['DOCUMENT_ROOT'] . $this->classes[$class];
+		}
 	}
 
 
@@ -148,7 +153,7 @@ class Autoload extends Object
 					if ($token[0] == T_CLASS || $token[0] == T_INTERFACE) {
 						$catch = true;
 					} elseif ($token[0] == T_STRING && $catch) {
-						$this->classes[$token[1]] = Tools::relativePath($file);
+						$this->classes[strtolower($token[1])] = Tools::relativePath($file);
 						$catch = false;
 					}
 				}

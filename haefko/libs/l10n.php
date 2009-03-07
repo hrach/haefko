@@ -140,7 +140,7 @@ class L10n
 		if (isset(self::$map[$lang]))
 			$lang = self::$map[$lang];
 
-		putenv("LANG=$lang");
+		@putenv("LANG=$lang");
 		setlocale(LC_ALL, $lang); 
 		return true;
 	}

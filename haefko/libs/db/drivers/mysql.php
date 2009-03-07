@@ -95,7 +95,7 @@ class MysqlDbDriver extends DbDriver
 		foreach (db::fetchAll("DESCRIBE [$table]") as $row) {
 			$type = $row->Type;
 			$length = null;
-			if (preg_match('#^(.*)\((\d+)\)$#', $row->Type, $match)) {
+			if (preg_match('#^(.*)\((\d+)\)( unsigned)?$#', $row->Type, $match)) {
 				$type = $match[1];
 				$length = $match[2];
 			}
