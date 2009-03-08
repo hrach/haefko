@@ -227,26 +227,26 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 	protected function prepareBody($attrs)
 	{
-		$this->body->clearContent();
+		$this->body->clear();
 		$this->body->setAttrs((array) @$attrs[2]);
 	}
 
 
 	protected function prepareBlock()
 	{
-		$this->block->clearContent();
+		$this->block->clear();
 	}
 
 
 	protected function prepareControl()
 	{
-		$this->control->clearContent();
+		$this->control->clear();
 	}
 
 
 	protected function prepareLabel()
 	{
-		$this->label->clearContent();
+		$this->label->clear();
 	}
 
 

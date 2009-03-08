@@ -47,11 +47,16 @@ class FormMultiCheckboxControl extends FormControl
 
 	public function control($attrs = array())
 	{
+		$s = '';
 		$this->htmlRendered = true;
 
-		$s = '';
 		$label = Html::el('label');
-		$el = Html::el('input', null, array('type' => 'checkbox', 'class' => 'checkbox', 'name' => $this->control->name . '[]'));
+		$el = Html::el('input', null, array(
+			'type' => 'checkbox',
+			'class' => 'checkbox',
+			'name' => $this->control->name . '[]'
+		));
+
 		foreach ($this->options as $key => $value) {
 			$el->value($key)
 			   ->id("{$this->htmlId}-$key")
@@ -59,7 +64,7 @@ class FormMultiCheckboxControl extends FormControl
 
 			$label->for("{$this->htmlId}-$key")
 				  ->id("{$this->htmlId}-$key-label")
-				  ->clearContent()
+				  ->clear()
 				  ->setText($value);
 
 			$s .= $el->render() . $label->render() . '<br />';

@@ -1,7 +1,7 @@
 <?php
 
 # nacteme knihovnu
-require_once 'haefko/libs/paginator.php';
+require_once '../../haefko/libs/paginator.php';
 
 # nase data, ktera chceme strankovat
 $data = array('Petr', 'Anna', 'Martin', 'Jan', 'Pavla', 'Romana', 'Alice', 'Lukas');
