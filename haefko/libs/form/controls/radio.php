@@ -27,11 +27,16 @@ class FormRadioControl extends FormInputControl
 
 	public function control($attrs = array())
 	{
+		$s = '';
 		$this->htmlRendered = true;
 
-		$s = '';
-		$label = Html::el('label', null, array('class' => 'radio'));
-		$el = Html::el('input', null, array('type' => 'radio', 'name' => $this->control->name));
+		$label = Html::el('label', null, array(
+			'class' => 'radio'
+		));
+		$el = Html::el('input', null, array(
+			'type' => 'radio',
+			'name' => $this->control->name
+		));
 
 		foreach ($this->options as $key => $value) {
 			$el->value($key)
@@ -40,7 +45,7 @@ class FormRadioControl extends FormInputControl
 
 			$label->for("{$this->htmlId}-$key")
 			      ->id("{$this->htmlId}-$key-label")
-			      ->clearContent()
+			      ->clear()
 			      ->setText($value);
 
 			$s .= $el->render() . $label->render() . '<br />';

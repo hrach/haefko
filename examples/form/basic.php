@@ -7,7 +7,7 @@ require_once '../../haefko/libs/debug.php';
 $form = new Form();
 
 $label_age = Html::el('label', 'Věk');
-$label_age->append = ' (nepovinné)';
+$label_age->append(Html::el('small', ' (nepovinné)'));
 
 $form->addText('name', 'Jméno')
 	 ->addTextarea('aboutMe', 'O mě')
