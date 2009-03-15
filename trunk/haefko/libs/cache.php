@@ -49,12 +49,11 @@ class Cache extends Object
 	 * @param   string    group name
 	 * @param   string    id
 	 * @param   mixed     data
-	 * @param   mixed
 	 * @return  void
 	 */
-	public function write($group, $id, $data, $expires = null)
+	public function write($group, $id, $data)
 	{
-		$this->__write($group, $id, serialize($data), $expires);
+		$this->__write($group, $id, serialize($data));
 	}
 
 
@@ -62,11 +61,12 @@ class Cache extends Object
 	 * Reads unserialized cached data
 	 * @param   string      group name
 	 * @param   string      id
+	 * @param   int         lifetime
 	 * @return  mixed|null  return null when data are not cached
 	 */
-	public function read($group, $id)
+	public function read($group, $id, $lifeTime = null)
 	{
-		if ($this->isCached($group, $id))
+		if ($this->isCached($group, $id, $lifeTime))
 			return unserialize($this->__read($group, $id));
 
 		return null;
@@ -78,14 +78,10 @@ class Cache extends Object
 	 * @param   string    group name
 	 * @param   string    id
 	 * @param   string    serialized data
-	 * @param   int       time
 	 * @return  void
 	 */
-	protected function __write($group, $id, $data, $lifeTime = null)
+	protected function __write($group, $id, $data)
 	{
-		if (empty($expires))
-			$lifeTime = $this->lifeTime;
-
 		$file = $this->getFilename($group, $id);
 
 		if ($fp = fopen($file, 'w+b')) {
@@ -93,8 +89,6 @@ class Cache extends Object
 				fwrite($fp, $data);
 
 			fclose($fp);
-			if ($lifeTime !== false)
-				touch($file, time() + $lifeTime);
 		}
 	}
 
@@ -116,14 +110,18 @@ class Cache extends Object
 	 * Checks whether data are cached
 	 * @param   string      group name
 	 * @param   string      id
+	 * @param   int         lifeTime
 	 * @return  void
 	 */
-	protected function isCached($group, $id)
+	protected function isCached($group, $id, $lifeTime = null)
 	{
+		if (empty($lifeTime))
+			$lifeTime = $this->lifeTime;
+
 		$file = $this->getFilename($group, $id);
 
 		if ($this->enabled && file_exists($file)) {
-			if (filemtime($file) > time())
+			if (filemtime($file) + $lifeTime > time())
 				return true;
 			else
 				unlink($file);

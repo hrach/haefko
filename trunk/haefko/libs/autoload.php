@@ -116,7 +116,7 @@ class Autoload extends Object
 	 */
 	public function load()
 	{
-		$this->classes = $this->cache->read('autoload', 'classes', false);
+		$this->classes = $this->cache->read('autoload', 'classes');
 		if ($this->classes === null)
 			$this->rebuild();
 

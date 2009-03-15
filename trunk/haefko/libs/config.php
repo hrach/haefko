@@ -98,10 +98,14 @@ class Config
 	/**
 	 * Parses YAML configuration file
 	 * @param   string    filename
+	 * @throws  Exception
 	 * @return  array
 	 */
 	public static function parseFile($file)
 	{
+		if (!is_file($file))
+			throw new Exception('Missing configuration file ' . Tools::relativePath($file) . '.');
+
 		$data = trim(file_get_contents($file));
 		$data = preg_replace("#\t#", '    ', $data);
 		$data = explode("\n", $data);
