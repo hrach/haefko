@@ -21,7 +21,7 @@ class MysqlDbDriver extends DbDriver
 		$this->resource = @mysql_connect($config['server'], $config['username'], $config['password']);
 
 		if (!$this->resource)
-			throw new Exception(mysql_error($this->resource));
+			throw new Exception(mysql_error());
 
 		if (!mysql_select_db($config['database'], $this->resource))
 			throw new Exception(mysql_error($this->resource));

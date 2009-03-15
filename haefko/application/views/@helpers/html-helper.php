@@ -54,6 +54,11 @@ class HtmlHelper extends Object
 	public function button($url, $text, $confirm = false, $attrs = array(), $escape = false)
 	{
 		$url = $this->factoryUrl($url);
+		$form = Html::el('form', null, array(
+			'action' => $url,
+			'method' => 'post',
+			'class' => 'button'
+		));
 		$el = Html::el('button')->type('button')
 		                        ->setAttrs($attrs)
 		                        ->onclick("document.location.href='$url'");
@@ -65,8 +70,9 @@ class HtmlHelper extends Object
 			$el->setText($text);
 		else
 			$el->setHtml($text);
-
-		return $el->render(false);
+			
+		$form->setHtml($el);
+		return $form->render(false);
 	}
 
 

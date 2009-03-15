@@ -87,10 +87,11 @@ class Application extends Object
 
 
 		if ($config !== false)
-			$this->loadConfig($this->path . $config);
+			Config::multiWrite(Config::parseFile($this->path . $config));
 
 		$this->router = new Router();
 		$this->cache = new Cache(true, Config::read('Cache.store', $this->path . '/temp/cache/'));
+		$this->initConfig();
 	}
 
 
@@ -119,17 +120,11 @@ class Application extends Object
 
 
 	/**
-	 * Parses file configuration and load the configuration
-	 * @param   string  filename
-	 * @throws  Exception
+	 * Inits application configuraction
 	 * @return  void
 	 */
-	public function loadConfig($file)
+	public function initConfig()
 	{
-		if (!is_file($file))
-			throw new Exception('Missing configuration file ' . Tools::relativePath($file) . '.');
-
-		Config::multiWrite(Config::parseFile($file));
 		ini_set('error_log', Config::read('Debug.log', $this->path . '/temp/errors.log'));
 
 		switch (Config::read('Core.debug', 0)) {

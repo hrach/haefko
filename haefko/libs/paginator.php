@@ -40,7 +40,8 @@ class Paginator extends Object
 	 */
 	public function __construct($page, $pages)
 	{
-		$this->page = (int) $page;
+		$page = (int) $page;
+		$this->page = $page < 1 ? 1 : $page;
 		$this->pages = (int) $pages;
 		$this->hasPrev = $this->page > 1;
 		$this->hasNext = $this->page < $this->pages;
