@@ -12,19 +12,8 @@
  */
 
 
-require_once dirname(__FILE__) . '/../object.php';
-
-
-abstract class DbDriver extends Object
+interface IDbDriver
 {
-
-
-	/** @var mixed */
-	protected $resource;
-
-
-	/** @var mixed */
-	protected $result;
 
 
 	/**
@@ -33,7 +22,7 @@ abstract class DbDriver extends Object
 	 * @throws  Exception
 	 * @return  void
 	 */
-	abstract public function connect($config);
+	public function connect($config);
 
 
 	/**
@@ -42,7 +31,7 @@ abstract class DbDriver extends Object
 	 * @throws  Exception
 	 * @return  DbDriver  clone $this
 	 */
-	abstract public function query($sql);
+	public function query($sql);
 
 
 	/**
@@ -50,45 +39,44 @@ abstract class DbDriver extends Object
 	 * @param   bool      true = associative array | false = array
 	 * @return  array
 	 */
-	abstract public function fetch($assoc);
+	public function fetch($assoc);
 
 
 	/**
 	 * Escapes $value as a $type
-	 * @param   strign    column|text
+	 * @param   strign    type
 	 * @param   strign    value
 	 * @return  string
 	 */
-	abstract public function escape($type, $value);
+	public function escape($type, $value);
 
 
 	/**
 	 * Returns number of affected rows
 	 * @return  int
 	 */
-	abstract public function affectedRows();
+	public function affectedRows();
 
 
 	/**
 	 * Counts rows in result
 	 * @return  int
 	 */
-	abstract public function rowCount();
+	public function rowCount();
 
 
 	/**
 	 * Returns last inserted id
-	 * @param   string    sequence name
 	 * @return  int
 	 */
-	abstract public function insertedId($sequence);
+	public function insertedId();
 
 
 	/**
 	 * Returns list of tables
 	 * @return  array
 	 */
-	abstract public function getTables();
+	public function getTables();
 
 
 	/**
@@ -96,14 +84,14 @@ abstract class DbDriver extends Object
 	 * @param   string    table name
 	 * @return  array
 	 */
-	abstract public function getTableColumnsDescription($table);
+	public function getTableColumnsDescription($table);
 
 
 	/**
 	 * Returns result columns
 	 * @return  array
 	 */
-	abstract public function getResultColomns();
+	public function getResultColomns();
 
 
 }

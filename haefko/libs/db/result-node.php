@@ -12,7 +12,7 @@
  */
 
 
-class DbResultNode implements ArrayAccess
+class DbResultNode implements ArrayAccess, IteratorAggregate
 {
 
 
@@ -78,6 +78,16 @@ class DbResultNode implements ArrayAccess
 	public function offsetExists($key)
 	{
 		return isset($this->$key);
+	}
+
+
+	/**
+	 * IteratorAggregate interface
+	 * @return  ArrayIterator
+	 */
+	public function getIterator()
+	{
+		return new ArrayIterator((array) get_object_vars($this));
 	}
 
 

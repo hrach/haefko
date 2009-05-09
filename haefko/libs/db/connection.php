@@ -14,6 +14,7 @@
 
 require_once dirname(__FILE__) . '/driver.php';
 require_once dirname(__FILE__) . '/result.php';
+require_once dirname(__FILE__) . '/prepared-result.php';
 
 
 class DbConnection extends Object
@@ -23,7 +24,7 @@ class DbConnection extends Object
 	/** @var bool */
 	private $connected = false;
 
-	/** @var IDbDriver */
+	/** @var DbDriver */
 	private $driver;
 
 	/** @var array */
@@ -65,7 +66,7 @@ class DbConnection extends Object
 	public function prepare($sql)
 	{
 		$sqls = func_get_args();
-		return new DbResult($this->factorySql($sqls), $this->driver);
+		return new DbPreparedResult($this->factorySql($sqls), $this->driver);
 	}
 
 
@@ -88,10 +89,10 @@ class DbConnection extends Object
 			$driver = $this->driver->query($sql);
 			Db::debug($sql, $time);
 
-			if (stripos($sql, 'insert') === 0 && in_array(get_class($this->driver), array('MysqlDbDriver', 'MysqliDbDriver', 'PdoDbDriver', 'SqliteDbDriver')))
-				return $driver->insertedId('');
+			if (stripos($sql, 'insert') === 0)
+				return $driver->insertedId();
 			else
-				return null;
+				return $driver->affectedRows();
 		}
 	}
 
@@ -107,9 +108,9 @@ class DbConnection extends Object
 		$args = func_get_args();
 		$query = call_user_func_array(array($this, 'query'), $args);
 		return $query->fetchField();
-
-
 	}
+
+
 	/**
 	 * Wrapper for called result
 	 * @see     DbResult::fetch()
@@ -176,34 +177,37 @@ class DbConnection extends Object
 		while (($frag = array_shift($args)) !== null) {
 
 			if (is_string($frag))
-				$frag = preg_replace("#\[(.+)\]#Ue", '$this->escapeColumn("\\1")', $frag);
+				$frag = preg_replace("#\[(.+)\]#Ue", '$this->driver->escape(Db::COLUMN, "\\1")', $frag);
 
-			if (is_string($frag) && preg_match_all('#((?:!)?%(?:r|c|s|i|f|b|d|t|dt|a|l|v|if|end))(?!\w)#', $frag, $matches, PREG_OFFSET_CAPTURE + PREG_SET_ORDER)) {
+			if (is_string($frag) && preg_match_all('#(?:(!)?%(r|c|s|i|f|b|d|t|dt|set|l|v|kv|a|if|end))(?!\w)#', $frag, $matches, PREG_OFFSET_CAPTURE + PREG_SET_ORDER)) {
 				$temp = '';
 				$start = 0;
 				foreach ($matches as $match) {
 					$temp .= substr($frag, $start, $match[0][1] - $start);
 					$start = $match[0][1] + strlen($match[0][0]);
 
-					if ($match[0][0] == '%if') {
+					if ($match[2][0] == 'if') {
 						if (array_shift($args) == false) {
 							$temp .= '/* ';
 							$cond[] = false;
 						} else {
 							$cond[] = true;
 						}
-					} elseif ($match[0][0] == '%end') {
-						$pop = array_pop($cond);
 
+					} elseif ($match[2][0] == 'end') {
+						$pop = array_pop($cond);
 						if ($pop == false && !in_array(false, $cond))
 							$temp .= '*/';
+
 					} else {
 						if (empty($args))
-							throw new Exception('Missing sql argument.');
-						else
-							$arg = $this->escape(array_shift($args), $match[0][0]);
+							throw new InvalidArgumentException('Missing sql argument.');
 
-						$temp .= $arg . ' ';
+						if ($match[1][0] == '!')
+							$match[2][0] = Db::NULL;
+
+						$temp .= $this->escape(array_shift($args), $match[2][0])
+						      .  ' ';
 					}
 				}
 
@@ -233,48 +237,50 @@ class DbConnection extends Object
 	{
 		$this->needConnection();
 
-		if (empty($type)) {
+		if (empty($type))
 			$type = $this->getType($value);
-		} elseif ($type{0} == '!') {
-			if ($value === null)
-				$type = '%n';
-			else
-				$type = substr($type, 1);
-		}
 
 		switch ($type) {
-			case '%r': # raw sql format
+			case Db::RAW:
 				return $value;
-			case '%n':
+
+			case Db::NULL:
 				return 'NULL';
-			case '%c': # sql column
-				return $this->escapeColumn($value);
-			case '%s': # string
-				return $this->driver->escape('text', $value);
-			case '%i': # integer
-				return (integer) $value;
-			case '%f': # float
+
+			case Db::INTEGER:
+				return (int) $value;
+
+			case Db::FLOAT:
 				return (float) $value;
-			case '%b': # boolean
-				return $this->driver->escape('bool', $value);
-			case '%t': # time
-				return $this->driver->escape('text', date('H:i:s', is_int($value) ? $value : strtotime($value)));
-			case '%d': # date
-				return $this->driver->escape('text', date('Y-m-d', is_int($value) ? $value : strtotime($value)));
-			case '%dt': # datetime
-				return $this->driver->escape('text', date('Y-m-d H:i:s', is_int($value) ? $value : strtotime($value)));
-			case '%a': # array - form: key = val
-				foreach ($this->escapeArray($value) as $key => $val)
-					$r[] = "$key = $val";
+
+			case Db::COLUMN:
+			case Db::TEXT:
+			case Db::BOOL:
+				return $this->driver->escape($type, $value);
+
+			case Db::TIME:
+			case Db::DATE:
+			case Db::DATETIME:
+				$value = is_int($value) ? $value : strtotime($value);
+				return $this->driver->escape($type, $value);
+
+			case Db::SET:
+				return $this->driver->escape(Db::TEXT, implode(',', $value));
+
+			case 'a': # compatibility
+			case Db::A_LIST:
+				foreach ($this->escapeArray($value) as $key => $val) $r[] = "$key = $val";
 				return implode(', ', $r);
-			case '%l': # array list - form: (val1, val2)
-				return "(" . implode(', ', $this->escapeArray($value)) . ")";
-			case '%v': # array values - form: (key1, key2) VALUES (val1, val2)
+
+			case Db::A_VALUES:
+				return '(' . (empty($value) ? 'NULL' : implode(', ', $this->escapeArray($value))) . ')';
+
+			case Db::A_KVALUES:
 				$array = $this->escapeArray($value);
-				return "(" . implode(', ', array_keys($array)) . ')'
-				     . " VALUES (" . implode(', ', $array) . ')';
+				return '(' . implode(', ', array_keys($array)) . ') VALUES (' . implode(', ', $array) . ')';
+
 			default:
-				throw new Exception("Unknow sql query modifier '$type'.");
+				throw new InvalidArgumentException('Unknown column modificator.');
 		}
 	}
 
@@ -293,31 +299,12 @@ class DbConnection extends Object
 		foreach ((array) $array as $key => $val) {
 			$key = explode('%', $key);
 			if (count($key) == 1)
-				$eArray[$this->escapeColumn($key[0])] = $this->escape($val);
+				$eArray[$this->driver->escape(Db::COLUMN, $key[0])] = $this->escape($val);
 			else
-				$eArray[$this->escapeColumn($key[0])] = $this->escape($val, '%' . $key[1]);
+				$eArray[$this->driver->escape(Db::COLUMN, $key[0])] = $this->escape($val, $key[1]);
 		}
 
 		return $eArray;
-	}
-
-
-	/**
-	 * Excapes columns
-	 * @param   string     column
-	 * @return  string
-	 */
-	private function escapeColumn($i)
-	{
-		$i = explode('.', $i);
-		if (count($i) === 1) {
-			return $this->driver->escape('column', $i[0]);
-		} else {
-			if ($i[1] == '*')
-				return $this->driver->escape('column', $i[0]) . '.*';
-			else
-				return $this->driver->escape('column', $i[0]) . '.' . $this->driver->escape('column', $i[1]);
-		}
 	}
 
 
@@ -329,12 +316,12 @@ class DbConnection extends Object
 	public function getType($var)
 	{
 		switch (gettype($var)) {
-			case 'integer':    return '%i';
-			case 'double':     return '%f'; # float
-			case 'array':      return '%a';
-			case 'boolean':    return '%b';
-			case 'NULL':       return '%n';
-			default:           return '%s';
+			case 'integer': return Db::INTEGER;
+			case 'double': return Db::FLOAT;
+			case 'array': return Db::A_VALUES;
+			case 'boolean': return Db::BOOL;
+			case 'NULL': return Db::NULL;
+			default: return Db::TEXT;
 		}
 	}
 

@@ -5,7 +5,7 @@
  *
  * @author      Jan Skrasek
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
- * @link        http://haefko.programujte.com
+ * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8 - $Id$
  * @package     Haefko_Application
@@ -13,30 +13,18 @@
  */
 
 
-require_once dirname(__FILE__) . '/iview.php';
+require_once dirname(__FILE__) . '/../../libs/template.php';
 
 
-class View extends Object implements IView
+class View extends Template
 {
 
 
 	/** @var string */
 	public $ext = 'phtml';
 
-	/** @var string */
-	protected $base;
-
-	/** @var Controller */
-	protected $controller;
-
-	/** @var Application */
-	protected $application;
-
-	/** @var array */
-	protected $vars = array();
-
-	/** @var array */
-	protected $helpers = array();
+	/** @var array - Routing params for view path */
+	protected $routing = array();
 
 	/** @var string */
 	protected $view;
@@ -44,25 +32,29 @@ class View extends Object implements IView
 	/** @var string */
 	protected $layout = 'layout';
 
-	/** @var string */
-	protected $theme;
-
 
 	/**
 	 * Constrctor
 	 * @return  void
 	 */
-	public function __construct(& $controller)
+	public function __construct()
 	{
-		$this->controller = $controller;
-		$this->application = Application::get();
-		$this->base = Http::$baseUri;
+		parent::__construct();
 
-		$this->set('escape', 'htmlSpecialChars');
-		$this->set('title', '');
+		$this->setVar('title', '');
+		$this->getHelper('html');
+		$this->getHelper('js');
+	}
 
-		$this->helper('html');
-		$this->helper('js');
+
+	/**
+	 * Sets controller name fot templeta path
+	 * @param   string
+	 * @return  void
+	 */
+	public function setRouting($key, $controller)
+	{
+		$this->routing[$key] = $controller;
 	}
 
 
@@ -109,175 +101,38 @@ class View extends Object implements IView
 
 
 	/**
-	 * Sets application theme
-	 * @param   string|false
-	 * @return  void
-	 */
-	public function theme($theme)
-	{
-		$this->theme = $theme;
-	}
-
-
-	/**
-	 * Returns theme
-	 * @return  string|false
-	 */
-	public function getTheme()
-	{
-		return $this->theme;
-	}
-
-
-	/**
-	 * Returns base
+	 * Includes templatefile
+	 * @param   string    filename
 	 * @return  string
 	 */
-	public function getBase()
+	public function load($file)
 	{
-		return $this->base;
+		$file = Inflector::snippetViewFile($this->ext, $file);
+		return parent::load($file);
 	}
 
 
 	/**
-	 * Returns controller
-	 * @return  Controller
+	 * Renders layout and view templates
+	 * @return  string
 	 */
-	public function getController()
+	public function renderTemplates()
 	{
-		return $this->controller;
-	}
+		call_user_func(array(Controller::get(), 'prepareView'));
+		$this->setFile($this->viewFactory());
+		$this->setVar('content', $this->render(true));
 
-
-	/**
-	 * Loads heleper
-	 * @param   string    helper name
-	 * @param   string    var name
-	 */
-	public function helper($name, $var = null)
-	{
-		static $pairs = array();
-
-		if (!array_key_exists($name, $pairs) || $pairs[$name] != $var) {
-			if (empty($var))
-				$var = strtolower($name);
-
-			$class = Inflector::helperClass($name);
-			$this->controller->application->loadClass('helper', $class);
-			$pairs[$name] = $var;
-			$this->helpers[$var] = new $class;
-		}
-
-		return $this->helpers[$var];
-	}
-
-
-	/**
-	 * Loads snippet
-	 * @param   string    filename without ext
-	 * @throws  ApplicationException
-	 * @return  void
-	 */
-	public function renderSnippet($name)
-	{
-		$file = $this->controller->application->path . '/' . Inflector::snippetViewFile($this->ext, $name);
-		if (!file_exists($file))
-			throw new ApplicationException('missing-view', $file);
-
-		extract($this->vars);
-		extract($this->helpers);
-		$controller = Controller::get();
-		$application = Application::get();
-
-		require $file;
-	}
-
-
-	/**
-	 * Checks whether the variable is set
-	 * @param   string    var name
-	 * @return  boll
-	 */
-	public function __isset($name)
-	{
-		return isset($this->vars[$name]);
-	}
-
-
-	/**
-	 * Unsets variable value
-	 * @param   string    var name
-	 * @return  void
-	 */
-	public function __unset($name)
-	{
-		unset($this->vars[$name]);
-	}
-
-
-	/**
-	 * Sets variable value
-	 * @param   string    var name
-	 * @param   mixed     var value
-	 * @return  void
-	 */
-	public function __set($name, $value)
-	{
-		$this->set($name, $value);
-	}
-
-
-	/**
-	 * Sets variable value
-	 * @param   string    var name
-	 * @param   mixed     var value
-	 * @throws  Exception
-	 * @return  void
-	 */
-	public function set($name, $value)
-	{
-		if (empty($name))
-			throw new Exception('You can\'t set variable with empty name.');
-
-		$this->vars[$name] = $value;
-	}
-
-
-	/**
-	 * Returns variable value
-	 * @param   string    var name
-	 * @return  mixed
-	 */
-	public function __get($name)
-	{
-		if (array_key_exists($name, $this->vars))
-			return $this->vars[$name];
-		else
-			parent::__get($name);
-	}
-
-
-	/**
-	 * Renders web templates
-	 * @return  void
-	 */
-	public function render()
-	{
-		if ($this->view === false)
-			return;
-
-		$viewPath = $this->viewFactory();
-		call_user_func(array($this->controller, 'prepareView'));
-		$render = $this->parse($viewPath);
 
 		$layoutPath = $this->layoutFactory();
-		if ($layoutPath !== false) {
-			$this->vars['content'] = $render;
-			call_user_func(array($this->controller, 'prepareLayout'));
-			$render = $this->parse($layoutPath);
-		}
+		if ($layoutPath === false)
+			return $this->getVar('content');
 
-		return $render;
+
+		call_user_func(array(Controller::get(), 'prepareLayout'));		
+		$layout = clone $this;
+		$layout->setFile($this->layoutFactory());
+		
+		return $layout->render();
 	}
 
 
@@ -285,18 +140,18 @@ class View extends Object implements IView
 	 * Creates layout template path
 	 * @return  string|void
 	 */
-	protected function layoutFactory()
+	private function layoutFactory()
 	{
-		if ($this->layout === false || $this->controller->isAjax)
+		if ($this->layout === false || $this->routing['ajax'])
 			return false;
 
-		$app = $this->application->path . '/';
+		$app = Application::get()->path . '/';
 		$core = dirname(__FILE__) . '/../';
 
 		$layouts = array(
-			$app . Inflector::layoutFile($this->ext, $this->layout, $this->application->router->module, $this->theme),
-			$app . Inflector::layoutFile($this->ext, $this->layout, '', $this->theme),
-			$core . Inflector::layoutFile($this->ext, $this->layout, '', ''),
+			$app . Inflector::layoutFile($this->ext, $this->layout, $this->routing['module']),
+			$app . Inflector::layoutFile($this->ext, $this->layout, ''),
+			$core . Inflector::layoutFile($this->ext, $this->layout, ''),
 			$core . Inflector::layoutFile('phtml', 'layout', '', '')
 		);
 
@@ -313,16 +168,16 @@ class View extends Object implements IView
 	 * Creates view template path
 	 * @return  string
 	 */
-	protected function viewFactory()
+	private function viewFactory()
 	{
-		$app = $this->application->path . '/';
+		$app = Application::get()->path . '/';
 		$core = dirname(__FILE__) . '/../';
 
 		# error views
 		if (Application::$error) {
 			$views = array(
-				$app . Inflector::errorViewFile($this->ext, $this->view, $this->theme),
-				$core . Inflector::errorViewFile('phtml', $this->view, '')
+				$app . Inflector::errorViewFile($this->ext, $this->view),
+				$core . Inflector::errorViewFile('phtml', $this->view)
 			);
 
 			foreach ($views as $view) {
@@ -334,46 +189,25 @@ class View extends Object implements IView
 
 		# normal views
 		} else {
-
-			# ajax
-			if ($this->controller->isAjax)
-				$view = Inflector::viewFile('ajax.'. $this->ext, $this->view, $this->application->router->module,
-				                            $this->theme, $this->application->router->controller,
-				                            !empty($this->application->router->service));
-			# normal
+			$isService = !empty($this->routing['service']);
+			if ($this->routing['ajax'])
+				$ext = 'ajax.' . $this->ext;
 			else
-				$view = Inflector::viewFile($this->ext, $this->view, $this->application->router->module,
-				                            $this->theme, $this->application->router->controller,
-				                            !empty($this->application->router->service));
+				$ext = $this->ext;
 
-			if (file_exists("$app$view"))
-				return "$app$view";
+
+			$views = array(
+				$app . Inflector::viewFile($ext, $this->view, $this->routing['module'], $this->routing['controller'], $isService),
+				$core . Inflector::viewFile($ext, $this->view, '', $this->routing['controller'], $isService)
+			);
+
+			foreach ($views as $view) {
+				if (file_exists($view))
+					return $view;
+			}
 
 			throw new ApplicationException('missing-view', $view);
 		}
-	}
-
-
-	/**
-	 * Parses view template
-	 * @param   string  template filename
-	 * @return  string
-	 */
-	protected function parse($__file__)
-	{
-		extract($this->vars);
-		extract($this->helpers);
-		$controller = Controller::get();
-		$application = Application::get();
-
-		include $__file__;
-		$return = ob_get_contents();
-		ob_clean();
-
-		if (Config::read('View.filterInternalUrl', false))
-			$return = preg_replace('#(<[^>]+\s(src|href|action))\s*=\s*"(hf://)#i', '$1="' . (empty($this->base) ? '/' : $this->base), $return);
-
-		return $return;
 	}
 
 

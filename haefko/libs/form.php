@@ -30,6 +30,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 		EQUAL = 'equal',
 		FILLED = 'filled',
 		NUMERIC = 'numeric',
+		INTEGER = 'integer',
 		LENGTH = 'length',
 		RANGE = 'range',
 		INARRAY = 'inarray',
@@ -358,12 +359,15 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Sets default values for controls
+	 * Sets default values for controls (only if the form is not submitted)
 	 * @param   array   values - format is array with $controlName => $value
 	 * @return  void
 	 */
-	public function setDefaults($defaults)
+	public function setDefaults($defaults, $checkSubmitted = true)
 	{
+		if ($checkSubmitted && $this->isSubmit())
+			return;
+
 		foreach ((array) $defaults as $id => $value) {
 			if (isset($this->controls[$id]))
 				$this->controls[$id]->setValue($value);

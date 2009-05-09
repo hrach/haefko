@@ -18,8 +18,9 @@ $startTime = microtime(true);
 
 
 require_once dirname(__FILE__) . '/libs/tools.php';
-require_once dirname(__FILE__) . '/libs/http.php';
 require_once dirname(__FILE__) . '/libs/object.php';
+require_once dirname(__FILE__) . '/libs/http.php';
+require_once dirname(__FILE__) . '/libs/debug.php';
 require_once dirname(__FILE__) . '/libs/cache.php';
 require_once dirname(__FILE__) . '/libs/config.php';
 require_once dirname(__FILE__) . '/application/libs/exceptions.php';
@@ -82,8 +83,10 @@ class Application extends Object
 		header('X-Powered-By: Haefko/0.8');
 		$this->path = rtrim(dirname($_SERVER['SCRIPT_FILENAME']) . $path, '/');
 		$this->corePath = rtrim(dirname(__FILE__), '/');
+
+
 		spl_autoload_register(array($this, 'autoloadHandler'));
-		set_exception_handler(array($this, 'exceptionHandler'));
+
 
 
 		if ($config !== false)
@@ -125,35 +128,23 @@ class Application extends Object
 	 */
 	public function initConfig()
 	{
-		ini_set('error_log', Config::read('Debug.log', $this->path . '/temp/errors.log'));
+		Debug::$logFile = Config::read('Debug.log', $this->path . '/temp/errors.log');
 
 		switch (Config::read('Core.debug', 0)) {
 		case 0:
-			$this->loadCore('debug');
 			$this->cache->lifeTime = 60*60*24; # 1 day
-			ini_set('log_errors', true);
-			ini_set('display_errors', false);
-			error_reporting(E_ERROR | E_PARSE);
+			error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
 			break;
 		case 1:
-			$this->loadCore('debug');
 			$this->cache->lifeTime = 60*60; # 1 hour
-			ini_set('log_errors', false);
-			ini_set('display_errors', true);
-			error_reporting(E_ERROR | E_WARNING | E_PARSE);
+			error_reporting(E_ALL ^ E_NOTICE);
 			break;
 		case 2:
-			$this->loadCore('debug');
 			$this->cache->lifeTime = 60*5; # 5 minutes
-			ini_set('log_errors', false);
-			ini_set('display_errors', true);
 			error_reporting(E_ALL);
 			break;
-		default: # other levels
-			$this->loadCore('debug');
+		default:
 			$this->cache->lifeTime = 30; # 30 seconds
-			ini_set('log_errors', false);
-			ini_set('display_errors', true);
 			error_reporting(E_ALL);
 			break;
 		}
@@ -179,6 +170,7 @@ class Application extends Object
 
 		if (!file_exists($file))
 			throw new Exception('Missing core file \'' . Tools::relativePath($file) . '\'.');
+
 		require_once $file;
 	}
 
@@ -268,7 +260,7 @@ class Application extends Object
 	 * @param   Exception
 	 * @return  void
 	 */
-	public function exceptionHandler(Exception $exception)
+	public function processException(Exception $exception)
 	{
 		# ajax support
 		if (isset($this->contorller) && $this->controller->isAjax) {
@@ -280,47 +272,33 @@ class Application extends Object
 			exit;
 		}
 
-		try {
 
-			self::$error = true;
-			# render application layout
-			if ($exception instanceof ApplicationException || Config::read('Core.debug') == 0) {
-
-				$this->loadAppController();
-				$this->controller = new AppController();
-
-				if (Config::read('Core.debug') == 0) {
-					if ($exception instanceof ApplicationException) {
-						$this->controller->view->view('404');
-					} else {
-						$this->controller->view->view('500');
-						Debug::log($exception->getMessage());
-					}
-				} else {
-					$this->controller->view->view($exception->error);
-					$this->controller->view->variable = $exception->variable;
-					$this->controller->view->message = $exception->getMessage();
-				}
-
-				$this->controller->init();
-				echo $this->controller->view->render();
-
-			# render debug template
-			} else {
-				Debug::exceptionHandler($exception);
-			}
-
-		# render temporary message
-		} catch (Exception $e) {
-			if (Config::read('Core.debug') == 0) {
-				Debug::log($e->getMessage());
-				die("<strong>Uncatchable application exception!</strong>"
-				  . "<br /><span style='font-size:small'>"
-				  . "Please contact server administrator. The error has been logged.</span>");
-			} else {
-				Debug::exceptionHandler($e);
-			}
+		if (!($exception instanceof ApplicationException || Config::read('Core.debug') == 0)) {
+			Debug::showException($exception);
+			exit(1);
 		}
+
+
+		self::$error = true;
+		$this->loadAppController();
+		$this->controller = new AppController();
+
+
+		if (Config::read('Core.debug') == 0) {
+			if ($exception instanceof ApplicationException) {
+				$this->controller->view->view('404');
+			} else {
+				$this->controller->view->view('500');
+				Debug::log($exception->getMessage());
+			}
+		} else {
+			$this->controller->view->view($exception->error);
+			$this->controller->view->variable = $exception->variable;
+			$this->controller->view->message = $exception->getMessage();
+		}
+
+		$this->controller->init();
+		echo $this->controller->view->renderTemplates();
 	}
 
 
@@ -331,16 +309,15 @@ class Application extends Object
 	 */
 	public function autoloadHandler($class)
 	{
-		static $libs = array('autoload', 'cookie', 'session', 'debug', 'html', 'l10n', 'form',
-		                     'db', 'db-table', 'db-table-structure', 'paginator');
+		static $libs = array('autoload', 'cookie', 'session', 'html', 'l10n', 'form', 'db', 'db-table', 'db-structure', 'paginator', 'data-grid');
 
-		$ci_class = strtolower($class);
+		$ci_class = Tools::dash($class);
 		if (in_array($ci_class, $libs))
 			$this->loadCore($class, false);
-		elseif (class_exists('DbTableStructure', false) && DbTableStructure::get()->existTable($class))
-			eval("class $class extends DbTable {} $class::\$table = '" . Tools::underscore($class) . "';");
+
 		elseif (Tools::endWith($ci_class, 'controller'))
 			$this->loadClass('controller', $class);
+
 		elseif (Tools::endWith($ci_class, 'helper'))
 			$this->loadClass('helper', $class);
 	}

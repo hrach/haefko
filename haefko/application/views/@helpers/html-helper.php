@@ -45,13 +45,14 @@ class HtmlHelper extends Object
 	 * Returns HTML button
 	 * If text is null, then as the title is used link url
 	 * @param   string    url
+	 * @param   string    hidden value for post
 	 * @param   string    link text
 	 * @param   string    javascript confirm question
 	 * @param   array     html attributes
 	 * @param   bool      escape link content
 	 * @return  string
 	 */
-	public function button($url, $text, $confirm = false, $attrs = array(), $escape = false)
+	public function button($url, $hidden, $text, $confirm = false, $attrs = array(), $escape = false)
 	{
 		$url = $this->factoryUrl($url);
 		$form = Html::el('form', null, array(
@@ -70,7 +71,7 @@ class HtmlHelper extends Object
 			$el->setText($text);
 		else
 			$el->setHtml($text);
-			
+
 		$form->setHtml($el);
 		return $form->render(false);
 	}
