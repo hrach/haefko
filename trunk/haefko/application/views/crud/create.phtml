@@ -1,5 +1,5 @@
-<h1>Auto controller</h1>
-
-
+<h1><?= $controller->getTitle() ?></h1>
 <?= $html->link($controller->crudUrl('index'), 'Seznam') ?>
+<br />
+
 <?= $form->render() ?>
