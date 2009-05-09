@@ -44,6 +44,27 @@ class Rule extends Object
 	);
 
 
+	public function __construct($control, $rule, $arg = null, $message = null)
+	{
+		dump($this->control);
+		$this->control = $control;
+		$this->rule = $rule;
+		$this->arg = $arg;
+		$this->message = $message;
+	}
+	
+	
+	public function isValid()
+	{
+		$valid = self::validate($this->rule, $this->control->getValue(), $this->arg);
+		if ($valid)
+			return true;
+
+		$this->control->addAutoError($this->rule, $this->arg, $this->message);
+		return false;
+	}
+
+
 	/**
 	 * Method validate $value by $rule with $arg
 	 * @static
@@ -52,7 +73,7 @@ class Rule extends Object
 	 * @param   mixed   argument for validation
 	 * @$valid =  bool
 	 */
-	public static function isValid($rule, $value, $arg = null)
+	public static function validate($rule, $value, $arg = null)
 	{
 		if ($arg instanceof FormControl)
 			$arg = $arg->getValue();
@@ -65,39 +86,39 @@ class Rule extends Object
 		}
 
 		switch ($rule) {
-		case 'equal':
+		case Form::EQUAL:
 			$valid = $value == $arg;
 			break;
-		case 'filled':
+		case Form::FILLED:
 			$valid = ($value === '0') ? true : !empty($value);
 			break;
-		case 'numeric':
+		case Form::NUMERIC:
 			$valid = is_numeric($value);
 			break;
-		case 'integer':
+		case Form::INTEGER:
 			$valid = preg_match('#^\d*$#', $value);
 			break;
-		case 'length':
+		case Form::LENGTH:
 			$value = strlen($value);
-		case 'range':
+		case Form::RANGE:
 			if (is_array($arg) && count($arg) == 2)
 				$valid = $value >= $arg[0] && $value <= $arg[1];
 			else
 				$valid = $value == $arg;
 			break;
-		case 'inarray':
+		case Form::INARRAY:
 			$valid = in_array($value, (array) $arg);
 			break;
-		case 'regexp':
+		case Form::REGEXP:
 			$valid = preg_match($arg, $value);
 			break;
-		case 'email':
+		case Form::EMAIL:
 			$valid = preg_match('#^[^@\s]+@[^@\s]+\.[a-z]{2,10}$$#i', $value);
 			break;
-		case 'url':
+		case Form::URL:
 			$valid = preg_match('#^.+\.[a-z]{2,6}(\\/.*)?$#i', $value);
 			break;
-		case 'alfanumeric':
+		case Form::ALFANUMERIC:
 			$valid = preg_match('#^[a-z0-9]+$#i', $value);
 			break;
 		default:

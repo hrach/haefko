@@ -25,6 +25,9 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 {
 
 
+	/** */
+	public static $SECURITY_CONTROL = 'csrf_protection';
+
 	/** @var string */
 	const
 		EQUAL = 'equal',
@@ -39,11 +42,14 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 		EMAIL = 'email',
 		ALFANUMERIC = 'alfanumeric';
 
-	/** @var array Submitted data */
-	public $data;
+	/** @var array - Submitted data */
+	public $data = array();
 
-	/** @var string Form name */
+	/** @var string - Form name */
 	public $name;
+
+	/** @var array - Rules without control */
+	public $rules = array();
 
 	/** @var string|FormRenderer */
 	public $renderer = 'dl';
@@ -51,7 +57,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	/** @var Html */
 	private $form;
 
-	/** @var bool|string Submit button name */
+	/** @var bool|string - Submit button name */
 	private $submitBy = false;
 
 	/** @var array */
@@ -59,6 +65,9 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/** @var array */
 	private $errors = array();
+
+	/** @var bool - Is form CSRF protected? */
+	private $protected = false;
 
 
 	/**
@@ -89,17 +98,49 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 			'action' => $url
 		));
 
+		
 		return $this->name;
 	}
 
-	/* ======== Controls ======== */
+
+	/* ========== Controls ========== */
+
+
+	/**
+	 * Adds CSRF protection
+	 * @param   string  error message
+	 * @return  Form    $this
+	 */
+	public function addProtection($errorMessage = 'Security token did not match - possible CSRF attack!')
+	{
+		if (!class_exists('Session'))
+			throw new Exception('Form protection works only with Session class.');
+
+
+		# control
+		$this->protected = true;
+		$this->controls[self::$SECURITY_CONTROL] = new FormHiddenControl($this, self::$SECURITY_CONTROL);
+
+
+		if (Session::exists('CSRF.protection.' . $this->name)) {
+			$hash = Session::read('CSRF.protection.' . $this->name);
+		} else {
+			$hash = md5(Session::getName());
+			Session::write($key, $hash);
+		}
+
+
+		$this->controls[self::$SECURITY_CONTROL]->setValue($hash);
+		$this->rules[] = new Rule($this->controls[self::$SECURITY_CONTROL], Form::EQUAL, $hash, $message);
+		return $this;
+	}
 
 
 	/**
 	 * Adds text input
 	 * @param   string  control name
 	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    return $this
+	 * @return  Form    $this
 	 */
 	public function addText($control, $label = null)
 	{
@@ -112,7 +153,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 * Adds textarea input
 	 * @param   string  control name
 	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    return $this
+	 * @return  Form    $this
 	 */
 	public function addTextarea($control, $label = null)
 	{
@@ -125,7 +166,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 * Adds password input
 	 * @param   string  control name
 	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    return $this
+	 * @return  Form    $this
 	 */
 	public function addPassword($control, $label = null)
 	{
@@ -138,7 +179,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 * Adds file input
 	 * @param   string  control name
 	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    return $this
+	 * @return  Form    $this
 	 */
 	public function addFile($control, $label = null)
 	{
@@ -153,7 +194,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 * @param   string  control name
 	 * @param   array   options
 	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    return $this
+	 * @return  Form    $this
 	 */
 	public function addSelect($control, $options, $label = null)
 	{
@@ -166,7 +207,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 * Adds checkbox input
 	 * @param   string  control name
 	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    return $this
+	 * @return  Form    $this
 	 */
 	public function addCheckbox($control, $label = null)
 	{
@@ -180,7 +221,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 * @param   string  control name
 	 * @param   array   options
 	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    return $this
+	 * @return  Form    $this
 	 */
 	public function addRadio($control, $options, $label = null)
 	{
@@ -192,7 +233,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	/**
 	 * Adds hidden input
 	 * @param   string  control name
-	 * @return  Form    return $this
+	 * @return  Form    $this
 	 */
 	public function addHidden($control)
 	{
@@ -201,7 +242,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	}
 
 
-	/* ======== Multi Controls ======== */
+	/* ========== Multi Controls ========== */
 
 
 	/**
@@ -209,7 +250,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 * @param   string  control name
 	 * @param   array   options
 	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    return $this
+	 * @return  Form    $this
 	 */
 	public function addMultiSelect($control, $options, $label = null)
 	{
@@ -223,7 +264,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 * @param   string  control name
 	 * @param   array   options
 	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    return $this
+	 * @return  Form    $this
 	 */
 	public function addMultiCheckbox($control, $options, $label = null)
 	{
@@ -232,14 +273,14 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	}
 
 
-	/* ======== Button Controls ======== */
+	/* ========== Button Controls ========== */
 
 
 	/**
 	 * Adds submit button
 	 * @param   string  control name
 	 * @param   string  control label
-	 * @return  Form    return $this
+	 * @return  Form    $this
 	 */
 	public function addSubmit($control = 'submit', $label = null)
 	{
@@ -252,7 +293,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 * Adds image submit button
 	 * @param   string  control name
 	 * @param   string  image src
-	 * @return  Form    return $this
+	 * @return  Form    $this
 	 */
 	public function addImageSubmit($control = 'submit', $src = null)
 	{
@@ -265,7 +306,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 * Adds reset button
 	 * @param   string  control name
 	 * @param   string  control label
-	 * @return  Form    return $this
+	 * @return  Form    $this
 	 */
 	public function addReset($control = 'reset', $label = null)
 	{
@@ -274,7 +315,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	}
 
 
-	/* ======== Mehtods ======== */
+	/* ========== Mehtods ========== */
 
 
 	/**
@@ -334,6 +375,12 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	public function isValid()
 	{
 		$valid = true;
+
+		foreach ($this->rules as $rule) {
+			if (!$rule->isValid())
+				$valid = false;
+		}
+
 		foreach ($this->controls as $control) {
 			if (!$control->isValid())
 				$valid = false;
@@ -509,6 +556,11 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 					$this->data[$id] = $control->getValue();
 				}
 			}
+		}
+
+		if ($this->protected) {
+			unset($this->data[self::$SECURITY_CONTROL]);
+			Session::delete('CSRF.protection.' . $this->name);
 		}
 	}
 

@@ -64,6 +64,18 @@ class Session
 
 
 	/**
+	 * Returns session id / name
+	 */
+	public static function getName()
+	{
+		if (!self::$started)
+			self::start();
+
+		return session_id();
+	}
+
+
+	/**
 	 * Reads session variable
 	 * @param   string    variable name
 	 * @param   mixed     default value

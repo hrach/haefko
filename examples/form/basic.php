@@ -1,8 +1,11 @@
 <?php
 
+
+require_once '../../haefko/libs/config.php';
 require_once '../../haefko/libs/form.php';
 require_once '../../haefko/libs/debug.php';
 
+config::write('core.debug', 2);
 
 $form = new Form();
 
