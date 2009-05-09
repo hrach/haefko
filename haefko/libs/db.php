@@ -5,9 +5,9 @@
  *
  * @author      Jan Skrasek
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
- * @link        http://haefko.programujte.com
+ * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8 - $Id$
+ * @version     0.8.5 - $Id$
  * @package     Haefko_Database
  */
 
@@ -52,7 +52,7 @@ class Db
 	/**
 	 * Connects to database
 	 * If you don't provide $config, its load from config directive Db.connection
-	 * @link    http://haefko.programujte.com/database
+	 * @link    http://haefko.skrasek.com/database
 	 * @param   array   connection config
 	 * @param   array   connection name
 	 * @return  bool
