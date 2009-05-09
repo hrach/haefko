@@ -57,13 +57,7 @@ class Condition extends Object
 	 */
 	public function addRuleOn(FormControl $control, $rule, $arg = null, $message = null)
 	{
-		$r = new Rule();
-		$r->control = $control;
-		$r->rule = $rule;
-		$r->arg = $arg;
-		$r->message = $message;
-
-		$this->rules[] = $r;
+		$this->rules[] = new Rule($control, $rule, $arg, $message);
 		return $this;
 	}
 
