@@ -83,17 +83,21 @@ class Application extends Object
 		header('X-Powered-By: Haefko/0.8');
 		$this->path = rtrim(dirname($_SERVER['SCRIPT_FILENAME']) . $path, '/');
 		$this->corePath = rtrim(dirname(__FILE__), '/');
-
-
 		spl_autoload_register(array($this, 'autoloadHandler'));
-
 
 
 		if ($config !== false)
 			Config::multiWrite(Config::parseFile($this->path . $config));
 
+
+		if (Config::read('cache.storage.relative', true))
+			$cachePath = $this->path . Config::read('cache.storage.path', '/temp/cache');
+		else
+			$cachePath = Config::read('cache.storage.path');
+
+
 		$this->router = new Router();
-		$this->cache = new Cache(true, Config::read('Cache.store', $this->path . '/temp/cache/'));
+		$this->cache = new Cache(true, $cachePath);
 		$this->initConfig();
 	}
 
