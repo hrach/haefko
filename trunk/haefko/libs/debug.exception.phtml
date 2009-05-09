@@ -5,7 +5,7 @@
  *
  * @author      Jan Skrasek
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
- * @link        http://haefko.programujte.com
+ * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8 - $Id$
  * @package     Haefko_Libs
@@ -13,143 +13,199 @@
 
 
 ?>
+<?php
+
+function getHighlightedCode($filename, $line, $lines = 15, $id = false, $hide = false)
+{
+	$start = max(floor($line - ($lines / 2)), 0);
+	$file = highlight_file($filename, true);
+	
+	$file = explode("\n", $file);
+	if ($hide) {
+		echo "<p><a href='javascript:toggle($id)' id='a-$id'>source</a>&nbsp;&nbsp;<strong>File: </strong>$filename&nbsp;&nbsp;<strong>Line: </strong>$line</p>";
+	} else
+		echo "<p><strong>File: </strong>$filename&nbsp;&nbsp;<strong>Line: </strong>$line</p>";
+
+	if ($hide)
+		echo "<div id='block-$id' style='display: none'>";
+
+	echo '<pre>', array_shift($file);
+	$file = explode('<br />', $file[0]);
+
+	for ($i = $start; $i > 0; $i--) {
+		if (preg_match('#.*(</?span[^>]*>)#', $file[$i], $match)) {
+			if ($match[1] != '</span>')
+				echo $match[1];
+
+			break;
+		}
+	}
+
+	$maxLength = strlen($start + $lines) + 1;
+	$file = array_slice($file, $start, $lines, true);
+	foreach ($file as $k => $v)	{
+		if ($k + 1 == $line) {
+			$span = preg_replace("#[^>]*(<[^>]+>)[^<]*#", '$1', $v);
+			printf("<span class='cur-line'><span class='line'>%{$maxLength}s</span> %s</span>%s", $k + 1, strip_tags($v), $span);
+		} else {
+			printf("<span class='line'>%{$maxLength}s</span> %s", $k + 1, $v);
+		}
+	}
+	echo '</span></code></pre>';
+	
+	if ($hide)
+		echo "</div>";
+}
+
+
+if ($exception instanceof FatalErrorException)
+	$title = $exception->getErrorTitle();
+else
+	$title = get_class($exception);
+
+?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<meta name="robots" content="noindex,noarchive" />
-	<meta name="generator" content="Háefko - your php5 framework" />
-	<title>Exception: <?= htmlspecialchars($exception->getMessage()) ?></title>
-
-	<style type="text/css" media="screen">
-	body {
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="robots" content="noindex,noarchive" />
+<meta name="generator" content="Háefko - your php5 framework" />
+<title><?= $title ?></title>
+<style type="text/css" media="screen">
+	#debug-panel {
 		background: white;
 		font-family: Calibri, sans-serif;
+		font-size: 14px;
 		margin: 0;
-		padding: 0;
+		padding: 1.5em;
 	}
-	#header {
+	#debug-panel .header {
 		background: white;
-		border-top: 10px solid #d70000;
-		font-family: Candara, 'Trebuchet MS', 'Geneva CE', lucida, sans-serif;
-		padding: 20px 25px;
+		padding: 0 0 1em 0;
 	}
-	#header h1 {
+	#debug-panel .header h1 {
 		color: #444;
 		margin: 0;
 		padding: 0;
 	}
-	#header p {
+	#debug-panel .header p {
 		margin: 0;
-		color: #aa0000;
-		font-size: 18px;
+		color: #ff0000;
 	}
-	.block {
-		background: #f3f3f3;
-		border: 1px solid #dedede;
-		margin: 10px 25px;
+	#debug-panel .block {
+		background: #efefef;
+		margin: 0 0 1em 0;
+		padding: 1em;
 	}
-	.block p {
-		border-bottom: 1px solid #dedede;
-		padding: 4px 10px;
+	#debug-panel .block pre {
+		border: 1px solid #c4c4c4;
+	}
+	#debug-panel .block p {
+		padding: 4px 2px;
 		margin: 0;
 	}
-	code {
+	#debug-panel h2 {
+		margin-bottom: .2em;
+	}
+	#debug-panel ol {
+		padding: 0 0 0 1.5em;
+		margin: 0;
+	}
+	#debug-panel code {
 		font-family: Consolas, 'Lucida Console', 'Monaco CE', fixed, monospace;
 		font-size: 14px;
 	}
-	pre {
-		background: #fff8d2;
+	#debug-panel pre {
+		background: #fcffcf;
 		padding: 2px;
 		margin: 0;
 		overflow: auto;
 	}
-	.line-num {
+	#debug-panel a {
+		color: #4e851e;
+	}
+	#debug-panel span.line {
 		color: black;
 		margin: 0 8px 0 4px;
 	}
-	#line {
-		background: #edce20;
-		color: #3a3a3a;
+	#debug-panel span.cur-line {
+		background: #ff0000;
+		color: white;
 		display: block;
-		width: 100%;
 	}
-	table td {
-		text-align: right;
+</style>
+<script type="text/javascript">
+function toggle(id)
+{
+	block = document.getElementById('block-' + id);
+
+	if (block.style.display == 'none') {
+		block.style.display = 'block';
+	} else {
+		block.style.display = 'none';
 	}
-	table th {
-		text-align: left;
-	}
-	</style>
+}
+</script>
 </head>
 <body>
-<div id="header">
-	<h1>Exception</h1>
-	<p><?= htmlspecialchars($exception->getMessage()); ?></p>
-</div>
+<div id="debug-panel">
+	<div class="header">
+		<h1><?= $title ?></h1>
+		<p><?= htmlspecialchars($exception->getMessage()); ?></p>
+	</div>
 
-<div class="block">
-<?php
-	$i = 0;
-	$trace = $exception->getTrace();
-	foreach ($trace as $i => $item) {
-		if (isset($item['file']) && strpos($item['file'], Application::get()->corePath) === false)
-			break;
-	}
+	<div class="block">
+	<?php
 
-	if (empty($trace[$i]))
 		$i = 0;
-
-	$file = trim(file_get_contents($trace[$i]['file']));
-	$file = preg_replace("#\r(?!\n)|(?<!\r)\n#", "\r\n", $file);
-	$file = highlight_string($file, true);
-	$file = explode("<br />", str_replace("\n", '', $file));
-
-	$line = $trace[$i]['line'];
-	$lines = strlen((string) count($file));
-
-	foreach ($file as $l => & $row) {
-		$rl = '<span class="line-num">' . str_pad($l + 1, $lines, ' ', STR_PAD_LEFT) . '</span>';
-
-		if ($line == $l + 1) {
-			preg_match('#.*(<span[^>]+>)#', $row, $m);
-			$row = '<span id="line">' . $rl . strip_tags($row) . '</span>' . $m[1];
-		} else {
-			$row = $rl . $row;
+		$trace = $exception instanceof FatalErrorException ? $exception->getFatalTrace() : $exception->getTrace();
+		foreach ($trace as $i => $item) {
+			if (isset($item['file']) && strpos($item['file'], dirname(dirname(__FILE__))) === false)
+				break;
 		}
-	}
 
-	$file = implode("", $file) . '</code>';
-?>
-	<p><strong>File: </strong><?= Tools::relativePath($trace[$i]['file']) ?>&nbsp;&nbsp;
-	<strong>Line: </strong><a href="#line"><?= $line ?></a></p>
-	<pre><?= $file ?></pre>
-</div>
+		if (empty($trace[$i]))
+			$i = 0;
 
-<div class="block">
-	<p>Rendered contents:</p>
-	<pre><?= htmlspecialchars($rendered) ?></pre>
-</div>
+		getHighlightedCode($trace[$i]['file'], $trace[$i]['line']); 
+	
+	?>
+	</div>
 
-<div class="block" style="font-size: 12px">
-<table>
-<tr>
-	<td>rendering time:</td>
-	<th><?= self::getTime() ?>ms</th>
-</tr>
-<tr>
-	<td>server:</td>
-	<th><?= $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'] ?></th>
-</tr>
-<tr>
-	<td>generated at:</td>
-	<th><?= date('d.m.Y, h.i') ?></th>
-</tr>
-<tr>
-	<td></td>
-	<th><a href="http://haefko.programujte.com">háefko</a> 0.8</th>
-</tr>
-</table>
+	<h2>Trace</h2>
+	<div class="block">
+		<ol>
+		<?php
+
+		for ($n = 0, $total = count($trace) - 1; $n <= $total; $n++) {
+			$t = $trace[$total - $n];
+
+			echo '<li>';
+			if (isset($t['file'])) {
+				getHighlightedCode($t['file'], $t['line'], 7, $n, true);
+			} else {
+				echo "<p><a href='javascript:toggle($n)' id='a-$n'>args</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>PHPInline</strong> ";
+				if (!empty($t['class']))
+					echo $t['class'] . '::';
+				echo $t['function'] . '()</p>';
+				echo "<div id='block-$n' style='display: none'>";
+				dump($t['args']);
+				echo '</div>';
+			}
+			
+			echo '</li>';
+		}
+
+		?>
+		</ol>
+	</div>
+
+	<div class="block" style="font-size: 12px">
+		server: <strong><?= $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'] ?></strong><br />
+		generated at: <strong><?= date('Y-m-d H.i') ?></strong><br />
+		powered by <a href="http://haefko.skrasek.com">haefko</a> 0.8.5<br />
+	</div>
 </div>
+<?= $rendered ?>
 </body>
 </html>

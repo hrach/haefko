@@ -1,0 +1,23 @@
+<table class="data-grid">
+<thead>
+	<tr>
+	<?php foreach ($columns as $column): ?>
+	<th><?= $html->link($grid->columnUrl($column), $column, $grid->columnClassState($column)) ?></th>
+	<?php endforeach; ?>
+	<th>Actions</th>
+	</tr>
+</thead>
+<tbody>
+	<?php foreach ($rows as $row): ?>
+	<tr>
+	<?php foreach ($row as $field): ?>
+	<td><?= $field ?></td>
+	<?php endforeach; ?>
+	<td>
+		<?= $html->link($grid->url('update', $row['id']), 'Edit') ?>
+		<?= $html->button($grid->url('delete'), $row['id'], 'Delete') ?>
+	</td>
+	</tr>
+	<?php endforeach; ?>
+</tbody>
+</table>

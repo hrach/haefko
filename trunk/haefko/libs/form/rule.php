@@ -33,6 +33,7 @@ class Rule extends Object
 		Form::EQUAL => 'Value must be equal to "%s".',
 		Form::FILLED => 'Value is required.',
 		Form::NUMERIC => 'Value must be numeric.',
+		Form::INTEGER => 'Value must be integer number.',
 		Form::LENGTH => 'Value must have length %d',
 		Form::RANGE => 'Value must be in range %d - %d.',
 		Form::INARRAY => 'Value must be from list %a',
@@ -73,6 +74,9 @@ class Rule extends Object
 		case 'numeric':
 			$valid = is_numeric($value);
 			break;
+		case 'integer':
+			$valid = preg_match('#^\d*$#', $value);
+			break;
 		case 'length':
 			$value = strlen($value);
 		case 'range':
@@ -88,7 +92,7 @@ class Rule extends Object
 			$valid = preg_match($arg, $value);
 			break;
 		case 'email':
-			$valid = preg_match('#^[^@]+@[^@]+\.[a-z]{2,6}$#i', $value);
+			$valid = preg_match('#^[^@\s]+@[^@\s]+\.[a-z]{2,10}$$#i', $value);
 			break;
 		case 'url':
 			$valid = preg_match('#^.+\.[a-z]{2,6}(\\/.*)?$#i', $value);

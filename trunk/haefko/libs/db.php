@@ -19,6 +19,26 @@ class Db
 {
 
 
+	/**#@+
+	 * Column type
+	 */
+	const COLUMN = 'c'; 
+	const RAW = 'r';
+	const NULL = 'n';
+	const TEXT = 's';
+	const BINARY = 'bin';
+	const BOOL = 'b';
+	const INTEGER = 'i';
+	const FLOAT = 'f';
+	const TIME = 't';
+	const DATE = 'd';
+	const DATETIME = 'dt';
+	const SET = 'set';
+	const A_LIST = 'l';
+	const A_VALUES = 'v';
+	const A_KVALUES = 'kv';
+	/**#@-*/
+
 	/** @var array */
 	public static $sqls = array();
 

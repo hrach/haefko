@@ -5,7 +5,7 @@
  *
  * @author      Jan Skrasek
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
- * @link        http://haefko.programujte.com
+ * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8 - $Id$
  * @package     Haefko_Application
@@ -26,8 +26,6 @@ abstract class Controller extends Object
 	/** @var View */
 	private $view;
 
-	/** @var string */
-	private $urlPrefix;
 
 	/**
 	 * Returns self instance
@@ -54,6 +52,11 @@ abstract class Controller extends Object
 
 		$this->application->loadFile('views/' . Tools::dash($class) . '.php');
 		$this->view = new $class($this);
+
+		$this->view->setRouting('controller', $this->application->router->controller);
+		$this->view->setRouting('module', $this->application->router->module);
+		$this->view->setRouting('service', $this->application->router->service);
+		$this->view->setRouting('ajax', $this->isAjax);
 
 		if ($this->isAjax)
 			$this->view->layout(false);
@@ -123,6 +126,7 @@ abstract class Controller extends Object
 	public function prepareLayout() {}
 	/**#@-*/
 
+
 	/**
 	 * Jumps out of application and display error $view
 	 * @param   string    error view
@@ -154,32 +158,18 @@ abstract class Controller extends Object
 	 * Creates application internal url
 	 * @param   string  url
 	 * @param   array   additional args
-	 * @param   bool    absolute url?
+	 * @param   bool    create absolute url?
 	 * @return  string
 	 */
-	public function url($url, $args = array(), $absolute = false)
+	public function url($url, $params = array(), $args = array(), $absolute = false)
 	{
-		$url = $this->processUrl($url, (array) $args);
-
-		if (isset($url[0]) && $url[0] !== '/')
-			$url = $this->urlPrefix . $url;
-
+		$url = $this->application->router->url($url, (array) $params, (array) $args);
 		$url = '/' . ltrim($url, '/');
+
 		if ($absolute)
 			return Http::$serverUri . Http::$baseUri . $url;
 		else
 			return Http::$baseUri . $url;
-	}
-
-
-	/**
-	 * Sets application internal url's prefix
-	 * @param   string  url
-	 * @return  void
-	 */
-	public function urlPrefix($url)
-	{
-		$this->urlPrefix = $this->processUrl($url);
 	}
 
 
@@ -239,25 +229,7 @@ abstract class Controller extends Object
 			$this->view->view($e->view);
 		}
 
-		return $this->view->render();
-	}
-
-
-	/**
-	 * Processes the application url
-	 * @param   string    url
-	 * @param   array     args
-	 * @return  string
-	 */
-	private function processUrl($url, $args = array())
-	{
-		$args = array_merge($this->application->router->getUrlArgs(), $args);
-
-		$url = preg_replace('#(\<\:(\w+)\>)#e', 'isset($args["\\2"]) ? $args["\\2"] : ""', $url);
-		$url = preg_replace('#(\<\:(module\[\d+\])\>)#e', 'isset($args["\\2"]) ? $args["\\2"] : ""', $url);
-		$url = preg_replace_callback('#\<\:url\:\>#', array('Http', 'getRequest'), $url);
-
-		return $url;
+		return $this->view->renderTemplates();
 	}
 
 

@@ -74,13 +74,11 @@ class Inflector
 	 * @param   string       pripona
 	 * @param   string       jmeno layoutu
 	 * @param   string|bool  namespace
-	 * @param   string|bool  theme
 	 * @return  string
 	 */
-	public static function layoutFile($ext, $name, $module, $theme)
+	public static function layoutFile($ext, $name, $module)
 	{
 		$path  = 'views/';
-		$path .= ($theme) ? "$theme-theme/" : '';
 
 
 		if (!empty($module)) {
@@ -100,15 +98,13 @@ class Inflector
 	 * @param   string       pripona
 	 * @param   string       jmeno view
 	 * @param   string|bool  namespace
-	 * @param   string|bool  theme
 	 * @param   string       controller
 	 * @param   string       service
 	 * @return  string
 	 */
-	public static function viewFile($ext, $name, $module, $theme, $controller, $service)
+	public static function viewFile($ext, $name, $module, $controller, $service)
 	{
 		$path  = 'views/';
-		$path .= ($theme) ? "$theme-theme/" : '';
 
 		if (!empty($module)) {
 			foreach ((array) $module as $m)
@@ -128,13 +124,11 @@ class Inflector
 	 * Vrati jmeno souboru pro chybove view
 	 * @param   string       pripona
 	 * @param   string       jmeno view
-	 * @param   string|bool  theme
 	 * @return  string
 	 */
-	public static function errorViewFile($ext, $name, $theme)
+	public static function errorViewFile($ext, $name)
 	{
 		$path  = "views/";
-		$path .= ($theme) ? "$theme/" : '';
 		$path .= "@errors/$name.$ext";
 
 		return $path;
@@ -146,12 +140,11 @@ class Inflector
 	 * Vrati jmeno souboru pro snippet view
 	 * @param   string       pripona
 	 * @param   string       jmeno view
-	 * @param   string|bool  theme
 	 * @return  string
 	 */
 	public static function snippetViewFile($ext, $path)
 	{
-		return "views/$path.$ext";
+		return Application::get()->path . "/views/$path.$ext";
 	}
 
 

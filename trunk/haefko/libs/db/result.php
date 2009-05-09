@@ -12,6 +12,7 @@
  */
 
 
+require_once dirname(__FILE__) . '/../object.php';
 require_once dirname(__FILE__) . '/result-node.php';
 
 
@@ -19,35 +20,35 @@ class DbResult extends Object implements Countable, IteratorAggregate
 {
 
 
-	/** @var Paginator */
-	public $paginator;
-
 	/** @var string */
-	private $query;
+	protected $query;
 
 	/** @var DbDriver */
-	private $driver;
+	protected $driver;
 
 	/** @var bool */
-	private $executed = false;
+	protected $executed = false;
 
 	/** @var array */
+	protected $association = array();
+
+
+
+	/** @var int - Points to the last fetched row */
+	private $rowPointer = -1;
+
+	/** @var array - Array of columns data */
 	private $cols = array();
 
-	/** @var bool */
+	/** @var bool - Fetch data with table names? */
 	private $tables = false;
 
-	/** @var array Stored rows */
+	/** @var array - Stored fetched rows */
 	private $rows = array();
 
-	/** @var null|array Stored row */
+	/** @var null|array - Stored one over-fetched row */
 	private $stored = array();
 
-	/** @var array */
-	private $association = array();
-
-	/** @var boll|array */
-	private $pagination = false;
 
 
 	/**
@@ -56,7 +57,7 @@ class DbResult extends Object implements Countable, IteratorAggregate
 	 * @param   DbDriver   driver instance
 	 * @return  void
 	 */
-	public function __construct($query, DbDriver $driver)
+	public function __construct($query, IDbDriver $driver)
 	{
 		$this->query = $query;
 		$this->driver = $driver;
@@ -69,80 +70,8 @@ class DbResult extends Object implements Countable, IteratorAggregate
 	 */
 	public function execute()
 	{
-		# pagination
-		if ($this->pagination !== false) {
-			if (empty($this->pagination[2]))
-				$this->pagination[2] = db::fetchField(preg_replace('#select (.+) from#si', 'SELECT COUNT(*) FROM', $this->query));
-
-			$this->query .= ' LIMIT ' . ($this->pagination[0] - 1) * $this->pagination[1] . ', ' . $this->pagination[1];
-		}
-
-
-		# run query
-		$time = microtime(true);
-		$this->driver = $this->driver->query($this->query);
-		$this->executed = true;
-		Db::debug($this->query, $time);
-
-		# pagination
-		if ($this->pagination !== false) {
-			require_once dirname(__FILE__) . '/../paginator.php';
-			$this->paginator = new Paginator($this->pagination[0], ceil($this->pagination[2] / $this->pagination[1]));
-		}
-
-
-		# columns & tables
-		$this->cols = $this->driver->getResultColomns();
-		
-		$tables = array();
-		foreach ($this->cols as $col) {
-			if (!empty($col[0]))
-				$tables[$col[0]] = true;
-		}
-
-		$this->tables = count($tables) > 1;
-
-
-		return $this;
-	}
-
-
-	/**
-	 * Sets association
-	 * @param   string     main table
-	 * @param   array      other tables in relation hasMany
-	 * @return  DbResult   $this
-	 */
-	public function associate($main, $hasMany = array())
-	{
-		$this->association[0] = $main;
-		$this->association[1] = (array) $hasMany;
-
-		return $this;
-	}
-
-
-	/**
-	 * Sets pagination
-	 * @param   int        page
-	 * @param   int        limit
-	 * @param   int        count pages
-	 * @throws  Exception
-	 * @return  DbResult   $this
-	 */
-	public function paginate($page, $limit = 10, $count = null)
-	{
-		if ($this->executed)
-			throw new Exception("You can't paginate excecuted query.");
-
-		if ($page < 1)
-			$page = 1;
-
-		$this->pagination[0] = $page;
-		$this->pagination[1] = (int) $limit;
-		if (!empty($count))
-			$this->pagination[2] = (int) $count;
-
+		$this->runSqlQuery();
+		$this->loadResultColumns();
 		return $this;
 	}
 
@@ -167,7 +96,8 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 	/**
 	 * Returns array of pairs
-	 * @return array
+	 * If is select only one column then is return scalar array
+	 * @return  array
 	 */
 	public function fetchPairs()
 	{
@@ -185,11 +115,179 @@ class DbResult extends Object implements Countable, IteratorAggregate
 	}
 
 
-	/**
-	 * Returns one (associated) row
-	 * @return  DbResultNode
+	/** 
+	 * Returns one fetched row
+	 * @return  array
 	 */
 	public function fetch()
+	{
+		if (!isset($this->rows[$this->rowPointer + 1]))
+			$this->fetchRow();
+
+		if (!isset($this->rows[$this->rowPointer + 1]))
+			return null;
+
+		$this->rowPointer += 1;
+		return $this->rows[$this->rowPointer];
+	}
+
+
+	/**
+	 * Returns all fetched rows
+	 * @return  array
+	 */
+	public function fetchAll()
+	{
+		$this->checkExecution();
+
+		while (($row = $this->fetchRow()) != null);
+		return $this->rows;
+	}
+
+
+	/**
+	 * Retruns num of affected rows
+	 * @return  int
+	 */
+	public function affectedRows()
+	{
+		$this->checkExecution();
+		return $this->driver->affectedRows();
+	}
+
+
+	/**
+	 * Returns columns names
+	 * @param  array
+	 */
+	public function getColumnNames()
+	{
+		$names = array();
+		foreach ($this->cols as $col)
+			$names[] = $col[1];
+
+		return $names;
+	}
+
+
+	/**
+	 * IteratorAggregate interface
+	 * @return  ArrayIterator
+	 */
+	public function getIterator()
+	{
+		$this->checkExecution();
+		return new ArrayIterator($this->fetchAll());
+	}
+
+
+	/**
+	 * Countable interface
+	 * @return  int
+	 */
+	public function count()
+	{
+		$this->checkExecution();
+		return $this->driver->rowCount();
+	}
+
+
+	/** ==================== protected ==================== **/
+
+
+	/**
+	 * Checks if was sql query executed 
+	 * @return  void
+	 */
+	protected function checkExecution()
+	{
+		if (!$this->executed)
+			$this->execute();
+	}
+
+
+	/**
+	 * Runs sql query, measure time
+	 * @return  void
+	 */
+	protected function runSqlQuery()
+	{
+		$time = microtime(true);
+		$this->driver = $this->driver->query($this->query);
+		$this->executed = true;
+		Db::debug($this->query, $time);
+	}
+
+
+	/**
+	 * Loads columns informations ans counts num of tables
+	 * If there is > 1 table - sets multi table mode
+	 * @return  void
+	 */
+	protected function loadResultColumns()
+	{
+		$this->cols = $this->driver->getResultColomns();
+		
+		$tables = array();
+		foreach ($this->cols as $col) {
+			if (!empty($col[0]))
+				$tables[$col[0]] = true;
+		}
+
+		$this->tables = count($tables) > 1;
+	}
+
+
+	/** ==================== private ==================== **/
+
+
+	/*
+	 * Combines tables with their columns
+	 * @param   array   table row
+	 * @return  array
+	 */
+	private function combineColumns($row)
+	{
+		foreach ($this->cols as $i => $col) {
+			if (!array_key_exists($i, $row))
+				continue;
+
+			if (empty($col[0]))
+				$r[$col[1]] = $row[$i];
+			else
+				$r[$col[0]][$col[1]] = $row[$i];
+		}
+
+		foreach ($r as & $data) {
+			if (is_array($data))
+				$data = new DbResultNode($data);
+		}
+
+		return $r;
+	}
+
+
+	/**
+	 * Returns one reuslt row (stored or new fetched)
+	 * @return  bool
+	 */
+	private function getRow($assoc)
+	{
+		if (!empty($this->stored)) {
+			$stored = $this->stored;
+			$this->stored = null;
+			return $stored;
+		} else {
+			return $this->driver->fetch($assoc);
+		}
+	}
+
+
+	/**
+	 * Returns one row of db result
+	 * @return  DbResultNode
+	 */
+	protected function fetchRow()
 	{
 		$this->checkExecution();
 
@@ -204,10 +302,16 @@ class DbResult extends Object implements Countable, IteratorAggregate
 			if (!empty($this->association)) {
 				# prepare hasMany
 				foreach ($row as $table => $data) {
-					if (in_array($table, $this->association[1]))
-						$row[$table] = array($data);
+					if (in_array($table, $this->association[1])) {
+						# filter empty result
+						if (reset($data) !== null)
+							$row[$table] = array($data);
+						else
+							$row[$table] = array();
+					}
 				}
 
+				# add empty array in hasMany relation
 				foreach ($this->association[1] as $table) {
 					if (!isset($row[$table]))
 						$row[$table] = array();
@@ -250,105 +354,6 @@ class DbResult extends Object implements Countable, IteratorAggregate
 		}
 
 		return $this->rows[] = new DbResultNode($row);
-	}
-
-
-	/**
-	 * Returns all (associated) rows
-	 * @return  array
-	 */
-	public function fetchAll()
-	{
-		$this->checkExecution();
-
-		while (($row = $this->fetch()) != null);
-		return $this->rows;
-	}
-
-
-	/**
-	 * Retruns num of affected rows
-	 * @return  int
-	 */
-	public function affectedRows()
-	{
-		$this->checkExecution();
-		return $this->driver->affectedRows();
-	}
-
-
-	/**
-	 * IteratorAggregate interface
-	 * @return  ArrayIterator
-	 */
-	public function getIterator()
-	{
-		$this->checkExecution();
-		return new ArrayIterator($this->fetchAll());
-	}
-
-
-	/**
-	 * Countable interface
-	 * @return  int
-	 */
-	public function count()
-	{
-		$this->checkExecution();
-		return $this->driver->rowCount();
-	}
-
-
-	/**
-	 * Checkes if has been sql query executed and 
-	 * @return  void
-	*/
-	private function checkExecution()
-	{
-		if (!$this->executed)
-			$this->execute();
-	}
-
-
-	/**
-	 * Returns one reuslt row
-	 * @return  bool
-	 */
-	private function getRow($assoc)
-	{
-		if (!empty($this->stored)) {
-			$stored = $this->stored;
-			$this->stored = null;
-			return $stored;
-		} else {
-			return $this->driver->fetch($assoc);
-		}
-	}
-
-
-	/*
-	 * Combines tables with their columns
-	 * @param   array   table row
-	 * @return  array
-	 */
-	private function combineColumns($row)
-	{
-		foreach ($this->cols as $i => $col) {
-			if (!array_key_exists($i, $row))
-				continue;
-
-			if (empty($col[0]))
-				$r[$col[1]] = $row[$i];
-			else
-				$r[$col[0]][$col[1]] = $row[$i];
-		}
-
-		foreach ($r as & $data) {
-			if (is_array($data))
-				$data = new DbResultNode($data);
-		}
-
-		return $r;
 	}
 
 

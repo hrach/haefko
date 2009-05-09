@@ -18,6 +18,7 @@ require_once dirname(__FILE__) . '/object.php';
 class Paginator extends Object
 {
 
+	public $variableName = 'page';
 
 	/** @var int */
 	protected $page;
@@ -219,10 +220,14 @@ class Paginator extends Object
 		if (empty($text))
 			$text = $i;
 
-		if (class_exists('Application', false))
-			$link = Controller::get()->url($mask, array('page' => $i));
-		else
+		if (class_exists('Application', false)) {
+			if (empty($mask))
+				$link = Controller::get()->url('', array($this->variableName => $i));
+			else
+				$link = Controller::get()->url($mask, null, array($this->variableName => $i));
+		} else {
 			$link = preg_replace('#<:page>#', $i, $mask);
+		}
 
 		return "<a href=\"$link\">$text</a>";
 	}

@@ -65,6 +65,12 @@ class FormUploadedFile
 	}
 
 
+	/**
+	 * Moves uploaded file
+	 * @param   string  path for move
+	 * @param   bool    is path absolute?
+	 * @return  bool
+	 */
 	public function move($to = null, $absolute = false)
 	{
 		if (!$this->ok())
@@ -88,7 +94,7 @@ class FormUploadedFile
 
 	public function getSize()
 	{
-		static $s = array('B', 'Kb', 'MB', 'GB', 'TB', 'PB');
+		static $s = array('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB');
 
 		$e = floor(log($this->size) / log(1024));
 		return sprintf('%.2f ' . $s[$e], ($this->size / pow(1024, floor($e))));

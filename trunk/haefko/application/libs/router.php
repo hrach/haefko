@@ -22,11 +22,22 @@ class Router
 	/** @var array */
 	protected $defaults = array();
 
-	/** @var array */
-	protected $url = array();
+
+	/** @var string */
+	protected $url;
+
+	/** @var string */
+	protected $urlParams;
+
 
 	/** @var array */
 	protected $routing = array();
+
+	/** @var array */
+	protected $vars = array();
+
+	/** @var array */
+	protected $params = array();
 
 
 	/**
@@ -79,11 +90,28 @@ class Router
 	 * @param   bool      base route?
 	 * @return  bool
 	 */
-	public function connect($route, $defaults = array(), $baseRoute = false)
+	public function connect($route, $defaults = array(), $baseRoute = false, $queryParams = false)
 	{
 		# route only once
 		if ($this->routed)
 			return false;
+
+		if ($queryParams) {
+			$qm = strpos($this->url, '?');
+			if ($qm !== false) {
+				$this->urlParams = substr($this->url, $qm + 1);
+				$this->url = rtrim(substr($this->url, 0, $qm), '/');
+
+				$query = array();				
+				if (!empty($this->urlParams))
+					$query = explode('/', $this->urlParams);
+
+				foreach ($query as $param) {
+					list ($key, $val) = explode(':', $param);
+					$this->params[$key] = $val;
+				}
+			}
+		}
 
 
 		# set the defaults
@@ -112,8 +140,8 @@ class Router
 		}
 
 
+		# match url and routing
 		if ($baseRoute === false) {
-			# match url and routing
 			if (!preg_match("#^$newRoute$#", $this->url, $m))
 				return false;
 
@@ -121,10 +149,7 @@ class Router
 			$this->routing = $routing;
 			if (count($m) > 0) {
 				foreach ($matches[1] as $i => $key) {
-					if ($key == 'module')
-						$this->routing['module'][] = $m[$i];
-					else
-						$this->routing[$key] = $m[$i];
+					$this->set($key, $m[$i]);
 				}
 			}
 		} else {
@@ -135,10 +160,7 @@ class Router
 			$this->routing = $routing;
 			if (count($m) > 0) {
 				foreach ($matches[1] as $i => $key) {
-					if ($key == 'module')
-						$this->routing['module'][] = $m[$i][0];
-					else
-						$this->routing[$key] = $m[$i][0];
+					$this->set($key, $m[$i][0]);
 				}
 			}
 
@@ -148,7 +170,7 @@ class Router
 			if (strlen($this->url) > $lastChar) {
 				$args = explode('/', substr($this->url, $lastChar + 1));
 				foreach ($args as $i => $arg)
-					$this->routing['var' . ($i + 1)] = $arg;
+					$this->vars[($i + 1)] = $arg;
 			}
 		}
 
@@ -157,6 +179,47 @@ class Router
 		return $this->routed = true;
 	}
 
+	
+		/**
+	 * Processes the application url
+	 * @param   string    url
+	 * @param   array     args
+	 * @return  string
+	 */
+	public function url($url, $params = array(), $args = array())
+	{
+		if ('<:url:>' && !empty($params)) {
+			$url = $this->urlParams;
+			foreach ($params as $key => $val) {
+				if ($val === null) {
+					$url = preg_replace("#/?$key:(?:[^/]+)#", '', $url);
+				} else {
+					if (preg_match("#/?$key:([^/]+)#", $url, $matches))
+						$url = preg_replace("#/?$key:[^/]+#", "/$key:$val", $url);
+					else
+						$url .= "/$key:$val";
+				}
+			}
+
+			if (empty($url))
+				$url = $this->url;
+			else
+				$url = $this->url . '/?' . ltrim($url, '/');
+
+		} else {
+			$args = array_merge($this->vars, $args);
+
+			$url = preg_replace('#(\<\:(\w+)\>)#e', 'isset($args["\\2"]) ? $args["\\2"] : ""', $url);
+			$url = preg_replace_callback('#\<\:url\:\>#', array('Http', 'getRequest'), $url);
+			//$url = preg_replace('#(\<\:(module\[\d+\])\>)#e', 'isset($args["\\2"]) ? $args["\\2"] : ""', $url);
+			//$url = preg_replace('#\<\:args\:\>#', implode('/', $args), $url);
+
+		}
+
+		return $url;
+	}
+	
+	
 
 	/**
 	 * Returns args array
@@ -164,56 +227,22 @@ class Router
 	 */
 	public function getArgs()
 	{
-		$this->routing = $this->normalize($this->routing);
-		return $this->routing;
+		return $this->vars;
 	}
 
 
 	/**
-	 * Returns args array for creating url
-	 * @return  array
-	 */
-	public function getUrlArgs()
-	{
-		static $args;
-
-		if ($args === null) {
-			$args = $this->getArgs();
-			$args['controller'] = Tools::dash($args['controller']);
-			$args['action'] = Tools::dash($args['action']);
-
-			foreach ($args['module'] as &$arg)
-				$arg = Tools::dash($arg);
-
-			foreach ($args['module'] as $i => $arg)
-				$args["module[$i]"] = $arg;
-
-			$args['module'] = implode('/', $args['module']);
-		}
-
-		return $args;
-	}
-
-
-	/**
-	 * Return arg
+	 * Returns arg or params
 	 * @param   string    arg name
-	 * @param   bool      inline named variable?
-	 * @return  mixed     if doesn't exists return null
+	 * @return  mixed     if arg doesn't exists returns null
 	 */
-	public function get($key, $named = true)
+	public function get($key)
 	{
-		if (!$named) {
-			if (!array_key_exists($key, $this->routing))
-				return null;
+		if (array_key_exists($key, $this->vars))
+			return $this->vars[$key];
 
-			return $this->routing[$key];
-		}
-
-		foreach ($this->routing as $value) {
-			if (is_string($value) && Tools::startWith($value, "$key:"))
-				return Tools::lTrim($value, "$key:");
-		}
+		if (array_key_exists($key, $this->params))
+			return $this->params[$key];
 
 		return null;
 	}
@@ -226,10 +255,16 @@ class Router
 	 */
 	public function __get($key)
 	{
-		if (!array_key_exists($key, $this->routing))
-			return null;
+		if (array_key_exists($key, $this->routing))
+			return $this->routing[$key];
 
-		return $this->routing[$key];
+		if (array_key_exists($key, $this->vars))
+			return $this->vars[$key];
+
+		if (array_key_exists($key, $this->params))
+			return $this->params[$key];
+
+		return null;
 	}
 
 
@@ -291,6 +326,18 @@ class Router
 			$module = Tools::camelize($module);
 
 		return $routing;
+	}
+
+	private function set($key, $val)
+	{
+		static $routing = array('controller', 'action', 'service');
+
+		if ($key == 'module')
+			$this->routing['module'][] = $val;
+		elseif (in_array($key, $routing))
+			$this->routing[$key] = $val;
+		else
+			$this->vars[$key] = $val;
 	}
 
 

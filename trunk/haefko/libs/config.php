@@ -31,7 +31,6 @@ class Config
 	{
 		$key = strtolower($key);
 		if ($key == 'servers' && is_array($val)) {
-
 			$server = $_SERVER['SERVER_NAME'];
 			if (self::read('Config.www', true))
 				$server = Tools::lTrim($server, 'www.');
@@ -42,7 +41,6 @@ class Config
 				Debug::log("Undefined server configuration for '$server'.");
 
 		} else {
-
 			$levels = explode('.', $key);
 			$level = & self::$config;
 

@@ -5,11 +5,14 @@
  *
  * @author      Jan Skrasek
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
- * @link        http://haefko.programujte.com
+ * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8 - $Id$
  * @package     Haefko_Libs
  */
+
+
+require_once dirname(__FILE__) . '/fatal-error-exception.php';
 
 
 class Debug
@@ -18,6 +21,9 @@ class Debug
 
 	/** @var bool */
 	public static $isFirebug = false;
+
+	/** @var string */
+	public static $logFile = 'errors.log';
 
 	/** @var array */
 	private static $toolbar = array();
@@ -33,14 +39,67 @@ class Debug
 
 
 	/**
-	 * Initializes Debug
+	 * Initializes debuging, registers handlers
+	 * @return  void
 	 */
 	public static function init()
 	{
 		self::$isFirebug = isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'FirePHP/');
+
+		set_error_handler('Debug::errorHandler');
+		set_exception_handler('Debug::exceptionHandler');
+		register_shutdown_function('Debug::shutdownHandler');
+
+		if (function_exists('ini_set')) {
+			ini_set('log_errors', false);
+			ini_set('display_errors', false);
+		}
 	}
 
 
+	/**
+	 * Exception handler
+	 * Catchs exception and show detail informations
+	 * @param   Exception
+	 * @return  void
+	 */
+	public static function exceptionHandler(Exception $exception)
+	{
+		if (class_exists('Application', false)) {
+
+			try {
+
+				$app = Application::get();
+				$app->processException($exception);
+
+			} catch (Exception $e) {
+
+				if (Config::read('core.debug') == 0) {
+					self::log($e->getMessage());
+					echo "<strong>Uncatchable application exception!</strong>\n<br /><span style='font-size:small'>"
+				       . "Please contact server administrator. The error has been logged.</span>";
+				    exit(1);
+				}
+
+				self::showException($e);
+			}
+
+		} else {
+		
+			if (class_exists('Config', false) && Config::read('core.debug') > 0) {
+				self::showException($exception);
+			} else {
+				self::log($exception->getMessage());
+				echo "<strong>Uncatchable application exception!</strong>\n<br /><span style='font-size:small'>"
+			       . "Please contact server administrator. The error has been logged.</span>";
+			    exit(1);
+			}
+
+		}
+	}
+	
+	
+	
 	/**
 	 * Returns time in miliseconds
 	 * @return  float
@@ -68,16 +127,81 @@ class Debug
 
 
 	/**
-	 * Exception handler
-	 * Catchs exception and show detail informations
-	 * @param   Exception
+	 * Error handler
+	 * Catchs errors and show detail informations
+	 * @param   int     error code
+	 * @param   string  error message
+	 * @param   string  error file
+	 * @param   int     error line
+	 * @param   array   var content
 	 * @return  void
 	 */
-	public static function exceptionHandler(Exception $exception)
+	public static function errorHandler($id, $message, $file, $line, $vars)
 	{
-		$rendered = ob_get_contents();
-		ob_clean();
-		require_once dirname(__FILE__) . '/debug.exception.phtml';
+		if (!($id & error_reporting()))
+			return;
+
+		if (class_exists('Config', false) && Config::read('core.debug') > 0)
+			echo '<div class="error"><strong>' . self::getErrorLabel($id) . ":</strong> $message<br/>"
+			    ."<strong>$file</strong> on line $line</div><br />";
+		else
+			self::log(self::getErrorLabel($id) . ": $message ($file on line $line)");
+	}
+
+
+	/**
+	 * Shutdown handler
+	 * Catchs fatal errors during shuting down the script
+	 * @return  void
+	 */
+	public static function shutdownHandler()
+	{
+		$error = error_get_last();
+		if (empty($error))
+			return;
+
+		if (!($error['type'] & error_reporting()) || !($error['type'] & (E_ERROR | E_CORE_ERROR | E_COMPILE_ERROR | E_PARSE)))
+			return;
+
+
+		if (class_exists('Config', false) && Config::read('core.debug') > 0) {
+			self::showException(new FatalErrorException($error));
+		} else {
+			self::log(strip_tags($error['message']) . " - $error[file] on line $error[line]");
+			ob_clean();
+			echo "<strong>Uncatchable application exception!</strong>\n<br /><span style='font-size:small'>"
+			   . "Please contact server administrator. The error has been logged.</span>";
+			exit(1);
+		}
+	}
+
+
+	/**
+	 * Returns error name by error code
+	 * @param   int     error code
+	 * @return  string
+	 */
+	public static function getErrorLabel($id)
+	{
+		static $levels = array(
+			2047 => 'E_ALL',
+			1024 => 'E_USER_NOTICE',
+			512 => 'E_USER_WARNING',
+			256 => 'E_USER_ERROR',
+			128 => 'E_COMPILE_WARNING',
+			64 => 'E_COMPILE_ERROR',
+			32 => 'E_CORE_WARNING',
+			16 => 'E_CORE_ERROR',
+			8 => 'E_NOTICE',
+			4 => 'E_PARSE',
+			2 => 'E_WARNING',
+			1 => 'E_ERROR'
+		);
+
+		if (isset($levels[$id]))
+			return $levels[$id];
+		else
+			return "Undefined error";
 	}
 
 
@@ -99,7 +223,7 @@ class Debug
 	 */
 	public static function toolbar($message, $group = '')
 	{
-		if (Config::read('Core.debug') < 3)
+		if (Config::read('core.debug') < 3)
 			return false;
 
 		# redirect content to firebug
@@ -118,7 +242,13 @@ class Debug
 	 */
 	public static function log($message)
 	{
-		error_log($message);
+		$fh = fopen(self::$logFile, 'a+');
+		if (!$fh)
+			die("Cannot write to error log file!");
+
+		$dt = date('[Y-m-d H:i:s] ');
+		fwrite($fh, $dt . $message ."\n");
+		fclose($fh);
 	}
 
 
@@ -161,9 +291,21 @@ class Debug
 		return true;
 	}
 
+	
+	public static function showException($exception) 
+	{	
+		require_once dirname(__FILE__) . '/tools.php';
+		$rendered = ob_get_contents();
+		ob_clean();
+		require_once dirname(__FILE__) . '/debug.exception.phtml';
+	}
+
 
 }
 
+
+if (!isset($startTime))
+	$startTime = microtime(true);
 
 Debug::init();
 

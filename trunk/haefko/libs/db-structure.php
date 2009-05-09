@@ -16,26 +16,40 @@
 require_once dirname(__FILE__) . '/cache.php';
 
 
-class DbTableStructure
+class DbStructure
 {
 
 
 	/** @var array */
 	public static $modificators = array(
-		'varchar' => '%s',
-		'char' => '%s',
-		'bpchar' => '%s',
-		'text' => '%s',
-		'longtext' => '%s',
-		'bool' => '%s',
-		'date' => '%d',
-		'time' => '%t',
-		'datetime' => '%dt',
-		'timestamp' => '%dt',
-		'int' => '%i',
-		'bigint' => '%i',
-		'smallint' => '%i',
+		'varchar' => Db::TEXT,
+		'char' => Db::TEXT,
+		'bpchar' => Db::TEXT,
+		'tinytext' => Db::TEXT,
+		'text' => Db::TEXT,
+		'mediumtext' => Db::TEXT,
+		'longtext' => Db::TEXT,
+
+		'bool' => Db::BOOL,
+		'enum' => Db::TEXT,
+		'set' => Db::SET,
+
+		'date' => Db::DATE,
+		'time' => Db::TIME,
+		'datetime' => Db::DATETIME,
+		'timestamp' => Db::DATETIME,
+
+		'tinyint' => Db::INTEGER,
+		'int' => Db::INTEGER,
+		'mediumint' => Db::INTEGER,
+		'bigint' => Db::INTEGER,
+		'smallint' => Db::INTEGER,
+
+		'float' => Db::FLOAT,
+		'double' => Db::FLOAT,
+		'decimal' => Db::FLOAT,
 	);
+
 
 	/** @var DbTableStructure */
 	protected static $self;
@@ -54,14 +68,14 @@ class DbTableStructure
 	public static function get()
 	{
 		if (empty(self::$self))
-			self::$self = new DbTableStructure();
+			self::$self = new DbStructure();
 
 		return self::$self;
 	}
 
 
 	/**
-	 * Constructor
+	 * Constructor - loads tables cache
 	 * @return  void
 	 */
 	public function __construct()
@@ -73,15 +87,15 @@ class DbTableStructure
 			$this->cache = new Cache();
 
 		$this->structure = $this->cache->read('sql', 'tables');
-		if (!isset($this->structure['__tables__'])) {
-			$this->structure['__tables__'] = db::getDriver()->getTables();
+		if (!isset($this->structure['__tables'])) {
+			$this->structure['__tables'] = db::getDriver()->getTables();
 			$this->updated = true;
 		}
 	}
 
 
 	/**
-	 * Desctuctor
+	 * Desctuctor - save tables cache
 	 * @return  void
 	 */
 	public function __destruct()
@@ -93,11 +107,11 @@ class DbTableStructure
 
 	/**
 	 * Returns column's modificator
-	 * @param   string    table
+	 * @param   string    table (or expression "table.column")
 	 * @param   string    column
 	 * @return  string
 	 */
-	public function getMod($table, $column = null)
+	public function getModificator($table, $column = null)
 	{
 		if (empty($column))
 			list($table, $column) = explode('.', $table);
@@ -106,30 +120,37 @@ class DbTableStructure
 		if (empty($this->structure[$table][$column]))
 			throw new Exception("Unknow column '$table.$column'.");
 
-		return $this->structure[$table][$column]['mod'];
+		return '%' . $this->structure[$table][$column]['mod'];
 	}
 
 
 	/**
-	 * Returns table primary keys with modificators
+	 * Returns name of table's primary key
 	 * @param   string    table name
 	 * @throws  Exception
-	 * @return  array
+	 * @return  string
 	 */
-	public function getPk($table)
+	public function getPrimaryKey($table)
 	{
 		$this->initTable($table);
-
-		$pk = array();
 		foreach ($this->structure[$table] as $name => $data) {
 			if ($data['primary'])
-				$pk[$name] = $data['mod'];
+				return $name;
 		}
 
-		if (empty($pk))
-			throw new Exception("DbTable is only for tables with primary key. Table '$table' doesn't contain any primary key.");
+		throw new Exception("DbTable is only for tables with primary key. Table '$table' doesn't contain any primary key.");
+	}
 
-		return $pk;
+
+	/**
+	 * Gets list of table cols and modificators
+	 * @param   string  table name
+	 * @return  array
+	 */
+	public function getCols($table)
+	{
+		$this->initTable($table);
+		return $this->structure[$table];
 	}
 
 
@@ -138,9 +159,9 @@ class DbTableStructure
 	 * @param   string    table name
 	 * @return  bool
 	 */
-	public function existTable($table)
+	public function tableExists($table)
 	{
-		return in_array(Tools::underscore($table), $this->structure['__tables__']);
+		return in_array(Tools::underscore($table), $this->structure['__tables']);
 	}
 
 
