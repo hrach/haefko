@@ -209,10 +209,9 @@ class Router
 		} else {
 			$args = array_merge($this->vars, $args);
 
-			$url = preg_replace('#(\<\:(\w+)\>)#e', 'isset($args["\\2"]) ? $args["\\2"] : ""', $url);
+			$url = preg_replace_callback('#\<\:(module(?:\[(\d+)\])?)\>#', array($this, 'moduleCb'), $url);
 			$url = preg_replace_callback('#\<\:url\:\>#', array('Http', 'getRequest'), $url);
-			//$url = preg_replace('#(\<\:(module\[\d+\])\>)#e', 'isset($args["\\2"]) ? $args["\\2"] : ""', $url);
-			//$url = preg_replace('#\<\:args\:\>#', implode('/', $args), $url);
+			$url = preg_replace('#(\<\:(\w+)\>)#e', 'isset($args["\\2"]) ? $args["\\2"] : ""', $url);
 
 		}
 
@@ -305,6 +304,22 @@ class Router
 
 
 	/**
+	 * Module callback
+	 * @param   array     matches
+	 * @return  string
+	 */
+	public function moduleCb($matches)
+	{
+		if ($matches[1] == 'module')
+			return Tools::dash(implode('/', $this->routing['module']));
+		elseif (isset($this->routing['module'][$matches[2]]))
+			return Tools::dash($this->routing['module'][$matches[2]]);
+		else
+			return null;
+	}
+
+
+	/**
 	 * Normalizes routing array
 	 * @param   array
 	 * @return  array
@@ -328,6 +343,13 @@ class Router
 		return $routing;
 	}
 
+
+	/**
+	 * Sets routing/varible/param
+	 * @param   string  name
+	 * @param   mixed   value
+	 * @return  void
+	 */
 	private function set($key, $val)
 	{
 		static $routing = array('controller', 'action', 'service');
