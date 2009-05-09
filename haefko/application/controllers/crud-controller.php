@@ -76,14 +76,28 @@ class CrudController extends AppController
 	}
 
 
+	/**
+	 * Create action
+	 * @return   void
+	 */
 	public function createAction()
 	{
 		$this->initForm();
-		
-		
+
+		if ($this->form->isSubmit()) {
+			$this->dbTable->import($this->form->data)
+			              ->save();
+
+			$this->redirect($this->crudUrl('index'));
+		}		
 	}
 
 
+	/**
+	 * Update action
+	 * @param   mixed   primary key value
+	 * @return  void
+	 */
 	public function updateAction($id)
 	{
 		$this->initForm();
@@ -98,21 +112,28 @@ class CrudController extends AppController
 		if ($this->form->isSubmit()) {
 			$this->dbTable->import($this->form->data)
 			              ->save();
+
+			$this->redirect($this->crudUrl('index'));
 		}
 	}
 
 
+	/**
+	 * Delete action
+	 * @return   void
+	 */
 	public function deleteAction()
 	{
 
 	}
-	
-	protected function initForm()
-	{
-		$this->form = $this->dbTable->getForm();
-		$this->view->form = $this->form;
-	}
-	
+
+
+	/**
+	 * Returns crud url
+	 * @param   string    action
+	 * @param   array     optional params
+	 * @return  string
+	 */
 	public function crudUrl($action, $param = null)
 	{
 		if ($param == null)
@@ -124,5 +145,27 @@ class CrudController extends AppController
 				'action' => $action
 			));
 	}
+
+
+	/**
+	 * Returns HTML title
+	 * @return  string
+	 */
+	public function getTitle()
+	{
+		return 'Auto ' . Tools::camelize($this->table) . ' Controller';
+	}
+
+
+	/**
+	 * Prepares form
+	 * @return  void
+	 */
+	protected function initForm()
+	{
+		$this->form = $this->dbTable->getForm();
+		$this->view->form = $this->form;
+	}
+
 
 }

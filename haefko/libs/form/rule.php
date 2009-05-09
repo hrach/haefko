@@ -44,16 +44,27 @@ class Rule extends Object
 	);
 
 
+	/**
+	 * Contructor
+	 * @param   FormControl  control
+	 * @param   string       validating rule
+	 * @param   mixed        argument
+	 * @param   string       error message
+	 * @return  Rule
+	 */
 	public function __construct($control, $rule, $arg = null, $message = null)
 	{
-		dump($this->control);
 		$this->control = $control;
 		$this->rule = $rule;
 		$this->arg = $arg;
 		$this->message = $message;
 	}
-	
-	
+
+
+	/**
+	 * Returns true when is the rule valid
+	 * @return  bool
+	 */
 	public function isValid()
 	{
 		$valid = self::validate($this->rule, $this->control->getValue(), $this->arg);

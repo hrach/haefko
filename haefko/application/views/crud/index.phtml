@@ -1,7 +1,6 @@
-<h1>Auto controller</h1>
-
-
+<h1><?= $controller->getTitle() ?></h1>
 <?= $html->link($grid->url('create'), 'Nový záznam') ?>
+<br />
 
 <?= $grid->renderTable() ?>
 <?= $grid->renderPaginator() ?>

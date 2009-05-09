@@ -179,8 +179,8 @@ class Router
 		return $this->routed = true;
 	}
 
-	
-		/**
+
+	/**
 	 * Processes the application url
 	 * @param   string    url
 	 * @param   array     args
@@ -188,7 +188,7 @@ class Router
 	 */
 	public function url($url, $params = array(), $args = array())
 	{
-		if ('<:url:>' && !empty($params)) {
+		if (!empty($params)) {
 			$url = $this->urlParams;
 			foreach ($params as $key => $val) {
 				if ($val === null) {
@@ -209,17 +209,16 @@ class Router
 		} else {
 			$args = array_merge($this->vars, $args);
 
+			$url = preg_replace('#(\<\:(\w+)\>)#e', 'isset($args["\\2"]) ? $args["\\2"] : "<:\\2>"', $url);
+			$url = preg_replace('#(\<\:(controller|action|service)\>)#e', 'isset($this->routing["\\2"]) ? Tools::dash($this->routing["\\2"]) : "<:\\2>"', $url);
 			$url = preg_replace_callback('#\<\:(module(?:\[(\d+)\])?)\>#', array($this, 'moduleCb'), $url);
 			$url = preg_replace_callback('#\<\:url\:\>#', array('Http', 'getRequest'), $url);
-			$url = preg_replace('#(\<\:(controller|action|service)\>)#e', 'isset($this->routing["\\2"]) ? Tools::dash($this->routing["\\2"]) : ""', $url);
-			$url = preg_replace('#(\<\:(\w+)\>)#e', 'isset($args["\\2"]) ? $args["\\2"] : ""', $url);
 
 		}
 
 		return $url;
 	}
-	
-	
+
 
 	/**
 	 * Returns args array
