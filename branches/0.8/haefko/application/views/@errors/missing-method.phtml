@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * Haefko - your php5 framework
+ *
+ * @author      Jan Skrasek
+ * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
+ * @link        http://haefko.programujte.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
+ * @version     0.8 - $Id$
+ * @package     Haefko_Application
+ * @subpackage  View
+ */
+
+
+?>
+<?php
+	$this->title = 'Missing method | haefko';
+?>
+<div class="error">
+	<h1>ERROR: Missing method</h1>
+	<p>Check whether you created method <?= $variable ?>.</p>Use this basic skeleton:
+<pre><code class="php">public function <?= $variable ?>()
+{
+	# your code
+}</code></pre></p>
+</div>

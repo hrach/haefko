@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * Haefko - your php5 framework
+ *
+ * @author      Jan Skrasek
+ * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
+ * @link        http://haefko.programujte.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
+ * @version     0.8 - $Id$
+ * @package     Haefko_Application
+ * @subpackage  View
+ */
+
+
+?>
+<?php
+	$this->title = 'No routing match | haefko';
+?>
+
+<div class="error">
+	<h1>ERROR: No routing match</h1>
+	<p>Check URL and routing for keying mistakes.</p>
+	<p>Basic routing suggestion: <pre><code class="php">$router = $application->getRouter();
+$router->defaults(array('controller' => 'default'));
+$router->connect('/');
+$router->connect('/<:controller>');
+$router->connect('/<:controller>/<:action>', null, true);
+</code></pre></p>
+</div>

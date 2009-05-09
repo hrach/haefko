@@ -1,0 +1,10 @@
+servers:
+	localhost:
+		Core.debug: 3
+		Db.connection:
+			driver: mysqli
+			host: localhost
+			username: root
+			database: test
+			charset: utf8
+			lazy: true

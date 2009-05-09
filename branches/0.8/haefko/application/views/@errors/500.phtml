@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * Haefko - your php5 framework
+ *
+ * @author      Jan Skrasek
+ * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
+ * @link        http://haefko.programujte.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
+ * @version     0.8 - $Id$
+ * @package     Haefko_Application
+ * @subpackage  View
+ */
+
+
+?>
+<?php
+	Http::headerError(500);
+	$this->title = 'Error: Internal server error';
+?>
+<div class="error">
+	<h1>Error: Internal server error</h1>
+	<p>We are apologizing. The requested service is not currently available.</p>
+	<p>The server encountered an internal error.
+	<ul>
+		<li>Wait a moment and then repeat the action please.</li>
+		<li>If the error doesn't disappear, contact administrator / author please.</li>
+</ul></p>
+</div>

@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * Haefko - your php5 framework
+ *
+ * @author      Jan Skrasek
+ * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
+ * @link        http://haefko.programujte.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
+ * @version     0.8 - $Id$
+ * @package     Haefko_Application
+ * @subpackage  View
+ */
+
+
+?>
+<?php
+	$this->title = 'Error: Page not found';
+?>
+<div class="error">
+	<h1>Error: Page not found</h1>
+	<p>We apologize for the inconvenience, but the page you are looking for
+	does not exists in our system.</p>
+	<ul>
+		<li>If you typed in the address, try to re-check the spelling.</li>
+		<li>If you followed link from somewhere, please let them know the page does not exist.</li>
+	</ul></p>
+	<p>It might just be the best to start at our <?= $html->link('', 'homepage') ?>.</p>
+</div>
