@@ -146,22 +146,18 @@ class Router
 				return false;
 
 			array_shift($m);
-			$this->routing = $routing;
 			if (count($m) > 0) {
-				foreach ($matches[1] as $i => $key) {
-					$this->set($key, $m[$i]);
-				}
+				foreach ($matches[1] as $i => $key)
+					$routing[$key] = $m[$i];
 			}
 		} else {
 			if (!preg_match("#^$newRoute#", $this->url, $m, PREG_OFFSET_CAPTURE))
 				return false;
 
 			array_shift($m);
-			$this->routing = $routing;
 			if (count($m) > 0) {
-				foreach ($matches[1] as $i => $key) {
-					$this->set($key, $m[$i][0]);
-				}
+				foreach ($matches[1] as $i => $key)
+					$routing[$key] = $m[$i][0];
 			}
 
 			$lastChar = end($m);
@@ -170,10 +166,18 @@ class Router
 			if (strlen($this->url) > $lastChar) {
 				$args = explode('/', substr($this->url, $lastChar + 1));
 				foreach ($args as $i => $arg)
-					$this->vars[($i + 1)] = $arg;
+					$routing[$i + 1] = $arg;
 			}
 		}
 
+		foreach ($routing as $key => $val) {
+			if (is_array($val)) {
+				foreach ($val as $k => $v)
+					$this->set($k, $v);
+			} else {
+				$this->set($key, $val);
+			}
+		}
 
 		$this->routing = $this->normalize($this->routing);
 		return $this->routed = true;
@@ -213,7 +217,6 @@ class Router
 			$url = preg_replace('#(\<\:(controller|action|service)\>)#e', 'isset($this->routing["\\2"]) ? Tools::dash($this->routing["\\2"]) : "<:\\2>"', $url);
 			$url = preg_replace_callback('#\<\:(module(?:\[(\d+)\])?)\>#', array($this, 'moduleCb'), $url);
 			$url = preg_replace_callback('#\<\:url\:\>#', array('Http', 'getRequest'), $url);
-
 		}
 
 		return $url;
@@ -337,8 +340,8 @@ class Router
 		else
 			$routing['service'] = strtolower($routing['service']);
 
-		foreach ($routing['module'] as & $module)
-			$module = Tools::camelize($module);
+		foreach ($routing['module'] as $i => $module)
+			$routing['module'][$i] = Tools::camelize($module);
 
 		return $routing;
 	}
@@ -348,7 +351,7 @@ class Router
 	 * Sets routing/variable/param
 	 * @param   string  name
 	 * @param   mixed   value
-	 * @return  void
+	 * @return  Router
 	 */
 	private function set($key, $val)
 	{
@@ -360,6 +363,8 @@ class Router
 			$this->routing[$key] = $val;
 		else
 			$this->vars[$key] = $val;
+
+		return $this;
 	}
 
 
