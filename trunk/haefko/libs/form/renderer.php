@@ -13,36 +13,26 @@
 
 
 require_once dirname(__FILE__) . '/irenderer.php';
+require_once dirname(__FILE__) . '/renderers/javascript/jquery-validator.php';
 
 
 abstract class FormRenderer extends Object implements IFormRenderer
 {
 
+	/** @var IFormJsValidator */
+	public $javascript = null;
+	
+	public $wrappers = array(
+		'part' => null,
+		'pair' => null,
+		'label' => null,
+		'control' => null,
+		'button-separator' => null,
+		'list-separator' => 'br',
+	);
 
-	/** @var bool */
-	public $js = true;
-
-	/** @var Html */
-	public $container;
-
-	/** @var Html */
-	public $body;
-
-	/** @var Html */
-	public $control;
-
-	/** @var Html */
-	public $controlSeparator = 'br';
-
-	/** @var Html */
-	public $label;
-
-	/** @var Html */
-	public $block;
-
-	/** @var Form */
-	public $form;
-
+	
+	protected $form;
 
 	/**
 	 * Constructor
@@ -51,13 +41,8 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	public function __construct(Form $form)
 	{
 		$this->form = $form;
-
-		$this->container = Html::el($this->container);
-		$this->body = Html::el($this->body, null, array('class' => 'form-container'));
-		$this->block = Html::el($this->block);
-		$this->control = Html::el($this->control);
-		$this->controlSeparator = Html::el($this->controlSeparator);
-		$this->label = Html::el($this->label);
+		$this->javascript = new JqueryFormJsValidator();
+		$this->javascript->name = $this->form->name;
 	}
 
 
@@ -77,8 +62,8 @@ abstract class FormRenderer extends Object implements IFormRenderer
 				return $this->renderStart($attrs);
 			case 'end':
 				return $this->renderEnd();
-			case 'body':
-				return $this->renderBody($attrs);
+			case 'part':
+				return $this->renderPart(array_shift($attrs), array_shift($attrs), array_shift($attrs));
 			case 'block':
 				return $this->renderBlock($attrs);
 			default:
@@ -89,29 +74,24 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 	/**
 	 * Renders form
-	 * @param   array  params and attributes
 	 * @return  string
 	 */
-	protected function renderForm($attrs)
+	protected function renderForm()
 	{
-		return $this->renderStart($attrs)
-		     . $this->renderBody()
+		return $this->renderStart()
+		     . $this->renderPart()
 		     . $this->renderEnd();
 	}
 
 
 	/**
 	 * Renders form start tag
-	 * @param   array  params and attributes
+	 * @param   array   html attributes
 	 * @return  string
 	 */
-	protected function renderStart($attrs)
+	protected function renderStart()
 	{
-		# set attributes
-		$this->container->setAttrs(&$attrs[0]);
-
-		return $this->container->startTag()
-		     . $this->form->startTag();
+		return $this->form->startTag();
 	}
 
 
@@ -122,8 +102,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	 */
 	protected function renderEnd()
 	{
-		return $this->form->endTag()
-		     . $this->container->endTag();
+		return $this->form->endTag() . "\n";
 	}
 
 
@@ -132,37 +111,50 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	 * @param   array  params and attributes
 	 * @return  string
 	 */
-	protected function renderBody($attrs = array())
+	protected function renderPart($controls = array(), $heading = '', $attrs = array())
 	{
-		$this->prepareBody($attrs);
+		$partW = $this->preparePart($this->getWrapper('part'), $heading);
+		$partW->setAttrs($attrs);
 
-		foreach ($this->form as $control) {
-			if (
-				# when is set control seletion, check if the control is on the list
-				(!empty($attrs[1]) && !in_array($control->name, (array) $attrs[1])) ||
-				# when is control selection empty, chech if the control has been rendered
-				(empty($attrs[1]) && $control->isRendered())
-			) continue;
 
-			# all buttons render in one row
-			if ($control instanceof FormSubmitControl) {
-				$this->prepareBlock();
-				$this->prepareControl();
-				$this->block->setHtml($this->renderLabel($control->name));
+		foreach ($this->form as $name => /** @var FormControl */$control) {
+			if (empty($controls) && $control->isRendered())
+				continue;
 
-				foreach ($this->form as $c) {
-					if (!$c->isRendered() && ($c instanceof FormSubmitControl))
-						$this->control->setHtml($c->control());
+			if (!empty($controls) && !in_array($control->name, $controls))
+				continue;
+
+			if ($control instanceof FormHiddenControl)
+				continue;
+
+
+			if ($control instanceof FormButtonControl) {
+				$controlW = $this->getWrapper('control');
+				foreach ($this->form as $control) {
+					if ($control instanceof FormButtonControl && ((in_array($control->name, $controls) && !empty($controls)) || empty($controls)))
+						$controlW->addHtml($control->control()->render())
+						         ->addHtml($this->getWrapper('button-separator')->render());
 				}
 
-				$this->block->setHtml($this->control->render());
-				$this->body->setHtml($this->block->render());
+				$pairW = $this->preparePair($this->getWrapper('pair'));
+				$pairW->addHtml($this->getWrapper('label'))
+				      ->addHtml($controlW);
+
+				$partW->addHtml($pairW);
 			} else {
-				$this->body->setHtml($this->renderBlock(array($control->name)));
+				$partW->addHtml($this->renderPair($name));
+			}
+
+			if ($this->javascript instanceof IFormJsValidator) {
+				foreach ($control->getRules() as $rule)
+					$this->javascript->addRule($rule);
+
+				foreach ($control->getConditions() as $condition)
+					$this->javascript->addCondition($condition);
 			}
 		}
 
-		return $this->body->render();
+		return $partW->render(0) . $this->javascript->getCode();
 	}
 
 
@@ -171,20 +163,16 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	 * @param   array  params and attributes
 	 * @return  string
 	 */
-	protected function renderBlock($attrs)
+	protected function renderPair($name)
 	{
-		if (!isset($this->form[$attrs[0]]))
+		if (!isset($this->form[$name]))
 			throw new Exception('Undefined form control in render-block.');
 
-		if ($this->form[$attrs[0]] instanceof FormHiddenControl)
-			return;
+		$pairW = $this->preparePair($this->getWrapper('pair'));
+		$pairW->addHtml($this->renderLabel($name))
+		      ->addHtml($this->renderControl($name));
 
-		$this->prepareBlock();
-
-		$this->block->setHtml($this->renderLabel($attrs[0]))
-		            ->setHtml($this->renderControl($attrs[0]));
-
-		return $this->block->render();
+		return $pairW->render(0);
 	}
 
 
@@ -195,15 +183,20 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	 */
 	protected function renderControl($name)
 	{
-		$this->prepareControl();
+		$control = $this->form[$name];
+		$controlW = $this->prepareControl($this->getWrapper('control'));
 
-		$this->control->setHtml($this->form[$name]->control());
-		if ($this->form[$name] instanceof FormCheckboxControl)
-			$this->control->setHtml($this->form[$name]->label());
+		if ($control instanceof FormRadioControl || $control instanceof FormMultiCheckboxControl) {
+			foreach ($control->control() as $item)
+				$controlW->addHtml($item)
+				         ->addHtml($this->getWrapper('list-separator')->render());
+		} else {
+			$controlW->addHtml($control->control()->render());
+		}
 
-		$this->control->setHtml($this->form[$name]->errors());
+		$controlW->addHtml($control->error()->render());
 
-		return $this->control->render();
+		return $controlW->render(1);
 	}
 
 
@@ -214,40 +207,27 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	 */
 	protected function renderLabel($name)
 	{
-		$this->prepareLabel();
+		$labelW = $this->getWrapper('label');
+		
+		$label = $this->form[$name]->label();
+		if ($label instanceof Html)
+			$labelW->addHtml($label->render());
 
-
-		if ($this->form[$name] instanceof FormCheckboxControl)
-			return $this->label->render();
-
-		$this->label->setHtml($this->form[$name]->label());
-		return $this->label->render();
+		return $labelW->render(1);
 	}
 
 
-	protected function prepareBody($attrs)
+	protected function getWrapper($type)
 	{
-		$this->body->clear();
-		$this->body->setAttrs((array) @$attrs[2]);
+		if (!array_key_exists($type, $this->wrappers))
+			throw new Exception("Wrapper $type does not exists.");
+
+		return ($this->wrappers[$type] instanceof Html) ? clone $this->wrappers[$type] : Html::el($this->wrappers[$type]);
 	}
 
-
-	protected function prepareBlock()
-	{
-		$this->block->clear();
-	}
-
-
-	protected function prepareControl()
-	{
-		$this->control->clear();
-	}
-
-
-	protected function prepareLabel()
-	{
-		$this->label->clear();
-	}
-
+	protected function preparePart($wrapper) { return $wrapper; }
+	protected function preparePair($wrapper) { return $wrapper; }
+	protected function prepareControl($wrapper) { return $wrapper; }
+	protected function prepareLabel($wrapper) { return $wrapper; }
 
 }

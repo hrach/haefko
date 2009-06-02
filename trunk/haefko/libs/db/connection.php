@@ -61,7 +61,7 @@ class DbConnection extends Object
 	/**
 	 * Returns result object with parsed sql query
 	 * @param   string    sql query
-	 * @return  DbResult
+	 * @return  DbPreparedResult
 	 */
 	public function prepare($sql)
 	{

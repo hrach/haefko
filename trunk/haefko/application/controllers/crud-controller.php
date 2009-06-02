@@ -16,24 +16,24 @@
 class CrudController extends AppController
 {
 
-	
-	/** @var string - Url for actions of the crud controller instance */
-	protected $link;
 
 	/** @var string - Table name */
 	protected $table;
+	
+	/** @var string - Url for actions of the crud controller instance */
+	protected $link;
 
 	/** @var int - Limit for pagination */
 	protected $limit = 20;
 
 	/** @var string|array */
-	protected $cols = '*';
+	protected $columns = '*';
 
-	/** @var Form */
-	protected $form;
+	/** @var array - Columns which can be edited */
+	protected $editColumns = array();
 
-	/** @var DbTable */
-	protected $dbTable;
+	/** @var array - Columns labels */
+	protected $labels = array();
 
 
 	/**
@@ -43,6 +43,7 @@ class CrudController extends AppController
 	 */
 	public function init()
 	{
+		$this->view->controllerTitle = Tools::camelize($this->table);
 		$this->view->setRouting('controller', 'crud');
 		parent::init();
 
@@ -51,8 +52,6 @@ class CrudController extends AppController
 
 		if (empty($this->link))
 			throw new Exception('You have to defined link to the instace of CRUD controller by ' . $this->getClass() . '::$link.');
-
-		$this->dbTable = DbTable::initTable($this->table);
 	}
 
 
@@ -62,17 +61,12 @@ class CrudController extends AppController
 	 */
 	public function indexAction()
 	{
-		$cols = implode(", ", (array) $this->cols);
-		$query = db::prepare("select $cols from %c", $this->table);
+		$columns = implode(", ", (array) $this->columns);
+		$query = db::prepare("select $columns from %c", $this->table);
 
-		$grid = new DataGrid();
-		$grid->setQuery($query)
-		     ->setLimit($this->limit)
-		     ->setLink($this->link)
-		     ->getData();
-
-
-		$this->view->grid = $grid;
+		$grid = $this->view->grid = $this->getDataGrid();
+		$grid->setQuery($query);
+		$grid->getData();
 	}
 
 
@@ -82,14 +76,15 @@ class CrudController extends AppController
 	 */
 	public function createAction()
 	{
-		$this->initForm();
+		$table = $this->getTable();
+		$form = $this->view->form = $this->getForm($table);
 
-		if ($this->form->isSubmit()) {
-			$this->dbTable->import($this->form->data)
-			              ->save();
+		if ($form->isSubmit()) {
+			$table->import($this->processData($form->data))
+			      ->save();
 
 			$this->redirect($this->crudUrl('index'));
-		}		
+		}
 	}
 
 
@@ -98,20 +93,21 @@ class CrudController extends AppController
 	 * @param   mixed   primary key value
 	 * @return  void
 	 */
-	public function updateAction($id)
+	public function updateAction($entry)
 	{
-		$this->initForm();
-		$this->dbTable->setId($id);
+		$table = $this->getTable($entry);
+		$form = $this->view->form = $this->getForm($table);
 		
-		$row = $this->dbTable->get();
-		if (empty($id) || empty($row))
+		$row = $table->get();
+		if (empty($entry) || empty($row))
 			$this->error();
 
-		$this->form->setDefaults($row);
-		
-		if ($this->form->isSubmit()) {
-			$this->dbTable->import($this->form->data)
-			              ->save();
+
+		$form->setDefaults($row);
+		if ($form->isSubmit()) {
+
+			$table->import($this->processData($form->data))
+			      ->save();
 
 			$this->redirect($this->crudUrl('index'));
 		}
@@ -124,47 +120,78 @@ class CrudController extends AppController
 	 */
 	public function deleteAction()
 	{
-
+		$this->getTable($_POST['entry'])->remove();
+		$this->redirect($this->crudUrl('index'));
 	}
 
 
 	/**
 	 * Returns crud url
 	 * @param   string    action
-	 * @param   array     optional params
+	 * @param   string    arg
 	 * @return  string
 	 */
-	public function crudUrl($action, $param = null)
+	public function crudUrl($action, $arg = null)
 	{
-		if ($param == null)
+		if ($arg == null)
 			return $this->url($this->link, null, array(
 				'action' => $action
 			));
 		else
-			return $this->url($this->link . '/' . $param, null, array(
+			return $this->url($this->link . '/' . $arg, null, array(
 				'action' => $action
 			));
 	}
 
 
 	/**
-	 * Returns HTML title
-	 * @return  string
+	 * Processes saving form data
+	 * @param   array $data
+	 * @return  array
 	 */
-	public function getTitle()
+	protected function processData($data)
 	{
-		return 'Auto ' . Tools::camelize($this->table) . ' Controller';
+		return $data;
 	}
 
 
 	/**
-	 * Prepares form
-	 * @return  void
+	 * Returns table form
+	 * @param   DbTable
+	 * @return  Form
 	 */
-	protected function initForm()
+	protected function getForm($table)
 	{
-		$this->form = $this->dbTable->getForm();
-		$this->view->form = $this->form;
+		$form = $table->getForm($this->editColumns, $this->labels);
+		return $form;
+	}
+
+
+	/**
+	 * Returns datagrid component
+	 * @return  DataGrid
+	 */
+	protected function getDataGrid()
+	{
+		$grid = new DataGrid();
+		return $grid->setLimit($this->limit)
+		            ->setLink($this->link)
+		            ->setLabels($this->labels);
+	}
+
+
+	/**
+	 * Returns DbTable
+	 * @param   mixed    primary key value
+	 * @return  DbTable
+	 */
+	protected function getTable($pk = null)
+	{
+		$class = DbTable::init($this->table);
+		if (empty($pk))
+			return new $class();
+		else
+			return new $class($pk);
 	}
 
 

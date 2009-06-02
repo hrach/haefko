@@ -40,13 +40,13 @@ abstract class FormControl extends Object
 	protected $value;
 
 	/** @var mixed */
-	protected $emptyValue;
+	protected $defaultValue;
 
 	/** @var array */
 	protected $filters = array();
 
-	/** @var array */
-	protected $errors = array();
+	/** @var string */
+	protected $error;
 
 	/** @var array */
 	protected $rules = array();
@@ -54,17 +54,25 @@ abstract class FormControl extends Object
 	/** @var array */
 	protected $conditions = array();
 
-	/** @var string */
-	protected $htmlId;
 
-	/** @var string */
-	protected $htmlTag;
+	/**#@+
+	 * HTML elements 
+	 * @var Html
+	 */
+	protected $htmlControl;
+	protected $htmlLabel;
+	protected $htmlError;
+	protected $htmlErrorLabel;
+	/**#@-*/
+
+	/** @var bool - Is HTML control rendered? */
+	protected $isRendered = false;
+
 
 	/** @var array */
 	protected $htmlRequired = false;
 
-	/** @var bool */
-	protected $htmlRendered = false;
+	
 
 
 	/**
@@ -76,17 +84,50 @@ abstract class FormControl extends Object
 	 */
 	public function __construct(Form $form, $name, $label = null)
 	{
-		$this->name = $name;
 		$this->form = $form;
-		$this->htmlId = "{$form->name}-$name";
+		$this->name = $name;
 
-		$this->control = Html::el($this->htmlTag);
-		$this->control->name = "{$this->form->name}[$name]";
+		$this->htmlControl      = $this->getHtmlControl();
+		$this->htmlLabel        = $this->getHtmlLabel($label);
+		$this->htmlError        = $this->getHtmlError();
+		$this->htmlErrorLabel   = $this->getHtmlErrorLabel();
+	}
 
-		if ($label instanceof Html)
-			$this->label = $label;
-		elseif ($label !== false)
-			$this->label = Html::el('label', is_null($label) ? ucfirst($name) : $label);
+	protected function getHtmlControl()
+	{
+		return Html::el(null, null, array(
+			'name' => $this->form->name . '[' . $this->name . ']',
+			'id' => $this->form->name . '-' . $this->name
+		));
+	}
+
+	protected function getHtmlLabel($label)
+	{
+		if ($label === false)
+			return false;
+
+		if (!($label instanceof Html))
+			$label = Html::el('label', is_null($label) ? ucfirst($this->name) : $label);
+
+		$label->for($this->form->name . '-' . $this->name)
+		      ->id($this->form->name . '-' . $this->name . '-label');
+
+		return $label;
+	}
+	
+	protected function getHtmlError()
+	{
+		return Html::el('div', null, array(
+			'id' => $this->form->name . '-' . $this->name . '-error',
+			'class' => 'control-error'
+		));
+	}
+	
+	protected function getHtmlErrorLabel()
+	{
+		return Html::el('label', null, array(
+			'for' => $this->form->name . '-' . $this->name			
+		));
 	}
 
 
@@ -120,24 +161,10 @@ abstract class FormControl extends Object
 	 */
 	public function addRule($rule, $arg = null, $message = null)
 	{
-		return $this->addRuleOn($this, $rule, $arg, $message);
-	}
-
-
-	/**
-	 * Adds rule for $control
-	 * @param   FormControl  control
-	 * @param   string       validation rule name or callback
-	 * @param   mixed        validation argument
-	 * @param   string       error message
-	 * @return  FormControl  return $this
-	 */
-	public function addRuleOn(FormControl $control, $rule, $arg = null, $message = null)
-	{
-		if ($rule == Form::FILLED || ($rule == Form::LENGTH && $arg > 0))
+		if ($rule == Rule::FILLED || ($rule == Rule::LENGTH && $arg > 0))
 			$this->htmlRequired = true;
 
-		$this->rules[] = new Rule($control, $rule, $arg, $message);
+		$this->rules[] = new Rule($this, $rule, $arg, $message);
 		return $this;
 	}
 
@@ -150,8 +177,7 @@ abstract class FormControl extends Object
 	 */
 	public function addCondition($rule, $arg = null)
 	{
-		$r = new Rule($this, $rule, $arg);
-		$this->conditions[] = new Condition($r);
+		$this->conditions[] = new Condition($this, $rule, $arg);
 		return end($this->conditions);
 	}
 
@@ -164,21 +190,19 @@ abstract class FormControl extends Object
 	{
 		# chech conditions and add theirs rules
 		foreach ($this->conditions as $condition) {
-			if ($condition->rule->isValid()) {
+			if ($condition->isValid()) {
 				foreach ($condition->rules as $rule)
 					$this->rules[] = $rule;
 			}
 		}
 
 		# validate rules
-		$valid = true;
 		foreach ($this->rules as $rule) {
-			if (!$rule->isValid()) {
-				$valid = false;
-			}
+			if (!$rule->isValid())
+				return false;
 		}
 
-		return $valid;
+		return true;
 	}
 
 
@@ -190,90 +214,57 @@ abstract class FormControl extends Object
 	public function isRendered($set = false)
 	{
 		if ($set)
-			$this->htmlRendered = true;
+			$this->isRendered = true;
 
-		return $this->htmlRendered;
+		return $this->isRendered;
 	}
 
+	public function getErrorLabel()
+	{
+		/** @var Html */
+		$label = clone $this->htmlLabel;
+		$label->setText($this->error);
+		return $label;
+	}
 
 	/**
 	 * Renders label tag
-	 * @param   array   attributes
-	 * @return  string
+	 * @return  Html
 	 */
-	public function label($attrs = array())
+	public function label()
 	{
-		if ($this->label === false)
-			return null;
-
-		$this->prepareLabel();
-		$this->label->setAttrs($attrs);
-		return $this->label->render();
+		return $this->getLabel();
 	}
 
 
 	/**
 	 * Renders html control tag
-	 * @param   array   attributes
-	 * @return  string
+	 * @return  Html
 	 */
-	public function control($attrs = array())
+	public function control()
 	{
-		$this->prepareControl();
-		$this->htmlRendered = true;
-		$this->control->setAttrs($attrs);
-		return $this->control->render();
+		return $this->getControl();
 	}
 
-
-	/**
-	 * Adds error
-	 * @param   string    error text
-	 * @return  void
-	 */
-	public function addError($text)
+	public function error()
 	{
-		$this->errors[] = $text;
-	}
-
-
-	/**
-	 * Prepares message
-	 * @param   Rule    rule
-	 * @param   string  message
-	 * @param   mixed   arguments
-	 * @return  string
-	 */
-	public function addAutoError($rule, $arg, $message)
-	{
-		if (empty($message))
-			$message = Rule::$messages[$rule];
-
-		if (is_array($arg)) {
-			array_unshift($arg, $message);
-			$message = call_user_func_array('sprintf', $arg);
-		} elseif (!is_object($arg)) {
-			$message = sprintf($message, $arg);
+		if ($this->hasError()) {
+			$this->htmlErrorLabel->setText($this->error);
+			$this->htmlError->setHtml($this->htmlErrorLabel);
 		}
-
-		if (empty($message))
-			$message = 'Undefined error message.';
-
-		$this->errors[] = $message;
+		
+		return $this->htmlError;
 	}
 
-
 	/**
-	 * Renders html error label(s)
-	 * @return  string
+	 * Sets error
+	 * @param   string    error text
+	 * @return  FormControl
 	 */
-	public function errors()
+	public function setError($text)
 	{
-		$errors = Html::el('div', null, array('id' => "{$this->htmlId}-errors", 'class' => 'input-errors'));
-		foreach ($this->errors as $error)
-			$errors->setHtml("<label class=\"error\" for=\"{$this->htmlId}\">$error</label>\n");
-
-		return $errors->render();
+		$this->error = $text;
+		return $this;
 	}
 
 
@@ -281,9 +272,9 @@ abstract class FormControl extends Object
 	 * Checks whether control has errors
 	 * @returns  bool
 	 */
-	public function hasErrors()
+	public function hasError()
 	{
-		return !empty($this->errors);
+		return !empty($this->error);
 	}
 
 
@@ -291,9 +282,9 @@ abstract class FormControl extends Object
 	 * Returns html label
 	 * @return  Html
 	 */
-	public function getLabel()
+	protected function getLabel()
 	{
-		return $this->label;
+		return $this->htmlLabel;
 	}
 
 
@@ -301,9 +292,10 @@ abstract class FormControl extends Object
 	 * Returns html control
 	 * @return  Html
 	 */
-	public function getControl()
+	protected function getControl()
 	{
-		return $this->control;
+		$this->isRendered = true;
+		return $this->htmlControl;
 	}
 
 
@@ -338,23 +330,31 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Returns empty value
+	 * Returns default value
 	 * @return  mixed
 	 */
-	public function getEmptyValue()
+	public function getDefaultValue()
 	{
-		return $this->emptyValue;
+		return $this->defaultValue;
 	}
 
+	public function getRules()
+	{
+		return $this->rules;
+	}
+	public function getConditions()
+	{
+		return $this->conditions;
+	}
 
 	/**
-	 * Sets empty value
+	 * Sets default value
 	 * @param   mixed  empty value
 	 * @return  FormControl  $this
 	 */
-	public function setEmptyValue($value)
+	public function setDefaultValue($value)
 	{
-		$this->emptyValue = $value;
+		$this->defaultValue = $value;
 		return $this;
 	}
 
@@ -364,7 +364,7 @@ abstract class FormControl extends Object
 	 */
 	public function __get($key)
 	{
-		if (in_array($key, array('label', 'control', 'errors')))
+		if (in_array($key, array('label', 'control', 'error')))
 			return $this->{$key}();
 		else
 			return parent::__get($key);
@@ -378,38 +378,15 @@ abstract class FormControl extends Object
 	protected function getHtmlValue()
 	{
 		if (empty($this->value) && $this->value !== '0')
-			return $this->emptyValue;
+			return $this->defaultValue;
 		else
 			return $this->value;
 	}
 
 
-	/**
-	 * Prepares label for rendering
-	 * @return  void
-	 */
-	protected function prepareLabel()
-	{
-		if ($this->htmlRequired)
-			$this->label->class = 'required';
-
-		$this->label->for = $this->htmlId;
-		$this->label->id = "{$this->htmlId}-label";
-	}
-
 
 	/**
-	 * Prepares control for rendering
-	 * @return  void
-	 */
-	protected function prepareControl()
-	{
-		$this->control->id = $this->htmlId;
-	}
-
-
-	/**
-	 * Filters value by filters and null them if value is equall to emptyValue
+	 * Filters value by filters and null them if value is equall to defaultValue
 	 * @return  void
 	 */
 	protected function filter($value)
@@ -417,7 +394,7 @@ abstract class FormControl extends Object
 		foreach ($this->filters as $filter)
 			$value = (string) call_user_func($filter, $value);
 
-		if ($this->emptyValue == $value)
+		if ($this->defaultValue == $value)
 			$value = '';
 
 		return $value;
@@ -430,14 +407,14 @@ abstract class FormControl extends Object
 abstract class FormInputControl extends FormControl
 {
 
-	protected $htmlTag = 'input';
-
-	protected function prepareControl()
+	protected function getHtmlControl()
 	{
-		parent::prepareControl();
-		$this->control->value = $this->getHtmlValue();
-		$this->control->type = $this->htmlType;
-		$this->control->class = $this->htmlTypeClass;
+		return parent::getHtmlControl()->setTag('input');
+	}
+
+	protected function getControl()
+	{
+		return parent::getControl()->value($this->getHtmlValue());
 	}
 
 }

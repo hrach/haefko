@@ -1,5 +1,4 @@
-<h1><?= $controller->getTitle() ?></h1>
-<?= $html->link($controller->crudUrl('index'), 'Seznam') ?>
-<br />
+<h1><?= $controllerTitle ?></h1>
 
+<p><?= $html->link($controller->crudUrl('index'), 'Entry list') ?></p>
 <?= $form->render() ?>

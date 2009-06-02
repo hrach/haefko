@@ -37,7 +37,7 @@ class HtmlHelper extends Object
 		else
 			$el->setHtml($text === null ? $url : $text);
 
-		return $el->render(false);
+		return $el->render();
 	}
 
 
@@ -52,27 +52,29 @@ class HtmlHelper extends Object
 	 * @param   bool      escape link content
 	 * @return  string
 	 */
-	public function button($url, $hidden, $text, $confirm = false, $attrs = array(), $escape = false)
+	public function button($url, $value, $text, $confirm = false, $attrs = array(), $escape = false)
 	{
-		$url = $this->factoryUrl($url);
 		$form = Html::el('form', null, array(
-			'action' => $url,
+			'action' => $this->factoryUrl($url),
 			'method' => 'post',
 			'class' => 'button'
 		));
-		$el = Html::el('button')->type('button')
-		                        ->setAttrs($attrs)
-		                        ->onclick("document.location.href='$url'");
+
+		$form->setAttrs($attrs)
+		     ->addHtml('<input type="hidden" name="entry" value="' . $value . '" />');
+
 
 		if (!empty($confirm))
-			$el->onclick("if (confirm('$confirm')) { {$el->onclick} }");
+			$form->onclick("if (confirm('$confirm')) { return true; } else { return false; }");
 
+		$button = Html::el('button');
+		$button->type('submit');
 		if ($escape == true)
-			$el->setText($text);
+			$button->addText($text);
 		else
-			$el->setHtml($text);
+			$button->addHtml($text);
 
-		$form->setHtml($el);
+		$form->addHtml($button);
 		return $form->render(false);
 	}
 
@@ -89,7 +91,7 @@ class HtmlHelper extends Object
 		$el = Html::el('img')->setAttrs($attrs)
 		                     ->src($url);
 
-		return $el->render(false);
+		return $el->render();
 	}
 
 
@@ -107,7 +109,7 @@ class HtmlHelper extends Object
 		                      ->href($url)
 		                      ->media($media);
 
-		return $el->render();
+		return $el->render(0);
 	}
 
 
@@ -122,7 +124,7 @@ class HtmlHelper extends Object
 		$el = Html::el('script')->type('text/javascript')
 		                        ->src($url);
 
-		return $el->render();
+		return $el->render(0);
 	}
 
 
@@ -140,7 +142,7 @@ class HtmlHelper extends Object
 		                      ->href($url)
 		                      ->title($title);
 
-		return $el->render();
+		return $el->render(0);
 	}
 
 
@@ -155,7 +157,7 @@ class HtmlHelper extends Object
 		$el = Html::el('link')->rel('shortcut icon')
 		                      ->href($url);
 
-		return $el->render();
+		return $el->render(0);
 	}
 
 
@@ -169,7 +171,7 @@ class HtmlHelper extends Object
 		$el = Html::el('meta')->{'http-equiv'}('Content-type')
 		                      ->content("text/html; charset=$charset");
 
-		return $el->render();
+		return $el->render(0);
 	}
 
 
@@ -182,7 +184,7 @@ class HtmlHelper extends Object
 	{
 		$el = Html::el('title');
 		$el->setText(empty($title) ? Controller::get()->view->title : $title);
-		return $el->render();
+		return $el->render(0);
 	}
 
 
@@ -212,7 +214,7 @@ class HtmlHelper extends Object
 		if (substr($url, 0, 4) == 'www.')
 			$url = "http://$url";
 		if (strpos($url, '://') === false)
-			$url = call_user_func_array(array(Controller::get(), 'url'), array($url));
+			$url = call_user_func(array(Controller::get(), 'url'), $url);
 
 		return $url;
 	}

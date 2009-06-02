@@ -15,26 +15,25 @@
 class FormCheckboxControl extends FormInputControl
 {
 
-	protected $htmlType = 'checkbox';
-	protected $htmlTypeClass = 'checkbox';
+	protected function getHtmlControl()
+	{
+		return parent::getHtmlControl()->type('checkbox')->class('checkbox');
+	}
 
 	public function setValue($value)
 	{
 		$this->value = (bool) $value;
 	}
-
-	protected function prepareControl()
+	
+	protected function getControl()
 	{
-		parent::prepareControl();
-		$this->control->value = null;
-		if ($this->getValue())
-			$this->control->checked = 'checked';
+		return parent::getControl()->value(null)->checked($this->value);
 	}
 
 }
 
 
-class FormMultiCheckboxControl extends FormControl
+class FormMultiCheckboxControl extends FormInputControl
 {
 
 	protected $options = array();
@@ -45,32 +44,36 @@ class FormMultiCheckboxControl extends FormControl
 		$this->options = $options;
 	}
 
-	public function control($attrs = array())
+	protected function getHtmlControl()
 	{
-		$s = '';
-		$this->htmlRendered = true;
+		$control = parent::getHtmlControl()->type('checkbox')->class('checkbox');
+		$control->name .= '[]';
+		return $control;
+	}
+
+	public function getControl()
+	{
+		$container = array();
 
 		$label = Html::el('label');
-		$el = Html::el('input', null, array(
-			'type' => 'checkbox',
-			'class' => 'checkbox',
-			'name' => $this->control->name . '[]'
-		));
+		$control = parent::getControl();
 
-		foreach ($this->options as $key => $value) {
-			$el->value($key)
-			   ->id("{$this->htmlId}-$key")
-			   ->checked(in_array($key, (array) $this->getHtmlValue()) ? 'checked' : null);
+		$i = 0;
+		$id = $control->id;
+		foreach ($this->options as $key => $val) {
+			$i++;
 
-			$label->for("{$this->htmlId}-$key")
-				  ->id("{$this->htmlId}-$key-label")
-				  ->clear()
-				  ->setText($value);
+			$control->id = $id . '-' . $key;
+			$control->value = $key;
+			$control->checked = in_array($key, (array) $this->getHtmlValue());
 
-			$s .= $el->render() . $label->render() . '<br />';
+			$label->for = $id . '-' . $key;
+			$label->setText($val);
+
+			$container[] = $control->render() . $label->render();
 		}
 
-		return $s;
+		return $container;
 	}
 
 

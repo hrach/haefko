@@ -16,36 +16,35 @@ class FormTableRenderer extends FormRenderer
 {
 
 
-	/** @var Html */
-	public $container = '';
-
-	/** @var Html */
-	public $body = 'table';
-
-	/** @var Html */
-	public $control = 'td';
-
-	/** @var Html */
-	public $label = 'th';
-
-	/** @var Html */
-	public $block = 'tr';
+	public $wrappers = array(
+		'part' => 'table',
+		'pair' => 'tr',
+		'label' => 'th',
+		'control' => 'td',
+		'button-separator' => null,
+		'list-separator' => 'br',
+	);
 
 
-	protected function prepareBody($attrs)
+
+	protected function preparePart($wrapper, $heading)
 	{
-		parent::prepareBody($attrs);
-		if (!empty($attrs[0]))
-			$this->body->prepend = "<h3>$attrs[0]</h3>";
-		else
-			$this->body->prepend = '';
+		if (empty($heading))
+			return $wrapper;
+
+		$heading = Html::el('h3', $heading);
+		return $wrapper->prepend($heading->render(0));
 	}
 
 
-	protected function prepareBlock()
+	protected function preparePair($wrapper)
 	{
-		parent::prepareBlock();
-		$this->block->toggleClass('odd');
+		static $i = 0;
+
+		if ($i++ % 2)
+			$wrapper->class('odd');
+
+		return $wrapper;
 	}
 
 

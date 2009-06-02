@@ -15,20 +15,15 @@
 abstract class FormButtonControl extends FormControl
 {
 
-	protected $htmlTag = 'input';
-
 	public function __construct(Form $form, $name, $label)
 	{
 		parent::__construct($form, $name, false);
 		$this->setValue($label);
 	}
 
-	protected function prepareControl()
+	protected function getControl()
 	{
-		parent::prepareControl();
-		$this->control->value = $this->getHtmlValue();
-		$this->control->type = $this->htmlType;
-		$this->control->class = $this->htmlTypeClass;
+		return parent::getControl()->value($this->getHtmlValue());
 	}
 
 }
@@ -37,8 +32,10 @@ abstract class FormButtonControl extends FormControl
 class FormSubmitControl extends FormButtonControl
 {
 
-	protected $htmlType = 'submit';
-	protected $htmlTypeClass = 'button';
+	protected function getHtmlControl()
+	{
+		return parent::getHtmlControl()->setTag('input')->type('submit')->class('button');
+	}
 
 }
 
@@ -46,7 +43,9 @@ class FormSubmitControl extends FormButtonControl
 class FormResetControl extends FormButtonControl
 {
 
-	protected $htmlType = 'reset';
-	protected $htmlTypeClass = 'button';
+	protected function getHtmlControl()
+	{
+		return parent::getHtmlControl()->setTag('input')->type('reset')->class('button');
+	}
 
 }

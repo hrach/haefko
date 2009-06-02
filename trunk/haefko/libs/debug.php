@@ -212,7 +212,7 @@ class Debug
 	 */
 	public static function dump($var)
 	{
-		echo '<pre style="text-align: left;">' . htmlspecialchars(print_r($var, true)) . '</pre>';
+		echo '<pre style="text-align: left;">' . htmlspecialchars(print_r($var, true)) . "</pre>\n";
 		return $var;
 	}
 

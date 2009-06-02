@@ -12,26 +12,12 @@
  */
 
 
-class Condition extends Object
+class Condition extends Rule
 {
 
 
-	/** @var Rule */
-	public $rule;
-
 	/** @var array */
 	public $rules = array();
-
-
-	/**
-	 * Constructor
-	 * @param   Rule   rule
-	 * @return  void
-	 */
-	public function __construct(Rule $rule)
-	{
-		$this->rule = $rule;
-	}
 
 
 	/**
@@ -43,7 +29,7 @@ class Condition extends Object
 	 */
 	public function addRule($rule, $arg = null, $message = null)
 	{
-		return $this->addRuleOn($this->rule->control, $rule, $arg, $message);
+		return $this->addRuleOn($this->control, $rule, $arg, $message);
 	}
 
 

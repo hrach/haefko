@@ -28,6 +28,9 @@ require_once dirname(__FILE__) . '/application/libs/inflector.php';
 require_once dirname(__FILE__) . '/application/libs/router.php';
 
 
+/**
+* @property-read Router $router
+*/
 class Application extends Object
 {
 
@@ -52,6 +55,18 @@ class Application extends Object
 	}
 
 
+	/**
+	 * Returs framework version and logo
+	 * @param   bool     add image?
+	 * @return  string
+	 */
+	public static function getFrameworkInfo($image = true)
+	{
+		if ($image)
+			return '<a href="http://haefko.skrasek.com"><img src="http://haefko.skrasek.com/media/powered.png" class="hf-powered" /></a>';
+		else
+			return '<a href="http://haefko.skrasek.com">Haefko 0.8.5</a>';
+	}
 
 
 	/** @var string */

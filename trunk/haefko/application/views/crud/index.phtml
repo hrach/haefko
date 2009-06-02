@@ -1,6 +1,6 @@
-<h1><?= $controller->getTitle() ?></h1>
-<?= $html->link($grid->url('create'), 'Nový záznam') ?>
-<br />
+<h1><?= $controllerTitle ?></h1>
+
+<p><?= $html->link($grid->url('create'), 'New entry') ?></p>
 
 <?= $grid->renderTable() ?>
 <?= $grid->renderPaginator() ?>

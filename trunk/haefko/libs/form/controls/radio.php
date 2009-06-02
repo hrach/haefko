@@ -25,37 +25,39 @@ class FormRadioControl extends FormInputControl
 		$this->values = array_keys($options);
 	}
 
-	public function control($attrs = array())
+	protected function getHtmlControl()
 	{
-		$s = '';
-		$this->htmlRendered = true;
-
-		$label = Html::el('label', null, array(
-			'class' => 'radio'
-		));
-		$el = Html::el('input', null, array(
-			'type' => 'radio',
-			'name' => $this->control->name
-		));
-
-		foreach ($this->options as $key => $value) {
-			$el->value($key)
-			   ->id("{$this->htmlId}-$key")
-			   ->checked($key == $this->getHtmlValue() ? 'checked' : null);
-
-			$label->for("{$this->htmlId}-$key")
-			      ->id("{$this->htmlId}-$key-label")
-			      ->clear()
-			      ->setText($value);
-
-			$s .= $el->render() . $label->render() . '<br />';
-		}
-
-		return $s;
+		return parent::getHtmlControl()->type('radio');
 	}
 
-	protected function prepareLabel()
-	{}
+	protected function getControl()
+	{
+		$container = array();
 
+		$label = Html::el('label');
+		$radio = parent::getControl();
+
+		$i = 0;
+		$id = $radio->id;
+		foreach ($this->options as $key => $val) {
+			$i++;
+
+			$radio->id = $id . $i;
+			$radio->value = $key;
+			$radio->checked = (string) $key === $this->getHtmlValue();
+
+			$label->for = $id . $i;
+			$label->setText($val);
+
+			$container[] = $radio->render() . $label->render();
+		}
+
+		return $container;
+	}
+
+	protected function getLabel()
+	{
+		return parent::getLabel()->for(null);
+	}
 
 }
