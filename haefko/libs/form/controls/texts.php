@@ -15,12 +15,15 @@
 class FormTextareaControl extends FormControl
 {
 
-	protected $htmlTag = 'textarea';
-
-	public function prepareControl()
+	protected function getHtmlControl()
 	{
-		parent::prepareControl();
-		$this->control->setText($this->getHtmlValue());
+		$control = parent::getHtmlControl();
+		return $control->setTag('textarea');
+	}
+
+	protected function getControl()
+	{
+		return parent::getControl()->setHtml($this->getHtmlValue());
 	}
 
 }
@@ -29,8 +32,12 @@ class FormTextareaControl extends FormControl
 class FormHiddenControl extends FormInputControl
 {
 
-	protected $htmlType = 'hidden';
-	protected $htmlTypeClass = '';
+	protected function getHtmlControl()
+	{
+		$control = parent::getHtmlControl();
+		return $control->type('hidden');
+	}
+
 
 	public function __construct(Form $form, $name)
 	{
@@ -44,17 +51,52 @@ class FormTextControl extends FormInputControl
 {
 
 	protected $filters = array('trim');
-	protected $htmlType = 'text';
-	protected $htmlTypeClass = 'text';
+
+	protected function getHtmlControl()
+	{
+		$control = parent::getHtmlControl();
+		return $control->type('text')->class('text');
+	}
 
 }
 
+class FormDatepickerControl extends FormInputControl
+{
+
+	public function setValue($value)
+	{
+		dump($value);
+		if (!empty($value))
+			$value = date('Y-m-d', strtotime($value));
+
+		parent::setValue($value);
+	}
+	
+	
+	public function getHtmlValue()
+	{
+		$value = parent::getHtmlValue();
+		$value = preg_replace('#([0-9]{4})-([0-9]{2})-([0-9]{2})#', '$3.$2.$1', $value);
+
+		return $value;		
+	}
+
+	protected function getHtmlControl()
+	{
+		$control = parent::getHtmlControl();
+		return $control->class('calendar');
+	}
+
+}
 
 class FormPasswordControl extends FormInputControl
 {
-
-	protected $htmlType = 'password';
-	protected $htmlTypeClass = 'text';
+	
+	protected function getHtmlControl()
+	{
+		$control = parent::getHtmlControl();
+		return $control->type('password')->class('text');
+	}
 
 
 	protected function getHtmlValue()

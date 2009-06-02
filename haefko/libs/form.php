@@ -25,22 +25,8 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 {
 
 
-	/** */
+	/** @var string - Name of control with hash */
 	public static $SECURITY_CONTROL = 'csrf_protection';
-
-	/** @var string */
-	const
-		EQUAL = 'equal',
-		FILLED = 'filled',
-		NUMERIC = 'numeric',
-		INTEGER = 'integer',
-		LENGTH = 'length',
-		RANGE = 'range',
-		INARRAY = 'inarray',
-		REGEXP = 'regexp',
-		URL = 'url',
-		EMAIL = 'email',
-		ALFANUMERIC = 'alfanumeric';
 
 	/** @var array - Submitted data */
 	public $data = array();
@@ -93,7 +79,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 			$this->name = $name;
 
 		$this->form = Html::el('form', null, array(
-			'name' => $this->name,
+			'id' => $this->name,
 			'method' => $method,
 			'action' => $url
 		));
@@ -144,7 +130,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addText($control, $label = null)
 	{
-		$this->controls[$control] = new FormTextControl($this, $control, $label);
+		$this[$control] = new FormTextControl($this, $control, $label);
 		return $this;
 	}
 
@@ -157,7 +143,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addTextarea($control, $label = null)
 	{
-		$this->controls[$control] = new FormTextareaControl($this, $control, $label);
+		$this[$control] = new FormTextareaControl($this, $control, $label);
 		return $this;
 	}
 
@@ -170,7 +156,20 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addPassword($control, $label = null)
 	{
-		$this->controls[$control] = new FormPasswordControl($this, $control, $label);
+		$this[$control] = new FormPasswordControl($this, $control, $label);
+		return $this;
+	}
+
+
+	/**
+	 * Adds datepicker input
+	 * @param   string  control name
+	 * @param   mixed   label (null = from name, false = no label)
+	 * @return  Form    $this
+	 */
+	public function addDatepicker($control, $label = null)
+	{
+		$this[$control] = new FormDatepickerControl($this, $control, $label);
 		return $this;
 	}
 
@@ -184,7 +183,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	public function addFile($control, $label = null)
 	{
 		$this->form->enctype = 'multipart/form-data'; 
-		$this->controls[$control] = new FormFileControl($this, $control, $label);
+		$this[$control] = new FormFileControl($this, $control, $label);
 		return $this;
 	}
 
@@ -198,7 +197,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addSelect($control, $options, $label = null)
 	{
-		$this->controls[$control] = new FormSelectControl($this, $control, $options, $label);
+		$this[$control] = new FormSelectControl($this, $control, $options, $label);
 		return $this;
 	}
 
@@ -211,7 +210,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addCheckbox($control, $label = null)
 	{
-		$this->controls[$control] = new FormCheckboxControl($this, $control, $label);
+		$this[$control] = new FormCheckboxControl($this, $control, $label);
 		return $this;
 	}
 
@@ -225,7 +224,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addRadio($control, $options, $label = null)
 	{
-		$this->controls[$control] = new FormRadioControl($this, $control, $options, $label);
+		$this[$control] = new FormRadioControl($this, $control, $options, $label);
 		return $this;
 	}
 
@@ -237,7 +236,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addHidden($control)
 	{
-		$this->controls[$control] = new FormHiddenControl($this, $control);
+		$this[$control] = new FormHiddenControl($this, $control);
 		return $this;
 	}
 
@@ -254,7 +253,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addMultiSelect($control, $options, $label = null)
 	{
-		$this->controls[$control] = new FormMultipleSelectControl($this, $control, $options, $label);
+		$this[$control] = new FormMultipleSelectControl($this, $control, $options, $label);
 		return $this;
 	}
 
@@ -268,7 +267,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addMultiCheckbox($control, $options, $label = null)
 	{
-		$this->controls[$control] = new FormMultiCheckboxControl($this, $control, $options, $label);
+		$this[$control] = new FormMultiCheckboxControl($this, $control, $options, $label);
 		return $this;
 	}
 
@@ -284,7 +283,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addSubmit($control = 'submit', $label = null)
 	{
-		$this->controls[$control] = new FormSubmitControl($this, $control, $label);
+		$this[$control] = new FormSubmitControl($this, $control, $label);
 		return $this;
 	}
 
@@ -297,7 +296,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addImageSubmit($control = 'submit', $src = null)
 	{
-		$this->controls[$control] = new FormImageSubmitControl($this, $control, $src);
+		$this[$control] = new FormImageSubmitControl($this, $control, $src);
 		return $this;
 	}
 
@@ -310,7 +309,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addReset($control = 'reset', $label = null)
 	{
-		$this->controls[$control] = new FormResetControl($this, $control, $label);
+		$this[$control] = new FormResetControl($this, $control, $label);
 		return $this;
 	}
 
@@ -326,8 +325,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function startTag($attrs = array())
 	{
-		$this->form->setAttrs($attrs);
-		return $this->form->startTag();
+		return $this->form->setAttrs($attrs)->startTag();
 	}
 
 
@@ -338,8 +336,8 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	public function endTag()
 	{
 		$render = '';
-		foreach ($this->controls as $control) {
-			if ($control instanceof FormHiddenControl)
+		foreach ($this->controls as /** @var FormControl */$control) {
+			if ($control instanceof FormHiddenControl && !$control->isRendered())
 				$render .= $control->control();
 		}
 
@@ -397,7 +395,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	public function hasErrors()
 	{
 		foreach ($this->controls as $control) {
-			if ($control->hasErrors())
+			if ($control->hasError())
 				return true;
 		}
 
@@ -429,6 +427,16 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	public function getUrl()
 	{
 		return $this->form->action;
+	}
+
+
+	/**
+	 * Returns form
+	 * @return  Html
+	 */
+	public function getForm()
+	{
+		return $this->form;
 	}
 
 
@@ -476,7 +484,8 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function offsetSet($id, $value)
 	{
-		throw new Exception("Unsupported access - use methods add*().");
+		$this->controls[$id] = $value;
+		
 	}
 
 

@@ -15,16 +15,12 @@
 class FormSelectControl extends FormControl
 {
 
-	protected $htmlTag = 'select';
 	protected $options = array();
 	protected $values = array();
 
 	public function __construct($form, $name, $options, $label = null)
 	{
-		parent::__construct($form, $name, $label);
 		$this->options = $options;
-		$this->control->onfocus("this.onmousewheel=function(){return false}");
-
 		foreach ($this->options as $key => $option) {
 			if (is_array($option)) {
 				foreach (array_keys($option) as $val)
@@ -33,6 +29,8 @@ class FormSelectControl extends FormControl
 				$this->values[] = $key;
 			}
 		}
+		
+		parent::__construct($form, $name, $label);
 	}
 
 	public function setValue($value)
@@ -43,10 +41,15 @@ class FormSelectControl extends FormControl
 		parent::setValue($value);
 	}
 
-	protected function prepareControl()
+	protected function getHtmlControl()
 	{
-		parent::prepareControl();
-		$this->control->setHtml($this->getOptions());
+		return parent::getHtmlControl()->setTag('select')
+		                               ->onfocus("this.onmousewheel=function(){return false}");
+	}
+
+	protected function getControl()
+	{
+		return parent::getControl()->setHtml($this->getOptions());
 	}
 
 	protected function isAllowedValue($value)
@@ -59,58 +62,45 @@ class FormSelectControl extends FormControl
 
 	protected function getOptions()
 	{
-		$html = null;
-		foreach ($this->options as $name => $value) {
+		$options = Html::el();
+		foreach ($this->options as $key => $val) {
+			if (is_array($val)) {
 
-			if (is_array($value)) {
-				$html .= "\n<optgroup label=\"$name\">\n";
-				foreach ($value as $key => $opt)
-					$html .= $this->getOption($key, $opt);
-				$html .= "</optgroup>";
+				$optgroup = Html::el('optgroup');
+				$optgroup->label($name);
+				foreach ($value as $subKey => $subVal)
+					$optgroup->addHtml($this->getOption($subKey, $subVal));
+
+				$options->addHtml($optgroup);
 			} else {
-				$html .= $this->getOption($name, $value);
-			}
 
+				$options->addHtml($this->getOption($key, $val));
+			}
 		}
 
-		return $html;
+		return $options;
 	}
 
 	protected function getOption($name, $value)
 	{
-		$el = Html::el('option', $value);
-		$el->value = $name;
-
-		if ($this->getHtmlValue() == $name)
-			$el->selected = 'selected';
-
-		return $el->render();
+		return Html::el('option', $value, array(
+			'value' => $name,
+			'selected' => $this->getHtmlValue() == $name
+		));
 	}
 
 }
 
 
 
-class FormMultipleSelectControl extends FormControl
+class FormMultipleSelectControl extends FormSelectControl
 {
 
-	protected $htmlTag = 'select';
-	protected $options = array();
-	protected $values = array();
-
-	public function __construct($form, $name, $options, $label = null)
+	protected function getHtmlControl()
 	{
-		parent::__construct($form, $name, $label);
-		$this->options = $options;
-
-		foreach ($this->options as $key => $option) {
-			if (is_array($option)) {
-				foreach (array_keys($option) as $val)
-					$this->values[] = $val;
-			} else {
-				$this->values[] = $key;
-			}
-		}
+		$control = parent::getHtmlControl()->multiple(true);
+		$control->name .= '[]';
+		return $control;
 	}
 
 	public function setValue($value)
@@ -123,42 +113,12 @@ class FormMultipleSelectControl extends FormControl
 		$this->value = $value;
 	}
 
-	protected function prepareControl()
-	{
-		parent::prepareControl();
-		$this->control->name .= '[]';
-		$this->control->multiple = 'multiple';
-		$this->control->setHtml($this->getOptions());
-	}
-
-	protected function getOptions()
-	{
-		$html = null;
-		foreach ($this->options as $name => $value) {
-
-			if (is_array($value)) {
-				$html .= "\n<optgroup label=\"$name\">\n";
-				foreach ($value as $key => $opt)
-					$html .= $this->getOption($key, $opt);
-				$html .= "</optgroup>";
-			} else {
-				$html .= $this->getOption($name, $value);
-			}
-
-		}
-
-		return $html;
-	}
-
 	protected function getOption($name, $value)
 	{
-		$el = Html::el('option', $value);
-		$el->value = $name;
-
-		if (in_array($name, (array) $this->getHtmlValue()))
-			$el->selected = 'selected';
-
-		return $el->render();
+		return Html::el('option', $value, array(
+			'value' => $name,
+			'selected' => in_array($name, (array) $this->getHtmlValue())
+		));
 	}
 
 }

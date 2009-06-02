@@ -15,37 +15,35 @@
 class FormDlRenderer extends FormRenderer
 {
 
-
-	/** @var Html */
-	public $container = '';
-
-	/** @var Html */
-	public $body = 'dl';
-
-	/** @var Html */
-	public $control = 'dd';
-
-	/** @var Html */
-	public $label = 'dt';
-
-	/** @var Html */
-	public $block;
+	public $wrappers = array(
+		'part' => 'dl',
+		'pair' => null,
+		'label' => 'dt',
+		'control' => 'dd',
+		'button-separator' => null,
+		'list-separator' => 'br',
+	);
 
 
-	protected function prepareBody($attrs)
+
+	protected function preparePart($wrapper, $heading)
 	{
-		parent::prepareBody($attrs);
-		if (!empty($attrs[0]))
-			$this->body->prepend = "<h3>$attrs[0]</h3>";
-		else
-			$this->body->prepend = '';
+		if (empty($heading))
+			return $wrapper;
+
+		$heading = Html::el('h3', $heading);
+		return $wrapper->prepend($heading->render(0));
 	}
 
 
-	protected function prepareControl()
+	protected function prepareControl($wrapper)
 	{
-		parent::prepareControl();
-		$this->control->toggleClass('odd');
+		static $i = 0;
+
+		if ($i++ % 2)
+			$wrapper->class('odd');
+
+		return $wrapper;
 	}
 
 

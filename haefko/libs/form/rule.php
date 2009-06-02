@@ -16,6 +16,42 @@ class Rule extends Object
 {
 
 
+	/**#@+
+	 * Validation rules
+	 * @var string
+	 */
+	const EQUAL = 'equal';
+	const FILLED = 'filled';
+	const INTEGER = 'integer';
+	const FLOAT = 'float';
+	const LENGTH = 'length';
+	const RANGE = 'range';
+	const URL = 'url';
+	const EMAIL = 'email';
+	const CALLBACK = 'callback';
+	const REGEXP = 'regexp';
+	/**#@-*/
+
+	/** @var array - Default messages */
+	public static $messages = array(
+		'equal' => 'Value must be equal to "%s".',
+		'filled' => 'Value is required.',
+		'integer' => 'Value must be integer number.',
+		'float' => 'Value must be float number.',
+		'length' => 'Value must have length %d',
+		'range' => 'Value must be in range %d - %d.',
+		'url' => 'Value must be valid URL.',
+		'email' => 'Value must be valid email.',
+		'callback' => 'Value is not allowed.',
+		'regexp' => 'Value must passed by regular expression (%s).',
+		'!equal' => 'Value must not be equal to "%s".',
+		'!filled' => 'Value must be empty.',
+		'!integer' => 'Value must not be integer number.',
+		'!float' => 'Value must not be float number.',
+		'!length' => 'Value must have another length than %d',
+		'!regexp' => 'Value must not passed by regular expression (%s).',
+	);
+
 	/** @var FormControl */
 	public $control;
 
@@ -28,20 +64,8 @@ class Rule extends Object
 	/** @var string */
 	public $rule;
 
-	/** @var array Default messages */
-	public static $messages = array(
-		Form::EQUAL => 'Value must be equal to "%s".',
-		Form::FILLED => 'Value is required.',
-		Form::NUMERIC => 'Value must be numeric.',
-		Form::INTEGER => 'Value must be integer number.',
-		Form::LENGTH => 'Value must have length %d',
-		Form::RANGE => 'Value must be in range %d - %d.',
-		Form::INARRAY => 'Value must be from list %a',
-		Form::REGEXP => 'Value must passed by regular expression (%s).',
-		Form::URL => 'Value must be valid URL.',
-		Form::EMAIL => 'Value must be valid email.',
-		Form::ALFANUMERIC => 'Value must be alfa-numeric.'
-	);
+	/** @var bool */
+	public $negative = false;
 
 
 	/**
@@ -54,10 +78,19 @@ class Rule extends Object
 	 */
 	public function __construct($control, $rule, $arg = null, $message = null)
 	{
-		$this->control = $control;
+		$negative = false;
+		if (ord($rule[0]) > 127) {
+			$rule = ~$rule;
+			$negative = true;
+		} elseif ($rule[0] == '!') {
+			$rule = substr($rule, 1);
+			$negative = true;
+		}
+
 		$this->rule = $rule;
+		$this->control = $control;
 		$this->arg = $arg;
-		$this->message = $message;
+		$this->negative = $negative;
 	}
 
 
@@ -67,11 +100,14 @@ class Rule extends Object
 	 */
 	public function isValid()
 	{
-		$valid = self::validate($this->rule, $this->control->getValue(), $this->arg);
+		$valid = $this->validate($this->rule, $this->control->getValue(), $this->arg);
+		if ($this->negative)
+			$valid = !$valid;
+
 		if ($valid)
 			return true;
 
-		$this->control->addAutoError($this->rule, $this->arg, $this->message);
+		$this->control->setError($this->getMessage());
 		return false;
 	}
 
@@ -84,65 +120,67 @@ class Rule extends Object
 	 * @param   mixed   argument for validation
 	 * @$valid =  bool
 	 */
-	public static function validate($rule, $value, $arg = null)
+	public function validate($rule, $value, $arg = null)
 	{
 		if ($arg instanceof FormControl)
 			$arg = $arg->getValue();
 
-		if (ord($rule[0]) > 127) {
-			$rule = ~$rule;
-			$negative = true;
-		} else {
-			$negative = false;
-		}
 
 		switch ($rule) {
-		case Form::EQUAL:
-			$valid = $value == $arg;
-			break;
-		case Form::FILLED:
-			$valid = ($value === '0') ? true : !empty($value);
-			break;
-		case Form::NUMERIC:
-			$valid = is_numeric($value);
-			break;
-		case Form::INTEGER:
-			$valid = preg_match('#^\d*$#', $value);
-			break;
-		case Form::LENGTH:
+		case Rule::EQUAL: return $value == $arg;
+		case Rule::FILLED: return ($value === '0') ? true : !empty($value);
+		case Rule::INTEGER: return preg_match('#^\d+$#', $value);
+		case Rule::FLOAT: return preg_match('#^\d+(\.\d+)?$#', $value);
+		case Rule::LENGTH:
 			$value = strlen($value);
-		case Form::RANGE:
+		case Rule::RANGE:
+			if ($value == '')
+				return false;
+
 			if (is_array($arg) && count($arg) == 2)
-				$valid = $value >= $arg[0] && $value <= $arg[1];
+				return ($value >= $arg[0] && $value <= $arg[1]);
 			else
-				$valid = $value == $arg;
-			break;
-		case Form::INARRAY:
-			$valid = in_array($value, (array) $arg);
-			break;
-		case Form::REGEXP:
-			$valid = preg_match($arg, $value);
-			break;
-		case Form::EMAIL:
-			$valid = preg_match('#^[^@\s]+@[^@\s]+\.[a-z]{2,10}$$#i', $value);
-			break;
-		case Form::URL:
-			$valid = preg_match('#^.+\.[a-z]{2,6}(\\/.*)?$#i', $value);
-			break;
-		case Form::ALFANUMERIC:
-			$valid = preg_match('#^[a-z0-9]+$#i', $value);
-			break;
-		default:
-			if (is_callable($rule))
-				$valid = call_user_func_array($rule, array($value, $arg));
+				return $value == $arg;
+		case Rule::EMAIL: return preg_match('#^[^@\s]+@[^@\s]+\.[a-z]{2,10}$$#i', $value);
+		case Rule::URL: return preg_match('#^.+\.[a-z]{2,6}(\\/.*)?$#i', $value);
+		case Rule::CALLBACK:
+			if (is_array($arg)) {
+				if (is_callable($arg['callback']))
+					return call_user_func($arg['callback'], $value, @$arg['args']);
+			} else {
+				if (is_callable($arg))
+					return call_user_func($arg, $value);
+			}
+
+			throw new Exception('Validation callback is not callable.');
+		case Rule::REGEXP: return preg_match($arg, $value);
+		default: throw new Exception("Unsupported validation rule $rule.");
+		}
+	}
+
+
+	/**
+	 * Prepares error message
+	 * @return  string
+	 */
+	public function getMessage()
+	{
+		if (empty($this->message)) {
+			$rule = ($this->negative ? '!' : '') . $this->rule;
+			if (isset(self::$messages[$rule]))
+				$this->message = self::$messages[$rule];
 			else
-				throw new Exception("Unsupported validation rule $rule.");
+				$this->message = 'Undefined error message';
 		}
 
-		if ($negative)
-			return !$valid;
-		else
-			return $valid;
+		if (is_array($this->arg)) {
+			array_unshift($this->arg, $this->message);
+			$this->message = call_user_func_array('sprintf', $this->arg);
+		} elseif (!is_object($this->arg)) {
+			$this->message = sprintf($this->message, $this->arg);
+		}
+
+		return $this->message;
 	}
 
 

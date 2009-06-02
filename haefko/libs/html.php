@@ -19,26 +19,32 @@ class Html extends Object
 {
 
 
-	/** @var array One tag elements */
-	public static $emptyEl = array('img', 'meta', 'input', 'meta', 'area', 'base', 'col', 'link', 'param', 'frame', 'embed');
+	/** @var array - Tags without pairs */
+	public static $nonPairs = array('area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source');
 
-	/** @var string Tag's name*/
+	/** @var string - Tag's name*/
 	protected $tag;
 
 	/** @var bool */
-	protected $isEmpty = false;
+	protected $hasPair = true;
 
 	/** @var array */
 	protected $content = array();
 
-	/** @var string */
-	protected $prepend = array();
+	/** @var string|Html */
+	protected $prepend;
 
-	/** @var string */
-	protected $append = array();
+	/** @var string|Html */
+	protected $append;
 
 	/** @var array */
 	protected $attrs = array(
+		'href' => null,
+		'action' => null,
+		'method' => null,
+		'type' => null,
+		'name' => null,
+		'id' => null,
 		'class' => array()
 	);
 
@@ -50,19 +56,16 @@ class Html extends Object
 	 * @param   array    attributes
 	 * @return  Html
 	 */
-	public static function el($tag = null, $text = null, $attrs = array(), $isEmpty = null)
+	public static function el($tag = null, $text = null, $attrs = array(), $hasPair = null)
 	{
 		$el = new Html();
-		$el->tag = $tag;
-		$el->setText($text);
+		$el->setTag($tag, $hasPair);
+
+		if (!empty($text))
+			$el->setText($text);
 
 		if (!empty($attrs))
-			$el->attrs = (array) $attrs;
-
-		if ($isEmpty === null)
-			$el->isEmpty = in_array($el->tag, self::$emptyEl);
-		else
-			$el->isEmpty = $isEmpty;
+			$el->setAttrs($attrs);
 
 		return $el;
 	}
@@ -84,17 +87,21 @@ class Html extends Object
 	public function __call($name, $args)
 	{
 		# unset attribut
-		if (empty($args[0]))
+		if (empty($args[0])) {
 			$this->attrs[$name] = null;
 		# add to array attribut
-		elseif (isset($this->attrs[$name]) && is_array($this->attrs[$name]))
-			$this->attrs[$name][] = $args[0];
+		} elseif (isset($this->attrs[$name]) && is_array($this->attrs[$name])) {
+			if (isset($args[1]) && $args[1] == true)
+				$this->attrs[$name] = array_diff($this->attrs[$name], array($args[0]));
+			else
+				$this->attrs[$name][] = $args[0];
 		# add to attribut
-		elseif (isset($this->attrs[$name]) && isset($args[1]) && $args[1] === true)
+		} elseif (isset($this->attrs[$name]) && isset($args[1]) && $args[1] === true) {
 			$this->attrs[$name] .= $args[0];
 		# set attribut
-		else
+		} else {
 			$this->attrs[$name] = $args[0];
+		}
 
 		return $this;
 	}
@@ -143,9 +150,15 @@ class Html extends Object
 	 * @param   string    tag name
 	 * @return  Html
 	 */
-	public function setTag($name)
+	public function setTag($name, $hasPair = null)
 	{
 		$this->tag = $name;
+
+		if ($hasPair === null)
+			$this->hasPair = !in_array($this->tag, self::$nonPairs);
+		else
+			$this->hasPair = $hasPair;
+
 		return $this;
 	}
 
@@ -169,9 +182,23 @@ class Html extends Object
 	 * @param   mixed     html content
 	 * @return  Html
 	 */
-	public function setHtml($value)
+	public function setHtml($value = null)
 	{
-		$this->content[] = $value;
+		$this->content = array();
+		return $this->addHtml($value);
+	}
+
+
+	/**
+	 * Adds the html content
+	 * @param   mixed     html content
+	 * @return  Html
+	 */
+	public function addHtml($value = null)
+	{
+		if (!empty($value) || $value === 0)
+			$this->content[] = $value;
+
 		return $this;
 	}
 
@@ -181,25 +208,22 @@ class Html extends Object
 	 * @param   string  text content
 	 * @return  Html
 	 */
-	public function setText($value)
+	public function setText($value = null)
 	{
-		$this->content[] = htmlspecialchars($value);
-		return $this;
+		$this->content = array();
+		return $this->addText($value);
 	}
 
 
 	/**
-	 * Clears content
+	 * Adds the text content
+	 * @param   string  text content
 	 * @return  Html
 	 */
-	public function clear($prepend = false, $append = false)
+	public function addText($value = null)
 	{
-		$this->content = array();
-		if ($prepend)
-			$this->prepend = array();
-
-		if ($append)
-			$this->append = array();
+		if (!empty($value) || $value === 0)
+			$this->content[] = htmlspecialchars($value);
 
 		return $this;
 	}
@@ -210,12 +234,9 @@ class Html extends Object
 	 * @param   mixed     content
 	 * @return  string
 	 */
-	public function prepend($value, $html = true)
+	public function prepend($value = null)
 	{
-		if (!$html)
-			$value = htmlspecialchars($value);
-
-		$this->prepend[] = $value;
+		$this->prepend = $value;
 		return $this;
 	}
 
@@ -225,32 +246,28 @@ class Html extends Object
 	 * @param   mixed     content
 	 * @return  string
 	 */
-	public function append($value, $html = true)
+	public function append($value = null)
 	{
-		if (!$html)
-			$value = htmlspecialchars($value);
-
-		$this->append[] = $value;
+		$this->append = $value;
 		return $this;
 	}
 
 
 	/**
 	 * Renders element's start tag + content + end tag
-	 * @param   bool     append new line
+	 * @param   int      indent of block
 	 * @return  string
 	 */
-	public function render($newLine = false)
+	public function render($indent = null)
 	{
-		$s = $this->startTag();
+		$r  = $this->startTag();
+		$r .= $this->renderContent($indent);
+		$r .= $this->endTag();
 
-		if ($this->isEmpty)
-			return $s . ($newLine ? "\n" : '');
+		if ($indent !== null)
+			$r = "\n" . str_repeat("\t", $indent) . $r . ($indent - 1 < 1 ? '' : "\n") . str_repeat("\t", max(0, $indent - 1));
 
-		$s .= $this->renderString($this->content);
-		$s .= $this->endTag();
-
-		return $s . ($newLine ? "\n" : '');
+		return $r;
 	}
 
 
@@ -260,26 +277,11 @@ class Html extends Object
 	 */
 	public function startTag()
 	{
-		if ($this->tag == '')
-			return '';
+		if (empty($this->tag))
+			return;
 
-		$s = $this->renderString($this->prepend)
-		   . "<{$this->tag}";
-
-		foreach ((array) $this->attrs as $name => $value) {
-			if (is_array($value))
-				$value = implode(' ', $value);
-
-			if ($value === '' || $value === null)
-				continue;
-
-			$s .= " $name=\"" . htmlspecialchars($value) . '"';
-		}
-
-		if ($this->isEmpty)
-			return "$s/>" . $this->renderString($this->append) . "\n";
-		else
-			return "$s>";
+		return $this->renderPrepend() . '<' . $this->tag . $this->renderAttributes()
+		     . ($this->hasPair ? '>' : '/>');
 	}
 
 
@@ -289,46 +291,94 @@ class Html extends Object
 	 */
 	public function endTag()
 	{
-		if (empty($this->tag))
+		if (!$this->hasPair || empty($this->tag))
 			return '';
 
-		return "</{$this->tag}>" . $this->renderString($this->append);
+		return '</' . $this->tag . '>' . $this->renderAppend();
 	}
 
 
 	/**
-	 * Toggles class
-	 * @param   string  css class
-	 * @return  bool
-	 */
-	public function toggleClass($class)
-	{
-		if (in_array($class, $this->attrs['class'])) {
-			$this->attrs['class'] = array_diff($this->attrs['class'], array($class));
-			return false;
-		} else {
-			$this->attrs['class'][] = $class;
-			return true;
-		}
-	}
-
-
-	/**
-	 * Transforms array to string
-	 * @param  array     array of nodes
+	 * Renders tag content
+	 * @param  int     indent
 	 * @return string
 	 */
-	protected function renderString($content)
+	protected function renderContent($indent = 0)
 	{
 		$s = '';
-		foreach ($content as $node) {
+		foreach ($this->content as $node) {
 			if ($node instanceof Html)
-				$s .= $node->render(true);
+				$s .= $node->render(is_int($indent) ? $indent + 1 : null);
 			else
 				$s .= $node;
 		}
 
 		return $s;
+	}
+
+
+	/**
+	 * Renders tag attributes
+	 * @return  string
+	 */
+	protected function renderAttributes()
+	{
+		$r = '';	
+		foreach ((array) $this->attrs as $key => $value) {
+			if (is_array($value))
+				$value = implode(' ', $value);
+
+			if ($value === '' || $value === null || $value === false)
+				continue;
+			elseif ($value === true)
+				$value = $key;
+
+			$r .= ' ' . $key . '="' . htmlspecialchars($value) . '"';
+		}
+
+		return $r;
+	}
+
+
+	/**
+	 * Renders prepend
+	 * @return  string
+	 */
+	protected function renderPrepend()
+	{
+		if (empty($this->prepend))
+			return null;
+
+		if ($this->prepend instanceof Html)
+			return $this->prepend->render();
+		else
+			return $this->prepend;
+	}
+
+
+	/**
+	 * Renders append
+	 * @return  string
+	 */
+	protected function renderAppend()
+	{
+		if (empty($this->append))
+			return null;
+
+		if ($this->append instanceof Html)
+			return $this->append->render();
+		else
+			return $this->append;
+	}
+
+
+	/**
+	 * To string interface
+	 * @return  string
+	 */
+	public function __toString()
+	{
+		return $this->render();
 	}
 
 

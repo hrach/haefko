@@ -24,11 +24,18 @@ abstract class DbTable extends Object
 	/** @var DbStructure */
 	public static $structure;
 
-	public static function initTable($name)
+	/**
+	 * Creates table class and returns class name
+	 * @param   string  table name
+	 * @return  string
+	 */
+	public static function init($name)
 	{
 		$class = Tools::camelize($name) . 'Table';
-		eval("class $class extends DbTable {}");
-		return new $class();
+		if (!class_exists($class, false))
+			eval("class $class extends DbTable {}");
+
+		return $class;
 	}
 
 
@@ -94,59 +101,65 @@ abstract class DbTable extends Object
 	{
 		$cols = $this->toSqlCols($cols);
 		$mod = self::$structure->getModificator($this->table, $col);
-		return db::fetch("SELECT $cols FROM %c WHERE %c = $mod LIMIT 1", $this->table, $col, $this->primaryKeyValue);
+		return Db::fetch("SELECT $cols FROM %c WHERE %c = $mod LIMIT 1", $this->table, $col, $this->primaryKeyValue);
 	}
 
 
 	/**
 	 * Returns table form
+	 * @param   array    cols for edit
+	 * @param   array    cols labels
 	 * @throws  Exception
 	 * @return  Form
 	 */
-	public function getForm()
+	public function getForm($editCols = array(), $labels = array())
 	{
 		$form = new Form();
 		$cols = self::$structure->getCols($this->table);
 
 		foreach ($cols as $name => $data) {
+			if (!empty($editCols) && !in_array($name, $editCols))
+				continue;
+
 			if ($data["primary"])
 				continue;
 
+			$label = isset($labels[$name]) ? $labels[$name] : null;
+
+
 			switch ($data['type']) {
 			case 'text':
-			case 'logntext':
+			case 'longtext':
 			case 'tinytext':
 			case 'mediumtext':
-				$form->addTextarea($name);
-				$form[$name]->addRule(Form::LENGTH, array(0, $data['length']));
+				$form->addTextarea($name, $label);
+				$form[$name]->addRule(Rule::LENGTH, array(0, $data['length']));
 				if (!$data['null'])
-					$form[$name]->addRule(Form::FILLED);
+					$form[$name]->addRule(Rule::FILLED);
 
 				break;
 
-			case 'varchar':
-				$form->addText($name);
-				$form[$name]->addRule(Form::LENGTH, array(0, $data['length']));
-				if (!$data['null'])
-					$form[$name]->addRule(Form::FILLED);
-
-				break;
-
+			case 'tinyint':
+			case 'mediumint':
+			case 'bigint':
+			case 'smallint':
 			case 'int':
-				$form->addText($name);
-				$form[$name]->addRule(Form::INTEGER);
+				$form->addText($name, $label);
+				$form[$name]->addRule(Rule::INTEGER);
 				break;
 
+			case 'double':
+			case 'decimal':
 			case 'float':
-				$form->addText($name);
-				$form[$name]->addRule(Form::NUMERIC);
+				$form->addText($name, $label);
+				$form[$name]->addRule(Rule::FLOAT);
 
 			case 'enum':
 				$options = array();
 				foreach ($data['length'] as $label)
 					$options[$label] = ucfirst($label);
 				
-				$form->addSelect($name, $options);
+				$form->addSelect($name, $options, $label);
 				break;
 
 			case 'set':
@@ -154,18 +167,31 @@ abstract class DbTable extends Object
 				foreach ($data['length'] as $label)
 					$options[$label] = ucfirst($label);
 				
-				$form->addMultiCheckbox($name, $options);
+				$form->addMultiCheckbox($name, $options, $label);
 				break;
 
 			case 'date':
+				$form->addDatepicker($name, $label);
+				if (!$data['null'])
+					$form[$name]->addRule(Rule::FILLED);
+
+				break;
+
 			case 'datetime':
 			case 'time':
+			case 'varchar':
 			default:
-				throw new Exception('Not implemented yet');
+
+				$form->addText($name, $label);
+				$form[$name]->addRule(Rule::LENGTH, array(0, $data['length']));
+				if (!$data['null'])
+					$form[$name]->addRule(Rule::FILLED);
+
+				break;
 			}
 		}
 
-		$form->addSubmit('submit');
+		$form->addSubmit('submit', isset($labels['submit']) ? $labels['submit'] : null);
 		return $form;
 	}
 
@@ -210,25 +236,28 @@ abstract class DbTable extends Object
 
 
 	/**
-	 * Saves (inserts|updates) db row
+	 * Saves (inserts|updates) db entry
 	 * @return  mixed     primary key's value
 	 */
 	public function save()
 	{
 		$fields = array();
 		foreach ($this->fields as $column => $field) {
+			if (strpos($column, '%') === false)
+				$column = $column . $this->getModificator($column);
+
 			if ($field instanceof DbTable)
-				$fields[$column . $this->getModificator($column)] = $field->save();
+				$fields[$column] = $field->save();
 			else
-				$fields[$column . $this->getModificator($column)] = $field;
+				$fields[$column] = $field;
 		}
 
 		if (empty($this->primaryKeyValue)) {
-			$this->primaryKeyValue = db::query('INSERT INTO %c %kv', $this->table, $fields);
+			$this->primaryKeyValue = Db::query('INSERT INTO %c %kv', $this->table, $fields);
 
 		} else {
 			$mod = self::$structure->getModificator($this->table, $this->primaryKey);
-			db::query("UPDATE %c SET %l WHERE %c = $mod", $this->table, $fields, $this->primaryKey, $this->primaryKeyValue);
+			Db::query("UPDATE %c SET %l WHERE %c = $mod", $this->table, $fields, $this->primaryKey, $this->primaryKeyValue);
 		
 		}
 
@@ -236,6 +265,17 @@ abstract class DbTable extends Object
 		return $this->primaryKeyValue;
 	}
 
+
+	/**
+	 * Removes db entry
+	 * @return  bool
+	 */
+	public function remove()
+	{
+		$mod = self::$structure->getModificator($this->table, $this->primaryKey);
+		Db::query("DELETE FROM %c WHERE %c = $mod LIMIT 1", $this->table, $this->primaryKey, $this->primaryKeyValue);
+		return Db::affectedRows() == 1;
+	}
 
 
 	/**

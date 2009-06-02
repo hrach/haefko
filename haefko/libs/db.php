@@ -99,7 +99,7 @@ class Db
 	 * Wrapper for active connection
 	 * @see     DbConnection::prepare()
 	 * @param   string    sql query
-	 * @return  DbResult
+	 * @return  DbPreparedResult
 	 */
 	public static function prepare($sql)
 	{
