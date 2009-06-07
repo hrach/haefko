@@ -147,9 +147,9 @@ class Application extends Object
 	 */
 	public function initConfig()
 	{
-		Debug::$logFile = Config::read('Debug.log', $this->path . '/temp/errors.log');
+		Debug::$logFile = Config::read('debug.log', $this->path . '/temp/errors.log');
 
-		switch (Config::read('Core.debug', 0)) {
+		switch (Config::read('core.debug', 0)) {
 		case 0:
 			$this->cache->lifeTime = 60*60*24; # 1 day
 			error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
@@ -168,7 +168,7 @@ class Application extends Object
 			break;
 		}
 
-		if (Config::read('Cache.enabled', true))
+		if (Config::read('cache.enabled', true))
 			$this->cache->enabled = true;
 		else
 			$this->cache->enabled = false;

@@ -18,7 +18,7 @@ require_once dirname(__FILE__) . '/object.php';
 
 require_once dirname(__FILE__) . '/form/rule.php';
 require_once dirname(__FILE__) . '/form/condition.php';
-require_once dirname(__FILE__) . '/form/controls.php';
+require_once dirname(__FILE__) . '/form/controls/controls.php';
 
 
 class Form extends Object implements ArrayAccess, IteratorAggregate
@@ -37,9 +37,6 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	/** @var array - Rules without control */
 	public $rules = array();
 
-	/** @var string|FormRenderer */
-	public $renderer = 'dl';
-
 	/** @var Html */
 	private $form;
 
@@ -54,6 +51,9 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/** @var bool - Is form CSRF protected? */
 	private $protected = false;
+
+	/** @var FormRenderer */
+	private $renderer;
 
 
 	/**
@@ -373,7 +373,6 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	public function isValid()
 	{
 		$valid = true;
-
 		foreach ($this->rules as $rule) {
 			if (!$rule->isValid())
 				$valid = false;
@@ -421,12 +420,27 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Returns form url
-	 * @return  string
+	 * Sets / creates renderer instance
+	 * @param   IFormRenderer|string    renderer name
+	 * @throws  Exception
+	 * @return  Form
 	 */
-	public function getUrl()
+	public function setRenderer($renderer)
 	{
-		return $this->form->action;
+		if (is_object($renderer)) {
+			if (!($renderer instanceof IFormRenderer))
+				throw new Exception('Renderer must be instance of IFormRenderer.');
+
+			$this->renderer = $renderer;
+		} else {
+			$name = Tools::dash($renderer);
+			require_once dirname(__FILE__) . "/form/renderers/form-$name-renderer.php";
+			$class= "Form{$renderer}Renderer";
+			$this->renderer = new $class();
+		}
+
+		$this->renderer->setForm($this);
+		return $this;
 	}
 
 
@@ -441,40 +455,15 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Loads renderer class
-	 * @param   string    renderer name
-	 * @return  Renderer
+	 * Returns Renderer
+	 * @return  IFormRenderer
 	 */
-	public function renderer($name)
+	public function getRenderer()
 	{
-		require_once dirname(__FILE__) . '/form/irenderer.php';
-		require_once dirname(__FILE__) . '/form/renderer.php';
-		require_once dirname(__FILE__) . '/form/renderers/' . Tools::dash($name) . '.php';
+		if (!($this->renderer instanceof IFormRenderer))
+			$this->setRenderer('table');
 
-		$name = "Form{$name}Renderer";
-		$this->renderer = new $name($this);
 		return $this->renderer;
-	}
-
-
-	/**
-	 * Renders form controls and tags
-	 * @param   string  render part
-	 * @param   mixed   arg n0
-	 * @return  string
-	 */
-	public function render($part = 'form')
-	{
-		if (!($this->renderer instanceof FormRenderer)) {
-			if (empty($this->renderer))
-				throw new Exception('Define renderer name.');
-
-			$this->renderer($this->renderer);
-		}
-
-		$attrs = func_get_args();
-		array_shift($attrs);
-		return $this->renderer->render($part, $attrs);
 	}
 
 
@@ -497,6 +486,8 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	{
 		if (isset($this->controls[$id]))
 			return $this->controls[$id];
+
+		throw new Exception("Undefined form control with name '$id'.");
 	}
 
 
@@ -508,6 +499,8 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	{
 		if (isset($this->controls[$id]))
 			unset($this->controls[$id]);
+
+		throw new Exception("Undefined form control with name '$id'.");
 	}
 
 
@@ -532,13 +525,13 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * To string interface
+	 * toString interface
 	 * @return  string
 	 */
 	public function __toString()
 	{
 		try {
-			$render = $this->render();
+			$render = $this->renderer->render();
 		} catch (Exception $e) {
 			return $e->getMessage();
 		}

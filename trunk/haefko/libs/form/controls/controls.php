@@ -12,12 +12,12 @@
  */
 
 
-require_once dirname(__FILE__) . '/controls/texts.php';
-require_once dirname(__FILE__) . '/controls/checkboxes.php';
-require_once dirname(__FILE__) . '/controls/selects.php';
-require_once dirname(__FILE__) . '/controls/radio.php';
-require_once dirname(__FILE__) . '/controls/file.php';
-require_once dirname(__FILE__) . '/controls/buttons.php';
+require_once dirname(__FILE__) . '/texts.php';
+require_once dirname(__FILE__) . '/checkboxes.php';
+require_once dirname(__FILE__) . '/selects.php';
+require_once dirname(__FILE__) . '/radio.php';
+require_once dirname(__FILE__) . '/file.php';
+require_once dirname(__FILE__) . '/buttons.php';
 
 
 abstract class FormControl extends Object
@@ -311,10 +311,14 @@ abstract class FormControl extends Object
 
 	/**
 	 * Returns form name
+	 * @param   bool     return full name with form
 	 * @return  string
 	 */
-	public function getName()
+	public function getName($fullName = false)
 	{
+		if ($fullName)
+			return $this->form->name . '-' . $this->name;
+
 		return $this->name;
 	}
 

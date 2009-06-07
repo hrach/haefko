@@ -91,6 +91,7 @@ class Rule extends Object
 		$this->control = $control;
 		$this->arg = $arg;
 		$this->negative = $negative;
+		$this->message = $message;
 	}
 
 

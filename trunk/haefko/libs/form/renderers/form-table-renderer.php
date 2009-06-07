@@ -12,6 +12,9 @@
  */
 
 
+require_once dirname(__FILE__) . '/form-renderer.php';
+
+
 class FormTableRenderer extends FormRenderer
 {
 
