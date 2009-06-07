@@ -63,6 +63,11 @@ class FormSelectControl extends FormControl
 	protected function getOptions()
 	{
 		$options = Html::el();
+
+		if ($this->defaultValue != '') {
+			$options->addHtml($this->getOption('', $this->defaultValue));
+		}
+
 		foreach ($this->options as $key => $val) {
 			if (is_array($val)) {
 

@@ -65,7 +65,6 @@ class FormDatepickerControl extends FormInputControl
 
 	public function setValue($value)
 	{
-		dump($value);
 		if (!empty($value))
 			$value = date('Y-m-d', strtotime($value));
 
@@ -103,6 +102,5 @@ class FormPasswordControl extends FormInputControl
 	{
 		return '';
 	}
-
 
 }
