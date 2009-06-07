@@ -135,8 +135,8 @@ class Rule extends Object
 		case Rule::LENGTH:
 			$value = strlen($value);
 		case Rule::RANGE:
-			if ($value == '')
-				return false;
+			//if ($value == '')
+			//	return false;
 
 			if (is_array($arg) && count($arg) == 2)
 				return ($value >= $arg[0] && $value <= $arg[1]);

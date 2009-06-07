@@ -101,7 +101,7 @@ class HtmlHelper extends Object
 	 * @param   string    media type
 	 * @return  string
 	 */
-	public function css($url, $media = 'screen')
+	public function css($url, $media = 'screen', $timestamp = true)
 	{
 		$url = $this->factoryUrl($url);
 		$el = Html::el('link')->rel('stylesheet')
