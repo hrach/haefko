@@ -381,10 +381,10 @@ abstract class FormControl extends Object
 	 */
 	protected function getHtmlValue()
 	{
-		if (empty($this->value) && $this->value !== '0')
-			return $this->defaultValue;
-		else
+		if ($this->value === '0' || !empty($this->value))
 			return $this->value;
+		else
+			return $this->defaultValue;
 	}
 
 

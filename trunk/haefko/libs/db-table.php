@@ -133,7 +133,6 @@ abstract class DbTable extends Object
 			case 'tinytext':
 			case 'mediumtext':
 				$form->addTextarea($name, $label);
-				$form[$name]->addRule(Rule::LENGTH, array(0, $data['length']));
 				if (!$data['null'])
 					$form[$name]->addRule(Rule::FILLED);
 
@@ -179,9 +178,14 @@ abstract class DbTable extends Object
 
 			case 'datetime':
 			case 'time':
+				$form->addText($name, $label);
+				if (!$data['null'])
+					$form[$name]->addRule(Rule::FILLED);
+
+				break;
+
 			case 'varchar':
 			default:
-
 				$form->addText($name, $label);
 				$form[$name]->addRule(Rule::LENGTH, array(0, $data['length']));
 				if (!$data['null'])
