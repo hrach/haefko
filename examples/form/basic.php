@@ -13,7 +13,7 @@ $label_age = Html::el('label', 'Věk');
 $label_age->append(Html::el('small', ' (nepovinné)'));
 
 $form->addText('name', 'Jméno')
-	 ->addTextarea('aboutMe', 'O mě')
+	 ->addTextarea('aboutMe', 'O mně')
 	 ->addText('age', $label_age)
 	 ->addRadio('sex', aa('male', 'Muž', 'female', 'Žena'), 'Pohlaví')
 	 ->addSelect('city', aa('brno', 'Brno', 'ostrava', 'Ostrava', 'praha', 'Praha'))
@@ -52,11 +52,14 @@ if ($form->isSubmit() && $form->isValid()) {
 
 <?php
 
+	$form->renderer('div');
+	//echo $form->render();
+	//exit;
 	echo $form->render('start');
 
-	echo $form->render('body', 'Osobní údaje', a('name'));
-	echo $form->render('body', 'Další', a('aboutMe', 'age', 'sex'));
-	echo $form->render('body', 'Odeslání');
+	echo $form->render('part', a('name'), 'Osobní údaje');
+	echo $form->render('part', a('aboutMe', 'age', 'sex'), 'Další');
+	echo $form->render('part', a(), 'Odeslání');
 
 	echo $form->render('end');
 
