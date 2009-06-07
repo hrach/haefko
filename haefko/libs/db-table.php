@@ -156,16 +156,16 @@ abstract class DbTable extends Object
 
 			case 'enum':
 				$options = array();
-				foreach ($data['length'] as $label)
-					$options[$label] = ucfirst($label);
+				foreach ($data['length'] as $optLabel)
+					$options[$optLabel] = ucfirst($optLabel);
 				
 				$form->addSelect($name, $options, $label);
 				break;
 
 			case 'set':
 				$options = array();
-				foreach ($data['length'] as $label)
-					$options[$label] = ucfirst($label);
+				foreach ($data['length'] as $optLabel)
+					$options[$optLabel] = ucfirst($optLabel);
 				
 				$form->addMultiCheckbox($name, $options, $label);
 				break;

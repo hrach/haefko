@@ -47,9 +47,6 @@ class CrudController extends AppController
 		$this->view->setRouting('controller', 'crud');
 		parent::init();
 
-		if (empty($this->table))
-			throw new Exception('You have to defined table name by ' . $this->getClass() . '::$table.');
-
 		if (empty($this->link))
 			throw new Exception('You have to defined link to the instace of CRUD controller by ' . $this->getClass() . '::$link.');
 	}
@@ -62,7 +59,7 @@ class CrudController extends AppController
 	public function indexAction()
 	{
 		$columns = implode(", ", (array) $this->columns);
-		$query = db::prepare("select $columns from %c", $this->table);
+		$query = $this->getQuery($columns);
 
 		$grid = $this->view->grid = $this->getDataGrid();
 		$grid->setQuery($query);
@@ -192,6 +189,20 @@ class CrudController extends AppController
 			return new $class();
 		else
 			return new $class($pk);
+	}
+
+
+	/**
+	 * Returns prepared query - table data source
+	 * @param   string  $columns
+	 * @return  DbPreparedResult
+	 */
+	protected function getQuery($columns)
+	{
+		if (empty($this->table))
+			throw new Exception('You have to defined table name by ' . $this->getClass() . '::$table.');
+
+		return db::prepare("select $columns from %c", $this->table);
 	}
 
 

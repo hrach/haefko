@@ -38,6 +38,8 @@ class Cache extends Object
 	 */
 	public function __construct($enabled = true, $store = './', $lifeTime = 300)
 	{
+		$store = rtrim($store, '/') . '/';
+
 		$this->enabled = $enabled;
 		$this->store = $store;
 		$this->lifeTime = $lifeTime;

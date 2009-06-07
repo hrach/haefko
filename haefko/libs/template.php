@@ -32,11 +32,14 @@ class Template extends Object implements ITemplate
 
 	/**
 	 * Constructor
+	 * @param   string   template file
 	 * @return  Template
 	 */
-	public function __construct()
+	public function __construct($file = null)
 	{
 		$this->setVar('escape', 'htmlSpecialChars');
+		if (!empty($file))
+			$this->setFile($file);
 	}
 
 
