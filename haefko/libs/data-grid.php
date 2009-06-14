@@ -23,6 +23,12 @@ class DataGrid extends Object
 	/** @var int - Instances counter */
 	protected static $counter = '';
 
+	/** @var array - Columns, which you want to show */
+	public $columns;
+
+	/** @var false|array - Column, which you want to order; false = nothing, empta array = all */
+	public $orderable = array();
+
 	/** @var string - DataGrid name */
 	protected $name;
 
@@ -41,13 +47,7 @@ class DataGrid extends Object
 	/** @var array - Order of columns (for sort) */
 	protected $order = array();
 
-	
-	/** @var array */
-	public $columns;
-	
 
-
-	
 	/**
 	 * Constructor
 	 * @param   string     data grid name
@@ -62,9 +62,168 @@ class DataGrid extends Object
 		$this->initOrder();
 	}
 
-	public function getData()
+
+	/**
+	 * Renders datagrid
+	 * @return  string
+	 */
+	public function render()
 	{
-		$page = $this->getVariable('page');
+		$this->getData();
+		if (empty($this->columns))
+			$this->columns = $this->query->getColumnNames();
+
+
+		$template = new Template();
+		$template->setFile(dirname(__FILE__) . '/data-grid.template.phtml');
+		$template->getHelper('html');
+
+		# vars
+		$template->grid = $this;
+		$template->columns = $this->columns;
+		$template->orderable = $this->orderable;
+		$template->rows = $this->query->fetchAll();
+
+		return $template->render();
+	}
+
+
+	/**
+	 * Sets limit on the page
+	 * @param   int  limit
+	 * @return  DataGrid
+	 */
+	public function setLimit($limit)
+	{
+		$this->limit = max((int) $limit, 1);
+		return $this;
+	}
+
+
+	/**
+	 * Sets link mask for urls
+	 * @param   string   link mask
+	 * @return  DataGrid
+	 */
+	public function setLink($link)
+	{
+		$this->link = trim($link, '/');
+		return $this;
+	}
+
+
+	/**
+	 * Sets columns' labels
+	 * @param   array    labels
+	 * @return  DataGrid
+	 */
+	public function setLabels($labels)
+	{
+		$this->labels = $labels;
+		return $this;
+	}
+
+
+	/**
+	 * Sets datasource
+	 * @param   DbPreparedResult   datasource
+	 * @return  DataGrid
+	 */
+	public function setQuery(DbPreparedResult $query)
+	{
+		$this->query = $query;
+		return $this;
+	}
+
+
+	/**
+	 * Returns query
+	 * @return  DbPreparedResult 
+	 */
+	public function getQuery()
+	{
+		return $this->query;
+	}
+
+
+	/**
+	 * Creates link
+	 * @param   string  action
+	 * @param   mixed   param
+	 * @return  string
+	 */
+	public function url($action, $param = null)
+	{
+		if ($param === null)
+			return Controller::get()->url($this->link, null, array(
+				'action' => $action
+			));
+		else
+			return Controller::get()->url($this->link . '/' . $param, null, array(
+				'action' => $action
+			));
+	}
+
+	
+	public function columnUrl($column)
+	{
+		return Controller::get()->url('', array(
+			$this->name . '-order' => $this->getOrderState($column))
+		);
+	}
+
+
+	/**
+	 * Returns column order state class
+	 * @param   string  column name
+	 * @return  string
+	 */
+	public function columnStateClass($column)
+	{
+		if (!isset($this->order[$column]))
+			return array();
+
+		return array(
+			'class' => $this->order[$column]['state'] === 'a' ? 'asc' : 'desc'
+		);
+	}
+
+
+	/**
+	 * Returns column order num
+	 * @param   string  column name
+	 * @return  string
+	 */
+	public function columnStateNum($column)
+	{
+		if (!isset($this->order[$column]))
+			return '';
+
+		return '<span class="order">' . ($this->order[$column]['order'] + 1) . '</span>';
+	}
+
+
+	/**
+	 * Returns column label
+	 * @param   string  column name
+	 * @return  string
+	 */
+	public function columnLabel($column)
+	{
+		if (isset($this->labels[$column]))
+			return $this->labels[$column];
+		else
+			return ucfirst($column);
+	}
+
+
+	/**
+	 * Loads data for datagrid
+	 * @return  void
+	 */
+	protected function getData()
+	{
+		$page = $this->getVar('page');
 		$order = $this->getSqlOrder();
 
 		$this->query->setOrder($order);
@@ -73,13 +232,48 @@ class DataGrid extends Object
 		$this->query->execute();
 	}
 
-	public function getVariable($var)
+	
+	/**
+	 * Transforms url table order as array
+	 * @return  array
+	 */
+	private function initOrder()
 	{
-		$name = $this->name . '-' . $var;
+		$order = $this->getVar('order');
+		if (empty($order) || $this->orderable === false)
+			return;
+
+		$order = explode('|', $order);
+		$res = array();
+		foreach ($order as $i => $val)
+			$name = substr($val, 1);
+			if (!empty($this->orderable) && !in_array($name, $this->orderable))
+				continue;
+
+			$this->order[$name] = array(
+				'order' => $i,
+				'state' => $val[0]
+			);
+	}
+
+
+	/**
+	 * Returns variable content
+	 * @param   string   variable name
+	 * @return  string
+	 */
+	protected function getVar($name)
+	{
+		$name = $this->name . '-' . $name;
 		return Application::get()->router->get($name);
 	}
-	
-	public function getSqlOrder()
+
+
+	/**
+	 * Returns sql order
+	 * @return  string
+	 */
+	protected function getSqlOrder()
 	{
 		$sql = array();
 		foreach ($this->order as $column => $val) {
@@ -90,13 +284,12 @@ class DataGrid extends Object
 	}
 
 
-
 	/**
 	 * Gets url expresison for table order by $column
 	 * @param   string  column
 	 * @return  string
 	 */
-	public function getOrderState($column)
+	protected function getOrderState($column)
 	{
 		$order = $this->order;
 
@@ -115,120 +308,6 @@ class DataGrid extends Object
 			return null;
 		else
 			return implode('|', $res);
-	}
-
-
-	public function renderTable()
-	{
-		if (empty($this->columns))
-			$this->columns = $this->query->getColumnNames();
-
-
-		$template = new Template();
-		$template->setFile(dirname(__FILE__) . '/data-grid.table.phtml');
-		$template->getHelper('html');
-
-		# vars
-		$template->grid = $this;
-		$template->columns = $this->columns;
-		$template->rows = $this->query->fetchAll();
-
-		return $template->render();
-	}
-	
-	public function renderPaginator()
-	{
-		return $this->query->paginator->render('');
-	}
-	
-	
-	public function setLimit($limit)
-	{
-		$this->limit = max((int) $limit, 1);
-		return $this;
-	}
-	
-	public function setLink($link)
-	{
-		$this->link = trim($link, '/');
-		return $this;
-	}
-	
-	public function setLabels($labels)
-	{
-		$this->labels = $labels;
-		return $this;
-	}
-
-	public function setQuery(DbPreparedResult $query)
-	{
-		$this->query = $query;
-		return $this;
-	}
-	
-	public function url($action, $param = null)
-	{
-		if ($param === null)
-			return Controller::get()->url($this->link, null, array(
-				'action' => $action
-			));
-		else
-			return Controller::get()->url($this->link . '/' . $param, null, array(
-				'action' => $action
-			));
-	}
-
-	public function columnUrl($column)
-	{
-		return Controller::get()->url('', array(
-			$this->name . '-order' => $this->getOrderState($column))
-		);
-	}
-
-
-	public function columnStateClass($column)
-	{
-		if (!isset($this->order[$column]))
-			return array();
-
-		return array(
-			'class' => $this->order[$column]['state'] === 'a' ? 'asc' : 'desc'
-		);
-	}
-
-	public function columnStateNum($column)
-	{
-		if (!isset($this->order[$column]))
-			return '';
-
-		return '<span class="order">' . ($this->order[$column]['order'] + 1) . "</span>";
-	}
-
-	public function columnLabel($column)
-	{
-		if (isset($this->labels[$column]))
-			return $this->labels[$column];
-		else
-			return ucfirst($column);
-	}
-
-	/**
-	 * Transforms url table order as array
-	 * @return  array
-	 */
-	private function initOrder()
-	{
-		$order = $this->getVariable('order');
-		if (empty($order))
-			return;
-
-		$order = explode('|', $order);
-		$res = array();
-		foreach ($order as $i => $val)
-			$this->order[substr($val, 1)] = array(
-				'order' => $i,
-				'state' => $val[0]
-			);
 	}
 
 

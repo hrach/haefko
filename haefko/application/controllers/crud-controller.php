@@ -35,6 +35,9 @@ class CrudController extends AppController
 	/** @var array - Columns labels */
 	protected $labels = array();
 
+	/** @var string - Referer */
+	protected $referer;
+
 
 	/**
 	 * Inits CRUD controller - creates instance of dbTable
@@ -63,7 +66,6 @@ class CrudController extends AppController
 
 		$grid = $this->view->grid = $this->getDataGrid();
 		$grid->setQuery($query);
-		$grid->getData();
 	}
 
 
@@ -73,6 +75,7 @@ class CrudController extends AppController
 	 */
 	public function createAction()
 	{
+		$this->initReferer();
 		$table = $this->getTable();
 		$form = $this->view->form = $this->getForm($table);
 
@@ -80,7 +83,7 @@ class CrudController extends AppController
 			$table->import($this->processData($form->data))
 			      ->save();
 
-			$this->redirect($this->crudUrl('index'));
+			$this->refererRedirect($this->crudUrl('index'));
 		}
 	}
 
@@ -92,6 +95,7 @@ class CrudController extends AppController
 	 */
 	public function updateAction($entry)
 	{
+		$this->initReferer();
 		$table = $this->getTable($entry);
 		$form = $this->view->form = $this->getForm($table);
 		
@@ -102,11 +106,10 @@ class CrudController extends AppController
 
 		$form->setDefaults($row);
 		if ($form->isSubmit()) {
-
 			$table->import($this->processData($form->data))
 			      ->save();
 
-			$this->redirect($this->crudUrl('index'));
+			$this->refererRedirect($this->crudUrl('index'));
 		}
 	}
 
@@ -115,10 +118,17 @@ class CrudController extends AppController
 	 * Delete action
 	 * @return   void
 	 */
-	public function deleteAction()
+	public function deleteAction($entry)
 	{
-		$this->getTable($_POST['entry'])->remove();
-		$this->redirect($this->crudUrl('index'));
+		$this->initReferer();
+		if (!empty($_POST['yes'])) {
+			$this->getTable($entry)->remove();
+			$this->refererRedirect($this->crudUrl('index'));
+		} elseif (!empty($_POST['no'])) {
+			$this->refererRedirect($this->crudUrl('index'));
+		}
+
+		$this->view->entry = $entry;
 	}
 
 
@@ -202,7 +212,39 @@ class CrudController extends AppController
 		if (empty($this->table))
 			throw new Exception('You have to defined table name by ' . $this->getClass() . '::$table.');
 
-		return db::prepare("select $columns from %c", $this->table);
+		return Db::prepare("select $columns from %c", $this->table);
+	}
+
+
+	/**
+	 * Inits referer
+	 * @return  void
+	 */
+	protected function initReferer()
+	{
+		$name = 'Crud.' . $this->getClass() . '.referer';
+		if (Http::getReferer() == Http::getFullRequest())
+			return;
+
+		Session::write($name, Http::getReferer());
+	}
+
+
+	/**
+	 * Redirects by referer or default url
+	 * @param   string  default url
+	 * @return  void
+	 */
+	protected function refererRedirect($default)
+	{
+		$name = 'Crud.' . $this->getClass() . '.referer';
+		if (Session::exists($name)) {
+			Http::headerRedirect(Session::read($name));
+			Session::delete($name);
+			exit;
+		} else {
+			$this->redirect($default);
+		}
 	}
 
 
