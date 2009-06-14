@@ -1,0 +1,34 @@
+<table class="datagrid">
+<thead>
+	<tr>
+		<?php foreach ($columns as $column): ?>
+		<th>
+			<?php if (in_array($column, $orderable)): ?>
+				<?= $html->link($grid->columnUrl($column), $grid->columnLabel($column), $grid->columnStateClass($column)) ?>
+				<?= $grid->columnStateNum($column) ?>
+			<?php else: ?>
+				<?= $grid->columnLabel($column) ?>
+			<?php endif; ?>
+		</th>
+		<?php endforeach; ?>
+		
+		<th>Actions</th>
+	</tr>
+</thead>
+
+<tbody>
+	<?php foreach ($rows as $i => $row): ?>
+	<tr<?php echo ($i % 2) ? ' class="odd"' : '' ?>>
+	<?php foreach ($row as $field): ?>
+	<td><?= $field ?></td>
+	<?php endforeach; ?>
+	<td>
+		<?= $html->link($grid->url('update', $row['id']), '<span>Edit</span>', array(), false) ?>
+		<?= $html->link($grid->url('delete', $row['id']), '<span>Delete</span>', array(), false) ?>
+	</td>
+	</tr>
+	<?php endforeach; ?>
+</tbody>
+</table>
+
+<?= $grid->query->paginator->render('') ?>

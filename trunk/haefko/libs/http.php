@@ -28,7 +28,6 @@ class Http
 	/** @var string */
 	public static $baseUri;
 
-
 	/**
 	 * Sanitizes superglobal variables ($_GET, $_POST, $_COOKIE a $_REQUEST)
 	 * @return  void
@@ -95,8 +94,30 @@ class Http
 		$url = urldecode($_SERVER['REQUEST_URI']);
 		$url = Tools::lTrim($url, dirname($_SERVER['SCRIPT_NAME']));
 		$url = Tools::lTrim($url, '/' . basename($_SERVER['SCRIPT_NAME']));
-
 		return trim($url, '/\\');
+	}
+
+
+	/**
+	 * Returns full request
+	 * @return  string
+	 */
+	public static function getFullRequest()
+	{
+		return self::$serverUri . '/' . self::getRequest();
+	}
+
+
+	/**
+	 * Returns referer
+	 * @return  string|null
+	 */
+	public static function getReferer()
+	{
+		if (isset($_SERVER['HTTP_REFERER']))
+			return $_SERVER['HTTP_REFERER'];
+		else
+			return null;
 	}
 
 

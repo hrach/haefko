@@ -531,6 +531,9 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	public function __toString()
 	{
 		try {
+			if (!($this->renderer instanceof IFormRenderer))
+				$this->getRenderer();
+
 			$render = $this->renderer->render();
 		} catch (Exception $e) {
 			return $e->getMessage();

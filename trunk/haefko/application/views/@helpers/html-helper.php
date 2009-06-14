@@ -99,32 +99,46 @@ class HtmlHelper extends Object
 	 * Returns HTML css-external tag
 	 * @param   string    url
 	 * @param   string    media type
+	 * @param   bool      append timestamp?
 	 * @return  string
 	 */
-	public function css($url, $media = 'screen', $timestamp = true)
+	public function css($file, $media = 'screen', $timestamp = true)
 	{
-		$url = $this->factoryUrl($url);
+		$url = $this->factoryUrl($file);
 		$el = Html::el('link')->rel('stylesheet')
 		                      ->type('text/css')
-		                      ->href($url)
 		                      ->media($media);
 
-		return $el->render(0);
+		if ($timestamp) {
+			$file = dirname($_SERVER['SCRIPT_FILENAME']) . '/' . $file;
+			$time = filemtime($file);
+			if ($time !== false)
+				$url .= '?' . $time;
+		}
+
+		return $el->href($url)->render(0);
 	}
 
 
 	/**
 	 * Returns HTML js-external tag
 	 * @param   string    url
+	 * @param   bool      append timestamp?
 	 * @return  string
 	 */
-	public function js($url)
+	public function js($file, $timestamp = true)
 	{
-		$url = $this->factoryUrl($url);
-		$el = Html::el('script')->type('text/javascript')
-		                        ->src($url);
+		$url = $this->factoryUrl($file);
+		$el = Html::el('script')->type('text/javascript');
 
-		return $el->render(0);
+		if ($timestamp) {
+			$file = dirname($_SERVER['SCRIPT_FILENAME']) . '/' . $file;
+			$time = filemtime($file);
+			if ($time !== false)
+				$url .= '?' . $time;
+		}
+
+		return $el->src($url)->render(0);
 	}
 
 

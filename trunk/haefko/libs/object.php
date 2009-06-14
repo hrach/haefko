@@ -48,7 +48,9 @@ abstract class Object
 	 */
 	public function __get($key)
 	{
-		if (method_exists($this, "get$key"))
+		if (substr($key, 0, 2) == 'is' && method_exists($this, $key))
+			return $this->{$key}();
+		elseif (method_exists($this, "get$key"))
 			return $this->{"get$key"}();
 		else
 			throw new Exception("Undefined variable " . $this->getClass() . "::$$key.");
