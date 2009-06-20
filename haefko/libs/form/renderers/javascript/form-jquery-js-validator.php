@@ -36,7 +36,7 @@ class FormJqueryJsValidator extends Object implements IFormJsValidator
 	 */
 	public function addRule(Rule $rule)
 	{
-		$this->rules[] = $this->getRule($rule);
+		$this->rules[] = $this->getRule($rule, true);
 		return $this;
 	}
 
@@ -48,16 +48,9 @@ class FormJqueryJsValidator extends Object implements IFormJsValidator
 	 */
 	public function addCondition(Condition $condition)
 	{
-		$c = array(
-			'control' => $condition->control->getName(),
-			'rule' => $condition->rule,
-			'negative' => $condition->negative,
-			'default' => $condition->control->getDefaultValue(),
-			'arg' => ($condition->arg instanceof FormControl) ? array('control' => $condition->arg->getName(true)) : $condition->arg,
-		);
-
+		$c = $this->getRule($condition);
 		foreach ($condition->rules as $rule)
-			$c['rules'][] = $this->getRule($rule);
+			$c['rules'][] = $this->getRule($rule, true);
 
 		$this->conditions[] = $c;
 		return $this;
@@ -82,22 +75,33 @@ class FormJqueryJsValidator extends Object implements IFormJsValidator
 
 	/**
 	 * Transforms rule to array
-	 * @param   Rule $rule
+	 * @param   Rule  $rule
+	 * @param   bool  add message?
 	 * @return  array
 	 */
-	protected function getRule(Rule $rule)
+	protected function getRule(Rule $rule, $withMessage = false)
 	{
 		if (empty($this->name))
 			$this->name = $rule->control->form->name;
 
-		return array(
-			'control' => $rule->control->getName(true),
-			'rule' => $rule->rule,
-			'negative' => $rule->negative,
-			'default' => $rule->control->getDefaultValue(),
-			'arg' => ($rule->arg instanceof FormControl) ? array('control' => $rule->arg->getName(true)) : $rule->arg,
-			'message' => $rule->getMessage()
-		);
+		$r = array();
+		$r['control'] = $rule->control->getName();
+		$r['rule'] = $rule->rule;
+
+		if ($rule->negative)
+			$r['negative'] = $rule->negative;
+
+		$default = $rule->control->getDefaultValue();
+		if (!empty($default))
+			$r['default'] = $default;
+
+		if (!empty($rule->arg))
+			$r['arg'] = ($rule->arg instanceof FormControl) ? array('control' => $rule->arg->getName(true)) : $rule->arg;
+
+		if ($withMessage)
+			$r['message'] = $rule->getMessage();
+
+		return $r;
 	}
 
 
