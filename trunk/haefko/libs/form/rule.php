@@ -173,8 +173,9 @@ class Rule extends Object
 		}
 
 		if (is_array($this->arg)) {
-			array_unshift($this->arg, $this->message);
-			$this->message = call_user_func_array('sprintf', $this->arg);
+			$arg = $this->arg;
+			array_unshift($arg, $this->message);
+			$this->message = call_user_func_array('sprintf', $arg);
 		} elseif (!is_object($this->arg)) {
 			$this->message = sprintf($this->message, $this->arg);
 		}
