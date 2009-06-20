@@ -9,7 +9,7 @@
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8.5 - $Id$
  * @package     Haefko_Application
- * @subpackage  Database
+ * @subpackage  Controller
  */
 
 
