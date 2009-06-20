@@ -26,6 +26,9 @@ class DataGrid extends Object
 	/** @var array - Columns, which you want to show */
 	public $columns;
 
+	/** @var bool - Show action column? */
+	public $showActions = true;
+
 	/** @var false|array - Column, which you want to order; false = nothing, empta array = all */
 	public $orderable = array();
 
@@ -80,8 +83,6 @@ class DataGrid extends Object
 
 		# vars
 		$template->grid = $this;
-		$template->columns = $this->columns;
-		$template->orderable = $this->orderable;
 		$template->rows = $this->query->fetchAll();
 
 		return $template->render();

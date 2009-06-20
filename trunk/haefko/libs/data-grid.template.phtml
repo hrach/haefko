@@ -1,18 +1,18 @@
 <table class="datagrid">
 <thead>
 	<tr>
-		<?php foreach ($columns as $column): ?>
+		<?php foreach ($grid->columns as $column): ?>
 		<th>
-			<?php if (in_array($column, $orderable) || empty($orderable)): ?>
-				<?= $html->link($grid->columnUrl($column), $grid->columnLabel($column), $grid->columnStateClass($column)) ?>
-				<?= $grid->columnStateNum($column) ?>
+			<?php if (in_array($column, $grid->orderable) || empty($grid->orderable)): ?>
+				<?= $html->link($grid->columnUrl($column), $grid->columnLabel($column) . $grid->columnStateNum($column), $grid->columnStateClass($column), false) ?>
 			<?php else: ?>
 				<?= $grid->columnLabel($column) ?>
 			<?php endif; ?>
 		</th>
 		<?php endforeach; ?>
-		
+		<?php if ($grid->showActions): ?>
 		<th>Actions</th>
+		<?php endif; ?>
 	</tr>
 </thead>
 
@@ -22,10 +22,12 @@
 	<?php foreach ($row as $field): ?>
 	<td><?= $field ?></td>
 	<?php endforeach; ?>
+	<?php if ($grid->showActions): ?>
 	<td>
-		<?= $html->link($grid->url('update', $row['id']), '<span>Edit</span>', array(), false) ?>
-		<?= $html->link($grid->url('delete', $row['id']), '<span>Delete</span>', array(), false) ?>
+		<?= $html->link($grid->url('update', $row['id']), '<span>Edit</span>', array('class' => 'edit'), false) ?>
+		<?= $html->link($grid->url('delete', $row['id']), '<span>Delete</span>', array('class' => 'delete'), false) ?>
 	</td>
+	<?php endif; ?>
 	</tr>
 	<?php endforeach; ?>
 </tbody>
