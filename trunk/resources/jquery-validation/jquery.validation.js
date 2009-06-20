@@ -13,7 +13,7 @@
 $.fn.validate = function(rules, conditions) {
 	function isValid(rule, val, arg) {
 		if (arg != null && arg['control'] != undefined)
-			arg = ($('#' + arg['control'])).val();
+			arg = ($('#' + formName + arg['control'])).val();
 
 		switch (rule) {
 			case 'equal': return val == arg;
@@ -39,18 +39,21 @@ $.fn.validate = function(rules, conditions) {
 	}
 
 	function showError(control, message) {
-		message = '<label for="' + control + '">' + message + '</label>';
-		$('#' + control + '-error').html(message);
+		message = '<label for="' + formName + control + '">' + message + '</label>';
+		if ($('#' + formName + control + '-error').length > 0)
+			$('#' + formName + control + '-error').html(message);
+		else
+			$('#' + formName + control).after('<div id="' + formName + control + '-error">' + message + '</div>');
 	}
 
 	function removeError(control) {
-		$('#' + control + '-error').html('');
+		$('#' + formName + control + '-error').html('');
 	}
 
 	function getValue(control, def) {
-		value = $('#' + control).val();
+		value = $('#' + formName + control).val();
 
-		if ($('#' + control).is('input[type=text]'))
+		if ($('#' + formName + control).is('input[type=text]'))
 			value.replace(/^\s+|\s+$/g, '');
 
 		if (value == def)
@@ -59,6 +62,7 @@ $.fn.validate = function(rules, conditions) {
 		return value;
 	}
 
+	formName = $(this).attr('id') + '-';
 	this.submit(function() {
 		has = [];
 		ret = true;
@@ -69,7 +73,7 @@ $.fn.validate = function(rules, conditions) {
 			valid = isValid(cond['rule'], getValue(cond['control'], cond['default']), cond['arg']);
 			valid = cond['negative'] ? !valid : valid;
 			if (valid)
-				rules.contat(condition['rules']);
+				rules = rules.concat(cond['rules']);
 		}
 
 		// rules
