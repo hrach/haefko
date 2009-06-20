@@ -3,7 +3,7 @@
 	<tr>
 		<?php foreach ($columns as $column): ?>
 		<th>
-			<?php if (in_array($column, $orderable)): ?>
+			<?php if (in_array($column, $orderable) || empty($orderable)): ?>
 				<?= $html->link($grid->columnUrl($column), $grid->columnLabel($column), $grid->columnStateClass($column)) ?>
 				<?= $grid->columnStateNum($column) ?>
 			<?php else: ?>
