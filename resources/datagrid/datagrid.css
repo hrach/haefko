@@ -1,0 +1,79 @@
+/**
+ * Haefko - your php5 framework
+ *
+ * @author      Jan Skrasek
+ * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
+ * @link        http://haefko.skrasek.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
+ * @version     0.8.5 - $Id$
+ * @package     Haefko_Libs
+ */
+
+
+table.datagrid {
+	border: 1px solid #bfbbaa;
+}
+
+table.datagrid td {
+	border: 1px solid #b8b39d;
+	padding: 4px 10px;
+}
+
+table.datagrid tr {
+	background: white;
+}
+
+table.datagrid tr.odd {
+	background: #efede0;
+}
+
+table.datagrid tr:hover td {
+	background: #caef95;
+}
+
+table.datagrid thead th {
+	background: #CAEF95 url('imgs/dg-th.png');
+	border: 1px solid #b8b39d;
+	padding: 6px 10px;
+}
+
+table.datagrid thead th span.order {
+	margin-left: 5px;
+	color: #948c6d;
+}
+
+table.datagrid thead th a {
+	padding-right: 21px;
+	text-decoration: none;
+}
+
+table.datagrid thead a.asc, table.datagrid thead a:hover {
+	background: url('imgs/dg-asc.png') no-repeat right center;
+}
+
+table.datagrid thead a.desc, table.datagrid thead a.asc:hover {
+	background: url('imgs/dg-desc.gif') no-repeat right center;
+}
+
+table.datagrid thead a.desc:hover {
+	background: none;
+}
+
+table.datagrid tbody a.edit span, table.datagrid tbody a.delete span {
+	display: none;
+}
+
+table.datagrid tbody a.edit, table.datagrid tbody a.delete {
+	display: inline-block;
+	height: 16px;
+	width: 16px;
+	margin: 3px 0 -3px;
+}
+
+table.datagrid tbody a.edit {
+	background: url('imgs/dg-edit.png') no-repeat;
+}
+
+table.datagrid tbody a.delete {
+	background: url('imgs/dg-delete.png') no-repeat;
+}
