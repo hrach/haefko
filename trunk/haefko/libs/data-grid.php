@@ -234,7 +234,7 @@ class DataGrid extends Object
 
 	
 	/**
-	 * Transforms url table order as array
+	 * Transforms url-table-order as array
 	 * @return  array
 	 */
 	private function initOrder()
@@ -244,16 +244,16 @@ class DataGrid extends Object
 			return;
 
 		$order = explode('|', $order);
-		$res = array();
-		foreach ($order as $i => $val)
+		foreach ($order as $key => $val) {
 			$name = substr($val, 1);
-			if (!empty($this->orderable) && !in_array($name, $this->orderable))
+			if (!(empty($this->orderable) || in_array($name, $this->orderable)))
 				continue;
 
 			$this->order[$name] = array(
-				'order' => $i,
+				'order' => $key,
 				'state' => $val[0]
 			);
+		}
 	}
 
 
