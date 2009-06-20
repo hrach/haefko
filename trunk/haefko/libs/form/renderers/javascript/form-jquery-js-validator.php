@@ -63,6 +63,9 @@ class FormJqueryJsValidator extends Object implements IFormJsValidator
 	 */
 	public function getCode()
 	{
+		if (empty($this->rules) && empty($this->conditions))
+			return '';
+
 		$name  = $this->name;
 		$code  = "var {$name}Rules = " . json_encode($this->rules) . ";\n";
 		$code .= "var {$name}Conditions = " . json_encode($this->conditions) . ";\n";
@@ -96,7 +99,7 @@ class FormJqueryJsValidator extends Object implements IFormJsValidator
 			$r['default'] = $default;
 
 		if (!empty($rule->arg))
-			$r['arg'] = ($rule->arg instanceof FormControl) ? array('control' => $rule->arg->getName(true)) : $rule->arg;
+			$r['arg'] = ($rule->arg instanceof FormControl) ? array('control' => $rule->arg->getName()) : $rule->arg;
 
 		if ($withMessage)
 			$r['message'] = $rule->getMessage();
