@@ -98,6 +98,8 @@ class FormJqueryJsValidator extends Object implements IFormJsValidator
 		if (!empty($default))
 			$r['default'] = $default;
 
+			
+			
 		if (!empty($rule->arg))
 			$r['arg'] = ($rule->arg instanceof FormControl) ? array('control' => $rule->arg->getName()) : $rule->arg;
 

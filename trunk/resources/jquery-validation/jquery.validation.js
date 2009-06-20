@@ -13,7 +13,7 @@
 $.fn.validate = function(rules, conditions) {
 	function isValid(rule, val, arg) {
 		if (arg != null && arg['control'] != undefined)
-			arg = ($('#' + formName + arg['control'])).val();
+			arg = getValue(arg['control']);
 
 		switch (rule) {
 			case 'equal': return val == arg;
@@ -32,7 +32,15 @@ $.fn.validate = function(rules, conditions) {
 					return arg == val;
 			case 'url': return /^.+\.[a-z]{2,6}(\\\/.*)?$/i.test(val);
 			case 'email': return /^[^@\s]+\@[^@\s]+\.[a-z]{2,10}$/i.test(val);
-			case 'callback': return true;
+			case 'callback':
+				if (arg['url'] != null) {
+					data = {"value": val, "args": arg['args']};
+					$.getJSON(arg['url'], data, function(response) {
+						return response;
+					});
+				} else {
+					return true;
+				}				
 			case 'regexp': return val.match(arg);
 			default: return true;
 		}
@@ -88,8 +96,7 @@ $.fn.validate = function(rules, conditions) {
 			if (!valid) {
 				has[row['control']] = true;
 				// dynamic error message
-				alert(row['arg']['control']);
-				if (row['rule'] == 'equal' && row['arg'] != null && row['arg']['control'] != undefined)
+				if (row['rule'] == 'equal' && row['arg'] != undefined && row['arg']['control'] != undefined)
 					row['message'] = row['message'].replace(/\%s/, $('#' + formName + row['arg']['control']).val());
 
 				showError(row['control'], row['message']);
