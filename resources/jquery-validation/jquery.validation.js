@@ -87,6 +87,11 @@ $.fn.validate = function(rules, conditions) {
 			valid = row['negative'] ? !valid : valid;
 			if (!valid) {
 				has[row['control']] = true;
+				// dynamic error message
+				alert(row['arg']['control']);
+				if (row['rule'] == 'equal' && row['arg'] != null && row['arg']['control'] != undefined)
+					row['message'] = row['message'].replace(/\%s/, $('#' + formName + row['arg']['control']).val());
+
 				showError(row['control'], row['message']);
 				if (ret == true)
 					$('#' + row['control']).focus();
