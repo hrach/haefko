@@ -1,3 +1,17 @@
+<?php
+
+/**
+ * Haefko - your php5 framework
+ *
+ * @author      Jan Skrasek
+ * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
+ * @link        http://haefko.skrasek.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
+ * @version     0.8.5 - $Id$
+ * @package     Haefko_Libs
+ */
+ 
+?>
 <table class="datagrid">
 <thead>
 	<tr>
@@ -15,7 +29,6 @@
 		<?php endif; ?>
 	</tr>
 </thead>
-
 <tbody>
 	<?php foreach ($rows as $i => $row): ?>
 	<tr<?php echo ($i % 2) ? ' class="odd"' : '' ?>>
