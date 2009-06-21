@@ -1,16 +1,13 @@
 <?php
 
+require_once '../../haefko/loader.php';
 
-require_once '../../haefko/libs/config.php';
-require_once '../../haefko/libs/form.php';
-require_once '../../haefko/libs/debug.php';
-
+debug::init();
 config::write('core.debug', 2);
 
 $form = new Form();
 
-$label_age = Html::el('label', 'Věk');
-$label_age->append(Html::el('small', ' (nepovinné)'));
+$label_age = Html::el('label', 'Věk')->append(Html::el('small', ' (nepovinné)'));
 
 $form->addText('name', 'Jméno')
 	 ->addTextarea('aboutMe', 'O mně')
@@ -22,14 +19,13 @@ $form->addText('name', 'Jméno')
 	 ->addCheckbox('agree', 'Souhlasím')
 	 ->addSubmit('Register');
 
-$form['name']->addRule(~Form::INARRAY, a('petr', 'pepa'));
-$form['name']->addRule(Form::FILLED);
-$form['age']->addCondition(Form::FILLED)
-			->addRule(Form::NUMERIC)
-			->addRule(Form::RANGE, a(15,99));
-
-$form['password']->addRule(Form::EQUAL, $form['password2'], 'Hesla se musí shodovat');
-$form['agree']->addRule(Form::FILLED, null, 'Musíte souhlasit s podmínkami');
+$form['name']->addRule(Rule::FILLED);
+$form['age']->addCondition(Rule::FILLED)
+			->addRule(Rule::INTEGER)
+			->addRule(Rule::RANGE, a(15,99));
+$form['sex']->addRule(Rule::FILLED);
+$form['password']->addRule(Rule::EQUAL, $form['password2'], 'Hesla se musí shodovat');
+$form['agree']->addRule(Rule::FILLED, null, 'Musíte souhlasit s podmínkami');
 
 if ($form->isSubmit() && $form->isValid()) {
 
@@ -45,22 +41,20 @@ if ($form->isSubmit() && $form->isValid()) {
 ?>
 
 <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
-<script type="text/javascript" src="jquery.js"></script>
-<script type="text/javascript" src="jquery.validate.js"></script>
+<script type="text/javascript" src="validation/jquery.js"></script>
+<script type="text/javascript" src="validation/jquery.validation.js"></script>
 <link rel="stylesheet" href="style.css" type="text/css" />
 <h1>Háefko forms</h1>
 
 <?php
 
-	$form->renderer('div');
-	//echo $form->render();
-	//exit;
-	echo $form->render('start');
+	$form->setRenderer('dl');
+	echo $form->renderer->render('start');
 
-	echo $form->render('part', a('name'), 'Osobní údaje');
-	echo $form->render('part', a('aboutMe', 'age', 'sex'), 'Další');
-	echo $form->render('part', a(), 'Odeslání');
+	echo $form->renderer->render('part', a('name'), 'Osobní údaje');
+	echo $form->renderer->render('part', a('aboutMe', 'age', 'sex'), 'Další');
+	echo $form->renderer->render('part', a(), 'Odeslání');
 
-	echo $form->render('end');
+	echo $form->renderer->render('end');
 
 ?>
