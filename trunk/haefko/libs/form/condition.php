@@ -21,6 +21,20 @@ class Condition extends Rule
 
 
 	/**
+	 * Returns true when is the rule valid
+	 * @return  bool
+	 */
+	public function isValid()
+	{
+		$valid = $this->validate($this->rule, $this->control->getValue(), $this->arg);
+		if ($this->negative)
+			$valid = !$valid;
+
+		return $valid;
+	}
+
+
+	/**
 	 * Add rule for actual control (control of condition)
 	 * @param   string       validation rule name or callback
 	 * @param   mixed        validation argument

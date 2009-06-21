@@ -143,12 +143,15 @@ class Rule extends Object
 		case Rule::EMAIL: return preg_match('#^[^@\s]+@[^@\s]+\.[a-z]{2,10}$$#i', $value);
 		case Rule::URL: return preg_match('#^.+\.[a-z]{2,6}(\\/.*)?$#i', $value);
 		case Rule::CALLBACK:
-			if (is_array($arg)) {
-				if (is_callable($arg['callback']))
-					return call_user_func($arg['callback'], $value, @$arg['args']);
-			} else {
-				if (is_callable($arg))
-					return call_user_func($arg, $value);
+			$cb = isset($arg['callback']) ? $arg['callback'] : $arg;
+			if (is_callable($cb)) {
+				$valid = call_user_func($cb, $value, @$arg['arg']);
+				if (is_array($valid)) {
+					$this->message = $valid['message'];
+					return $valid['valid'];
+				} else {
+					return $valid;
+				}
 			}
 
 			throw new Exception('Validation callback is not callable.');

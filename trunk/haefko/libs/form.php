@@ -117,7 +117,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 		$this->controls[self::$SECURITY_CONTROL]->setValue($hash);
-		$this->rules[] = new Rule($this->controls[self::$SECURITY_CONTROL], Form::EQUAL, $hash, $message);
+		$this->rules[] = new Rule($this->controls[self::$SECURITY_CONTROL], Rule::EQUAL, $hash, $message);
 		return $this;
 	}
 

@@ -11,7 +11,7 @@
 
 
 $.fn.validate = function(rules, conditions) {
-	function isValid(rule, val, arg) {
+	function isValid(rule, val, arg, row) {
 		if (arg != null && arg['control'] != undefined)
 			arg = getValue(arg['control']);
 
@@ -34,13 +34,18 @@ $.fn.validate = function(rules, conditions) {
 			case 'email': return /^[^@\s]+\@[^@\s]+\.[a-z]{2,10}$/i.test(val);
 			case 'callback':
 				if (arg['url'] != null) {
-					data = {"value": val, "args": arg['args']};
-					$.getJSON(arg['url'], data, function(response) {
-						return response;
-					});
+					data = {"value": val, "arg": arg['arg']};
+					$.post(arg['url'], data, function(response) {
+						if (!response || (!response['valid'] != undefined && response['valid'] == false)) {
+							if (response['message'] != undefined)
+								showError(row['control'], response['message']);
+							else
+								showError(row['control'], row['message']);
+						}
+					}, "json");
 				} else {
 					return true;
-				}				
+				}
 			case 'regexp': return val.match(arg);
 			default: return true;
 		}
@@ -59,18 +64,24 @@ $.fn.validate = function(rules, conditions) {
 	}
 
 	function getValue(control, def) {
-		value = $('#' + formName + control).val();
-
-		if ($('#' + formName + control).is('input[type=text]'))
-			value.replace(/^\s+|\s+$/g, '');
-
+		input = $('#' + formName + control);
+		if (input.is('div.multi-inputs'))
+			value = $('input[name=' + realFormName + '\[' + control + '\]]:checked').val();
+		else if (input.is('input[type=checkbox]'))
+			value = input.is(':checked');
+		else
+			value = input.val();
+ 
+		if (input.is('input[type=text]'))
+			value.trim();
 		if (value == def)
 			value = '';
 
 		return value;
 	}
 
-	formName = $(this).attr('id') + '-';
+	realFormName = $(this).attr('id');
+	formName = realFormName + '-';
 	this.submit(function() {
 		has = [];
 		ret = true;
@@ -91,7 +102,10 @@ $.fn.validate = function(rules, conditions) {
 				continue;
 
 			removeError(row['control']);
-			valid = isValid(row['rule'], getValue(row['control'], row['default']), row['arg']);
+			valid = isValid(row['rule'], getValue(row['control'], row['default']), row['arg'], row);
+			if (valid == null)
+				continue;
+
 			valid = row['negative'] ? !valid : valid;
 			if (!valid) {
 				has[row['control']] = true;
