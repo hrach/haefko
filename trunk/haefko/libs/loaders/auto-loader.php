@@ -12,12 +12,12 @@
  */
 
 
-require_once dirname(__FILE__) . '/object.php';
-require_once dirname(__FILE__) . '/tools.php';
-require_once dirname(__FILE__) . '/cache.php';
+require_once dirname(__FILE__) . '/loader.php';
+require_once dirname(__FILE__) . '/../tools.php';
+require_once dirname(__FILE__) . '/../cache.php';
 
 
-class Autoload extends Object
+class AutoLoader extends Loader
 {
 
 
@@ -46,7 +46,7 @@ class Autoload extends Object
 	/**
 	 * Contructor
 	 * Registers autoload
-	 * @param   string|Cache    cache path or Cache instance
+	 * @param   string|Cache    cache path or Cache class instance
 	 * @return  void
 	 */
 	public function __construct($store = './')
@@ -55,13 +55,11 @@ class Autoload extends Object
 			$this->cache = $store;
 		else
 			$this->cache = new Cache(true, $store, false);
-
-		spl_autoload_register(array($this, 'autoloadHandler'));
 	}
 
 
 	/**
-	 * Adds direcotry for scan
+	 * Adds directory for scan
 	 * @param   string     path
 	 * @throws  Exception
 	 * @return  Autoload
@@ -69,7 +67,7 @@ class Autoload extends Object
 	public function addDir($dir)
 	{
 		if (!is_dir($dir))
-			throw new Exception("Direcotory '$dir' doesn't exists.");
+			throw new Exception("Directory '$dir' does not exists.");
 
 		$this->dirs[] = $dir;
 		return $this;
@@ -81,7 +79,7 @@ class Autoload extends Object
 	 * @param   string  class name
 	 * @return  void
 	 */
-	public function autoloadHandler($class)
+	public function load($class)
 	{
 		$class = strtolower($class);
 		if (isset($this->classes[$class]) && file_exists($_SERVER['DOCUMENT_ROOT'] . $this->classes[$class])) {
@@ -104,18 +102,18 @@ class Autoload extends Object
 	{
 		$this->findClasses();
 		$this->rebuild = true;
-
 		$this->cache->write('autoload', 'classes', $this->classes);
 		return $this;
 	}
 
 
 	/**
-	 * Loads list of cached classes or create it
+	 * Loads list of cached classes or creates it
 	 * @return  Autoload
 	 */
-	public function load()
+	public function register()
 	{
+		parent::register(array($this, 'load'));
 		$this->classes = $this->cache->read('autoload', 'classes');
 		if ($this->classes === null)
 			$this->rebuild();

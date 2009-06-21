@@ -17,6 +17,7 @@ ob_start();
 $startTime = microtime(true);
 
 
+require_once dirname(__FILE__) . '/loader.php';
 require_once dirname(__FILE__) . '/libs/tools.php';
 require_once dirname(__FILE__) . '/libs/object.php';
 require_once dirname(__FILE__) . '/libs/http.php';
@@ -29,8 +30,8 @@ require_once dirname(__FILE__) . '/application/libs/router.php';
 
 
 /**
-* @property-read Router $router
-*/
+ * @property-read Router $router
+ */
 class Application extends Object
 {
 
@@ -98,7 +99,6 @@ class Application extends Object
 		header('X-Powered-By: Haefko/0.8');
 		$this->path = rtrim(dirname($_SERVER['SCRIPT_FILENAME']) . $path, '/');
 		$this->corePath = rtrim(dirname(__FILE__), '/');
-		spl_autoload_register(array($this, 'autoloadHandler'));
 
 
 		if ($config !== false)
@@ -176,27 +176,7 @@ class Application extends Object
 
 
 	/**
-	 * Loads framework core file
-	 * @param   string  filename
-	 * @param   bool    is application core-file?
-	 * @throws  Exception
-	 * @return  void
-	 */
-	public function loadCore($file)
-	{
-		$file = Tools::dash($file);
-		$file = dirname(__FILE__) . "/libs/$file.php";
-
-		if (!file_exists($file))
-			throw new Exception('Missing core file \'' . Tools::relativePath($file) . '\'.');
-
-		require_once $file;
-	}
-
-
-	/**
-	 * Loads framework file
-	 * Tries load file from appliacation path or framework core path
+	 * Loads applications file - from appliacation path or framework core path
 	 * @param   string  filename
 	 * @throws  ApplicationException
 	 * @return  void
@@ -216,7 +196,7 @@ class Application extends Object
 
 
 	/**
-	 * Loads framework class
+	 * Loads application class
 	 * @param   string  class type
 	 * @param   string  class name
 	 * @throws  Exception|ApplicationException
@@ -227,8 +207,7 @@ class Application extends Object
 		if (!in_array($type, array('controller', 'helper')))
 			throw new Exception("Unsupported class-type '$type'.");
 
-
-		$file = call_user_func_array(array('Inflector', "{$type}File"), array($class));
+		$file = call_user_func(array('Inflector', "{$type}File"), $class);
 		$this->loadFile($file);
 
 		if (!class_exists($class, false))
@@ -243,15 +222,16 @@ class Application extends Object
 	 */
 	public function autoload($dirs = array())
 	{
-		$autoload = new Autoload($this->cache);
+		$autoload = new AutoLoader($this->cache);
 		$autoload->exts = Config::read('Autoload.exts', $autoload->exts);
 		$autoload->autoRebuild = Config::read('Core.debug') > 1;
 
+		$dirs = (array) $dirs;
 		array_unshift($dirs, "{$this->path}/extends/");
-		foreach ((array) $dirs as $dir)
+		foreach ($dirs as $dir)
 			$autoload->addDir($dir);
 
-		return $autoload->load();
+		return $autoload->register();
 	}
 
 
@@ -318,27 +298,6 @@ class Application extends Object
 
 		$this->controller->init();
 		echo $this->controller->view->renderTemplates();
-	}
-
-
-	/**
-	 * Application autoload handler
-	 * @param   string  class name
-	 * @return  void
-	 */
-	public function autoloadHandler($class)
-	{
-		static $libs = array('autoload', 'cookie', 'session', 'html', 'l10n', 'form', 'db', 'db-table', 'db-structure', 'paginator', 'data-grid');
-
-		$ci_class = Tools::dash($class);
-		if (in_array($ci_class, $libs))
-			$this->loadCore($class, false);
-
-		elseif (Tools::endWith($ci_class, 'controller'))
-			$this->loadClass('controller', $class);
-
-		elseif (Tools::endWith($ci_class, 'helper'))
-			$this->loadClass('helper', $class);
 	}
 
 
