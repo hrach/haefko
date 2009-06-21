@@ -36,6 +36,7 @@ class FormCheckboxControl extends FormInputControl
 class FormMultiCheckboxControl extends FormInputControl
 {
 
+	public $listSeparator = '<br />';
 	protected $options = array();
 
 	public function __construct($form, $name, $options, $label)
@@ -53,10 +54,9 @@ class FormMultiCheckboxControl extends FormInputControl
 
 	public function getControl()
 	{
-		$container = array();
-
 		$label = Html::el('label');
 		$control = parent::getControl();
+		$container = Html::el('div')->id($control->id)->class('multi-inputs');
 
 		$i = 0;
 		$id = $control->id;
@@ -70,7 +70,9 @@ class FormMultiCheckboxControl extends FormInputControl
 			$label->for = $id . '-' . $key;
 			$label->setText($val);
 
-			$container[] = $control->render() . $label->render();
+			$container->addHtml($control->render()
+			                  . $label->render()
+			                  . ($this->listSeparator instanceof Html ? $this->listSeparator->render() : $this->listSeparator));
 		}
 
 		return $container;

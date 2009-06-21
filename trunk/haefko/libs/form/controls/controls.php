@@ -54,7 +54,6 @@ abstract class FormControl extends Object
 	/** @var array */
 	protected $conditions = array();
 
-
 	/**#@+
 	 * HTML elements 
 	 * @var Html
@@ -68,11 +67,8 @@ abstract class FormControl extends Object
 	/** @var bool - Is HTML control rendered? */
 	protected $isRendered = false;
 
-
 	/** @var array */
 	protected $htmlRequired = false;
-
-	
 
 
 	/**
@@ -177,8 +173,7 @@ abstract class FormControl extends Object
 	 */
 	public function addCondition($rule, $arg = null)
 	{
-		$this->conditions[] = new Condition($this, $rule, $arg);
-		return end($this->conditions);
+		return $this->conditions[] = new Condition($this, $rule, $arg);
 	}
 
 
@@ -342,14 +337,26 @@ abstract class FormControl extends Object
 		return $this->defaultValue;
 	}
 
+
+	/**
+	 * Returns rules
+	 * @return  array
+	 */
 	public function getRules()
 	{
 		return $this->rules;
 	}
+
+
+	/**
+	 * Returns conditions
+	 * @reutrn  array
+	 */
 	public function getConditions()
 	{
 		return $this->conditions;
 	}
+
 
 	/**
 	 * Sets default value

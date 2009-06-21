@@ -29,7 +29,6 @@ abstract class FormRenderer extends Object implements IFormRenderer
 		'label' => null,
 		'control' => null,
 		'button-separator' => null,
-		'list-separator' => 'br',
 	);
 
 	/** @var Form */
@@ -94,6 +93,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	public function render($part = null)
 	{
 		$attrs = func_get_args();
+		array_shift($attrs);
 		switch ($part) {
 			case 'js':
 			case 'javascript': return $this->renderJavascript();
@@ -205,9 +205,9 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	protected function renderPair($name)
 	{
 		if (!isset($this->form[$name]))
-			throw new Exception('Undefined form control in render-block.');
+			throw new Exception('Undefined form control in render-pair.');
 
-		$pairW = $this->preparePair($this->getWrapper('pair'));
+		$pairW = $this->preparePair($this->getWrapper('pair'), $this->form[$name]);
 		$pairW->addHtml($this->renderLabel($name))
 		      ->addHtml($this->renderControl($name));
 
@@ -223,16 +223,8 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	protected function renderControl($name)
 	{
 		$control = $this->form[$name];
-		$controlW = $this->prepareControl($this->getWrapper('control'));
-
-		if ($control instanceof FormRadioControl || $control instanceof FormMultiCheckboxControl) {
-			foreach ($control->control() as $item)
-				$controlW->addHtml($item)
-				         ->addHtml($this->getWrapper('list-separator')->render());
-		} else {
-			$controlW->addHtml($control->control()->render());
-		}
-
+		$controlW = $this->prepareControl($this->getWrapper('control'), $control);
+		$controlW->addHtml($control->control()->render());
 		$controlW->addHtml($control->error()->render());
 
 		return $controlW->render(1);
@@ -246,7 +238,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	 */
 	protected function renderLabel($name)
 	{
-		$labelW = $this->prepareLabel($this->getWrapper('label'));
+		$labelW = $this->prepareLabel($this->getWrapper('label'), $this->form[$name]);
 
 		$label = $this->form[$name]->label();
 		if ($label instanceof Html)
@@ -292,14 +284,15 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 
 	/**#@+
-	 * Prepares wrapper
-	 * @param   Html  wrapper
+	 * Prepares wrapperes
+	 * @param   Html          wrapper
+	 * @param   FormControl
 	 * @return  Html
 	 */
-	protected function preparePart($wrapper) { return $wrapper; }
-	protected function preparePair($wrapper) { return $wrapper; }
-	protected function prepareControl($wrapper) { return $wrapper; }
-	protected function prepareLabel($wrapper) { return $wrapper; }
+	protected function preparePart($wrapper, $control) { return $wrapper; }
+	protected function preparePair($wrapper, $control) { return $wrapper; }
+	protected function prepareControl($wrapper, $control) { return $wrapper; }
+	protected function prepareLabel($wrapper, $control) { return $wrapper; }
 	/**#@-*/
 
 

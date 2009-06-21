@@ -15,6 +15,7 @@
 class FormRadioControl extends FormInputControl
 {
 
+	public $listSeparator = '<br />';
 	protected $options = array();
 	protected $values = array();
 
@@ -32,10 +33,9 @@ class FormRadioControl extends FormInputControl
 
 	protected function getControl()
 	{
-		$container = array();
-
 		$label = Html::el('label');
 		$radio = parent::getControl();
+		$container = Html::el('div')->id($radio->id)->class('multi-inputs');
 
 		$i = 0;
 		$id = $radio->id;
@@ -49,7 +49,9 @@ class FormRadioControl extends FormInputControl
 			$label->for = $id . $i;
 			$label->setText($val);
 
-			$container[] = $radio->render() . $label->render();
+			$container->addHtml($radio->render()
+			                  . $label->render()
+			                  . ($this->listSeparator instanceof Html ? $this->listSeparator->render() : $this->listSeparator));
 		}
 
 		return $container;
