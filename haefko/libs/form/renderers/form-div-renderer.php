@@ -15,9 +15,14 @@
 require_once dirname(__FILE__) . '/form-renderer.php';
 
 
+/**
+ * Form renderer which wraps into divs
+ */
 class FormDivRenderer extends FormRenderer
 {
 
+
+	/** @var array - Wrappers */
 	public $wrappers = array(
 		'part' => 'div',
 		'pair' => 'div',
@@ -28,7 +33,12 @@ class FormDivRenderer extends FormRenderer
 	);
 
 
-
+	/**
+	 * Prepares part
+	 * @param   Html   wrapper
+	 * @param   Html   heading
+	 * @return  Html
+	 */
 	protected function preparePart($wrapper, $heading)
 	{
 		if (empty($heading))
@@ -39,14 +49,22 @@ class FormDivRenderer extends FormRenderer
 	}
 
 
-	protected function preparePair($wrapper)
+	/**
+	 * Prepares pair
+	 * @param   Html          wrapper
+	 * @param   FormControl
+	 * @return  Html
+	 */
+	protected function preparePair($wrapper, $control)
 	{
 		static $i = 0;
-
 		if ($i++ % 2)
 			$wrapper->class('odd');
+		if ($control->htmlRequired)
+			$wrapper->class('required');
 
 		return $wrapper;
 	}
+
 
 }

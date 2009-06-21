@@ -15,10 +15,14 @@
 require_once dirname(__FILE__) . '/form-renderer.php';
 
 
+/**
+ * Form renderer which wraps into table
+ */
 class FormTableRenderer extends FormRenderer
 {
 
 
+	/** @var array - Wrappers */
 	public $wrappers = array(
 		'part' => 'table',
 		'pair' => 'tr',
@@ -29,7 +33,12 @@ class FormTableRenderer extends FormRenderer
 	);
 
 
-
+	/**
+	 * Prepares part
+	 * @param   Html   wrapper
+	 * @param   Html   heading
+	 * @return  Html
+	 */
 	protected function preparePart($wrapper, $heading)
 	{
 		if (empty($heading))
@@ -40,12 +49,34 @@ class FormTableRenderer extends FormRenderer
 	}
 
 
-	protected function preparePair($wrapper)
+	/**
+	 * Prepares pair
+	 * @param   Html          wrapper
+	 * @param   FormControl
+	 * @return  Html
+	 */
+	protected function preparePair($wrapper, $control)
 	{
 		static $i = 0;
-
 		if ($i++ % 2)
 			$wrapper->class('odd');
+		if ($control->htmlRequired)
+			$wrapper->class('required');
+
+		return $wrapper;
+	}
+
+
+	/**
+	 * Prepares label
+	 * @param   Html          wrapper
+	 * @param   FormControl
+	 * @return  Html
+	 */
+	protected function prepareLabel($wrapper, $control)
+	{
+		if ($control->htmlRequired)
+			$wrapper->class('required');
 
 		return $wrapper;
 	}
