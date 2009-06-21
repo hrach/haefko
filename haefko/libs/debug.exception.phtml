@@ -203,7 +203,7 @@ function toggle(id)
 	<div class="block" style="font-size: 12px">
 		server: <strong><?= $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'] ?></strong><br />
 		generated at: <strong><?= date('Y-m-d H.i') ?></strong><br />
-		powered by <a href="http://haefko.skrasek.com">haefko</a> 0.8.5<br />
+		powered by <?= Application::getFrameworkInfo(false) ?><br />
 	</div>
 </div>
 <?= $rendered ?>

@@ -64,29 +64,6 @@ abstract class Controller extends Object
 
 
 	/**
-	 * Activates support for section $section
-	 * @param   string    section name (db|)
-	 * @return  void
-	 */
-	public function load($section)
-	{
-		switch (strtolower($section)) {
-			case 'db':
-				$this->application->loadCore('db');
-				Db::connect(Config::read('Db.connection'));
-				$this->application->loadCore('db-table');
-				break;
-			case 'l10n':
-			case 'translation':
-			case 'localization':
-			case 'translations':
-				$this->application->loadCore('l10n');
-				break;
-		}
-	}
-
-
-	/**
 	 * Returns Application instance
 	 * @return  Application
 	 */
