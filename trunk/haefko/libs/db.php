@@ -20,7 +20,7 @@ class Db
 
 
 	/**#@+
-	 * Column type
+	 * Column types
 	 */
 	const COLUMN = 'c'; 
 	const RAW = 'r';
@@ -61,6 +61,9 @@ class Db
 	{
 		if (isset(self::$connections[$name]))
 			self::$active[$name];
+
+		if (empty($config) && class_exists('Config', false))
+			$config = Config::read('db.connection');
 
 		self::$connections[$name] = new DbConnection($config);
 		self::$active = $name;
@@ -195,7 +198,7 @@ class Db
 		if (!class_exists('Config', false) || !class_exists('Debug', false))
 			return;
 
-		if (Config::read('Core.debug') < 3 || Config::read('Db.debug', 1) == 0)
+		if (Config::read('core.debug') < 3 || Config::read('db.debug', 1) == 0)
 			return;
 
 		$abbr = 'time: ' . Debug::getTime($time) . 'ms; affected: ' . self::affectedRows();
@@ -212,7 +215,7 @@ class Db
 	public static function getConnection()
 	{
 		if (empty(self::$active) || !isset(self::$connections[self::$active]))
-			throw new Exception('No database connection.');
+			self::connect();
 
 		return self::$connections[self::$active];
 	}
