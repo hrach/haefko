@@ -24,7 +24,7 @@ if ($form->isSubmit() && $form->isValid()) {
 
 }
 
-$form->renderer('dl');
+$form->setRenderer('dl');
 
 
 // ======== html render ========

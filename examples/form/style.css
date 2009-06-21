@@ -2,11 +2,7 @@ body {
 	font-family: "Trebuchet MS", "Geneva CE", lucida, sans-serif;
 }
 
-.required {
-	font-weight: bold;
-}
-
-.error {
+.control-error label {
 	color: red;
 }
 
@@ -65,4 +61,9 @@ form dd ul {
 
 form dd.odd {
 	background: #EEE;
+}
+
+form dd.required {
+	background: #FFBFBF;
+	font-weight: bold;
 }
