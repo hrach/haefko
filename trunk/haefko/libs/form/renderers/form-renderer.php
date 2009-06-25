@@ -171,7 +171,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 						         ->addHtml($this->getWrapper('button-separator')->render());
 				}
 
-				$pairW = $this->preparePair($this->getWrapper('pair'));
+				$pairW = $this->preparePair($this->getWrapper('pair'), $control);
 				$pairW->addHtml($this->getWrapper('label'))
 				      ->addHtml($controlW);
 
