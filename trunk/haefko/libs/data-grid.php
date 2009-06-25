@@ -75,10 +75,8 @@ class DataGrid extends Object
 	 */
 	public function render()
 	{
-		$this->getData();
 		if (empty($this->columns))
 			$this->columns = $this->query->getColumnNames();
-
 
 		$template = new Template();
 		$template->setFile(dirname(__FILE__) . '/data-grid.template.phtml');
@@ -89,6 +87,16 @@ class DataGrid extends Object
 		$template->rows = $this->query->fetchAll();
 
 		return $template->render();
+	}
+
+
+	/**
+	 * Returns datagrid name
+	 * @return  string
+	 */
+	public function getName()
+	{
+		return $this->name;
 	}
 
 
@@ -317,10 +325,24 @@ class DataGrid extends Object
 
 
 	/**
-	 * Loads data for datagrid
-	 * @return  void
+	 * Returns variable content
+	 * @param   string   variable name
+	 * @return  string
 	 */
-	protected function getData()
+	public function getVar($name)
+	{
+		$name = $this->name . '-' . $name;
+		return Application::get()->router->get($name);
+	}
+
+
+	/**
+	 * Loads data for datagrid
+	 * @param   bool        throws exception on empty result?
+	 * @throws  Exception
+	 * @return  DataGrid
+	 */
+	public function getData($throwException = true)
 	{
 		$page = $this->getVar('page');
 		$order = $this->getSqlOrder();
@@ -329,14 +351,19 @@ class DataGrid extends Object
 		$this->query->setPagination($page, $this->limit);
 		$this->query->paginator->variableName = $this->name . '-page';
 		$this->query->execute();
+
+		if ($throwException && $this->query->count() == 0)
+			throw new Exception('Empty result.');
+
+		return $this;
 	}
 
-	
+
 	/**
 	 * Transforms url-table-order as array
 	 * @return  array
 	 */
-	private function initOrder()
+	protected function initOrder()
 	{
 		$order = $this->getVar('order');
 		if (empty($order) || $this->orderable === false)
@@ -357,18 +384,6 @@ class DataGrid extends Object
 
 
 	/**
-	 * Returns variable content
-	 * @param   string   variable name
-	 * @return  string
-	 */
-	protected function getVar($name)
-	{
-		$name = $this->name . '-' . $name;
-		return Application::get()->router->get($name);
-	}
-
-
-	/**
 	 * Returns sql order
 	 * @return  string
 	 */
@@ -384,7 +399,7 @@ class DataGrid extends Object
 
 
 	/**
-	 * Gets url expresison for table order by $column
+	 * Returns url expresison for table order by $column
 	 * @param   string  column
 	 * @return  string
 	 */

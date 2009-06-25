@@ -23,11 +23,11 @@ table.datagrid tr {
 	background: white;
 }
 
-table.datagrid tr.odd {
+table.datagrid tbody tr.odd {
 	background: #efede0;
 }
 
-table.datagrid tr:hover td {
+table.datagrid tbody tr:hover td {
 	background: #caef95;
 }
 
@@ -77,3 +77,42 @@ table.datagrid tbody a.edit {
 table.datagrid tbody a.delete {
 	background: url('imgs/dg-delete.png') no-repeat;
 }
+
+table.datagrid tfoot td {
+	background: #D5D1B2;
+}
+
+table.datagrid tfoot form {
+	float: left;
+	margin: 0 3px;
+}
+
+table.datagrid tfoot form .text {
+	text-align: center;
+	width: 55px;
+}
+
+table.datagrid tfoot a {
+	text-decoration: none;
+	overflow: hidden;
+	float: left;
+}
+
+table.datagrid tfoot span {
+	background: url('imgs/dg-controls.png');
+	float: left;
+	height: 16px;
+	overflow: hidden;
+	margin: 3px 2px 0 2px;
+	text-indent: -9999px;
+	width: 16px;
+}
+
+table.datagrid tfoot span.first { background-position: 0 0; }
+table.datagrid tfoot span.first-off { background-position: 0 -16px; }
+table.datagrid tfoot span.prev { background-position: -16px 0; }
+table.datagrid tfoot span.prev-off { background-position: -16px -16px; }
+table.datagrid tfoot span.next { background-position: -32px 0; }
+table.datagrid tfoot span.next-off { background-position: -32px -16px; }
+table.datagrid tfoot span.last { background-position: -48px 0; }
+table.datagrid tfoot span.last-off { background-position: -48px -16px; }

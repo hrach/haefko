@@ -104,10 +104,10 @@ class Router
 
 				$query = array();				
 				if (!empty($this->urlParams))
-					$query = explode('/', $this->urlParams);
+					$query = explode('&', $this->urlParams);
 
 				foreach ($query as $param) {
-					list ($key, $val) = explode(':', $param);
+					list ($key, $val) = explode('=', $param);
 					$this->params[$key] = $val;
 				}
 			}
@@ -196,19 +196,19 @@ class Router
 			$url = $this->urlParams;
 			foreach ($params as $key => $val) {
 				if ($val === null) {
-					$url = preg_replace("#/?$key:(?:[^/]+)#", '', $url);
+					$url = preg_replace("#&?$key=(?:[^&]+)#", '', $url);
 				} else {
-					if (preg_match("#/?$key:([^/]+)#", $url, $matches))
-						$url = preg_replace("#/?$key:[^/]+#", "/$key:$val", $url);
+					if (preg_match("#&?$key=([^&]+)#", $url, $matches))
+						$url = preg_replace("#&?$key=[^&]+#", "&$key=$val", $url);
 					else
-						$url .= "/$key:$val";
+						$url .= "&$key=$val";
 				}
 			}
 
 			if (empty($url))
 				$url = $this->url;
 			else
-				$url = $this->url . '/?' . ltrim($url, '/');
+				$url = $this->url . '/?' . ltrim($url, '&');
 
 		} else {
 			$args = array_merge($this->vars, $args);
