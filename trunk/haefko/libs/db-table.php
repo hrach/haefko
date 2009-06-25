@@ -101,7 +101,7 @@ abstract class DbTable extends Object
 	{
 		$cols = $this->toSqlCols($cols);
 		$mod = self::$structure->getModificator($this->table, $col);
-		return Db::fetch("SELECT $cols FROM %c WHERE %c = $mod LIMIT 1", $this->table, $col, $this->primaryKeyValue);
+		return Db::fetch("SELECT $cols FROM %c WHERE %c = $mod LIMIT 1", $this->table, $col, $this->fields[$col]);
 	}
 
 
