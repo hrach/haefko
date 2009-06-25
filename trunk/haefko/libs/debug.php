@@ -28,9 +28,14 @@ class Debug
 	/** @var array */
 	private static $toolbar = array();
 
+	/** @var bool */
+	private static $active = false;
+
 
 	/**
 	 * Constructor
+	 * @throws  Exception
+	 * @return  void
 	 */
 	public function __construct()
 	{
@@ -40,10 +45,14 @@ class Debug
 
 	/**
 	 * Initializes debuging, registers handlers
+	 * @param   bool   active debuggin
 	 * @return  void
 	 */
-	public static function init()
+	public static function init($active = false)
 	{
+		if ($active)
+			self::$active = true;
+
 		self::$isFirebug = isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'FirePHP/');
 
 		set_error_handler('Debug::errorHandler');
@@ -65,6 +74,8 @@ class Debug
 	 */
 	public static function exceptionHandler(Exception $exception)
 	{
+		static $errMessage = "<strong>Uncatchable application exception!</strong>\n<br /><span style='font-size:small'>Please contact server administrator. The error has been logged.</span>";
+
 		if (class_exists('Application', false)) {
 
 			try {
@@ -76,8 +87,7 @@ class Debug
 
 				if (Config::read('core.debug') == 0) {
 					self::log($e->getMessage());
-					echo "<strong>Uncatchable application exception!</strong>\n<br /><span style='font-size:small'>"
-				       . "Please contact server administrator. The error has been logged.</span>";
+					echo $errMessage;
 				    exit(1);
 				}
 
@@ -86,12 +96,11 @@ class Debug
 
 		} else {
 		
-			if (class_exists('Config', false) && Config::read('core.debug') > 0) {
+			if ((class_exists('Config', false) && Config::read('core.debug') > 0) || self::$active) {
 				self::showException($exception);
 			} else {
 				self::log($exception->getMessage());
-				echo "<strong>Uncatchable application exception!</strong>\n<br /><span style='font-size:small'>"
-			       . "Please contact server administrator. The error has been logged.</span>";
+				echo $errMessage;
 			    exit(1);
 			}
 
@@ -141,7 +150,7 @@ class Debug
 		if (!($id & error_reporting()))
 			return;
 
-		if (class_exists('Config', false) && Config::read('core.debug') > 0)
+		if ((class_exists('Config', false) && Config::read('core.debug') > 0) || self::$active)
 			echo '<div class="error"><strong>' . self::getErrorLabel($id) . ":</strong> $message<br/>"
 			    ."<strong>$file</strong> on line $line</div><br />";
 		else

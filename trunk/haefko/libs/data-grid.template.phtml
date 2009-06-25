@@ -36,10 +36,7 @@
 	<td><?= $field ?></td>
 	<?php endforeach; ?>
 	<?php if ($grid->showActions): ?>
-	<td>
-		<?= $html->link($grid->url('update', $row['id']), '<span>Edit</span>', array('class' => 'edit'), false) ?>
-		<?= $html->link($grid->url('delete', $row['id']), '<span>Delete</span>', array('class' => 'delete'), false) ?>
-	</td>
+	<td><?= $grid->invokeActionsCallback($this, $row) ?></td>
 	<?php endif; ?>
 	</tr>
 	<?php endforeach; ?>

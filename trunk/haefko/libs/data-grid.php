@@ -26,12 +26,6 @@ class DataGrid extends Object
 	/** @var array - Columns, which you want to show */
 	public $columns;
 
-	/** @var bool - Show action column? */
-	public $showActions = true;
-
-	/** @var false|array - Column, which you want to order; false = nothing, empta array = all */
-	public $orderable = array();
-
 	/** @var string - DataGrid name */
 	protected $name;
 
@@ -49,6 +43,15 @@ class DataGrid extends Object
 
 	/** @var array - Order of columns (for sort) */
 	protected $order = array();
+
+	/** @var bool - Show action column? */
+	protected $showActions = true;
+
+	/** @var false|array - Column, which you want to order; false = nothing, empta array = all */
+	protected $orderable = array();
+
+	/** @var mixed */
+	protected $actionsCallback;
 
 
 	/**
@@ -148,6 +151,96 @@ class DataGrid extends Object
 
 
 	/**
+	 * Sets orderable columns 
+	 * @param   array|string    orderable columns
+	 * @return  DataGrid
+	 */
+	public function setOrderable($columns)
+	{
+		$this->orderable = (array) $columns;
+		return $this;
+	}
+
+
+	/**
+	 * Returns orderable columns
+	 * @return  array
+	 */
+	public function getOrderable()
+	{
+		return $this->orderable;
+	}
+
+
+	/**
+	 * Sets if datagrid show actions
+	 * @param   bool
+	 * @return  DataGrid
+	 */
+	public function setShowActions($show)
+	{
+		$this->showActions = (bool) $show;
+		return $this;
+	}
+
+
+	/**
+	 * Returns bool if datagrid shows actions
+	 * @return  bool
+	 */
+	public function getShowActions()
+	{
+		return $this->showActions;
+	}
+
+
+	/**
+	 * Sets actions' callback
+	 * @param   mixed     actions' callback
+	 * @throws  Exception
+	 * @return  DataGrid
+	 */
+	public function setActionsCallback($callback)
+	{
+		if (!is_callable($callback))
+			throw new Exception('Datagrid actions\' callback is not callable.');
+
+		$this->actionsCallback = $callback;
+		return $this;
+	}
+
+
+	/**
+	 * Returns actions' callback
+	 * @return  mixed
+	 */
+	public function getActionsCallback()
+	{
+		return $this->actionsCallback;
+	}
+
+
+	/**
+	 * Invokes actions callback
+	 * @param   Template
+	 * @param   mixed        result row
+	 * @return  string
+	 */
+	public function invokeActionsCallback(Template $template, $row)
+	{
+		$actions = array(
+			$template->getHelper('html')->link($this->url('update', $row['id']), '<span>Edit</span>', array('class' => 'edit'), false),
+			$template->getHelper('html')->link($this->url('delete', $row['id']), '<span>Delete</span>', array('class' => 'delete'), false),
+		);
+
+		if (!empty($this->actionsCallback))
+			$actions = call_user_func($this->actionsCallback, $actions, $template, $row);
+
+		return implode('', $actions);
+	}
+
+
+	/**
 	 * Creates link
 	 * @param   string  action
 	 * @param   mixed   param
@@ -165,7 +258,12 @@ class DataGrid extends Object
 			));
 	}
 
-	
+
+	/**
+	 * Creates sorting url for column
+	 * @param   string   column name
+	 * @return  string
+	 */
 	public function columnUrl($column)
 	{
 		return Controller::get()->url('', array(
