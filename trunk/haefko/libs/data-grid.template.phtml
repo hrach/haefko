@@ -60,7 +60,9 @@
 			if ($grid->getVar('order') != null)
 				echo '<input type="hidden" name="' . $grid->name . '-order" value="' . $grid->getVar('order') . '" />';
 
-			echo 'Page <input type="text" name="' . $grid->name . '-page" value="' . $grid->getVar('page') . '" class="text" /> of ' . $paginator->pages;
+			$page = $grid->getVar('page');
+			$page = empty($page) ? 1 : $page;
+			echo 'Page <input type="text" name="' . $grid->name . '-page" value="' . $page . '" class="text" /> of ' . $paginator->pages;
 			echo '</form>';
 
 			if (!$paginator->isLast()) {
