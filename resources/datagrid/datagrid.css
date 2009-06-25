@@ -52,7 +52,7 @@ table.datagrid thead a.asc, table.datagrid thead a:hover {
 }
 
 table.datagrid thead a.desc, table.datagrid thead a.asc:hover {
-	background: url('imgs/dg-desc.gif') no-repeat right center;
+	background: url('imgs/dg-desc.png') no-repeat right center;
 }
 
 table.datagrid thead a.desc:hover {
