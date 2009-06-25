@@ -41,6 +41,38 @@
 	</tr>
 	<?php endforeach; ?>
 </tbody>
-</table>
+<tfoot>
+	<tr>
+	<td colspan="<?= count($grid->columns) + ($grid->showActions ? 1 : 0) ?>">
+		<div class="pagination">
+		<?php
+			$paginator = $grid->query->paginator;
 
-<?= $grid->query->paginator->render('') ?>
+			if (!$paginator->isFirst()) {
+				echo $paginator->link('', 1, '<span class="first">First</span>');
+				echo $paginator->link('', $paginator->page - 1, '<span class="prev">Previous</span>');
+			} else {
+				echo '<span class="first-off">First</span>';
+				echo '<span class="prev-off">Previous</span>';
+			}
+
+			echo '<form>';
+			if ($grid->getVar('order') != null)
+				echo '<input type="hidden" name="' . $grid->name . '-order" value="' . $grid->getVar('order') . '" />';
+
+			echo 'Page <input type="text" name="' . $grid->name . '-page" value="' . $grid->getVar('page') . '" class="text" /> of ' . $paginator->pages;
+			echo '</form>';
+
+			if (!$paginator->isLast()) {
+				echo $paginator->link('', $paginator->page + 1, '<span class="next">Next</span>');
+				echo $paginator->link('', $paginator->pages, '<span class="last">Last</span>');
+			} else {
+				echo '<span class="next-off">Next</span>';
+				echo '<span class="last-off">Last</span>';
+			}
+		?>
+		</div>
+	</td>
+	</tr>
+</tfoot>
+</table>

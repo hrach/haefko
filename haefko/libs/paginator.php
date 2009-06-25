@@ -215,7 +215,7 @@ class Paginator extends Object
 	 * @param   int       text
 	 * @return  string
 	 */
-	private function link($mask, $i, $text = null)
+	public function link($mask, $i, $text = null)
 	{
 		if (empty($text))
 			$text = $i;

@@ -66,6 +66,12 @@ class CrudController extends AppController
 
 		$grid = $this->view->grid = $this->getDataGrid();
 		$grid->setQuery($query);
+
+		try {
+			$grid->getData(true);
+		} catch (Exception $e) {
+			$this->error();
+		}
 	}
 
 
