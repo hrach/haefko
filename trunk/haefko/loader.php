@@ -13,6 +13,8 @@
  */
 
 
+ob_start();
+$startTime = microtime(true);
 require_once dirname(__FILE__) . '/libs/loaders/haefko-loader.php';
 
 

@@ -86,30 +86,24 @@ class Router
 	/**
 	 * Connects to url
 	 * @param   string    routing expression
-	 * @param   array     defaults
-	 * @param   bool      base route?
+	 * @param   array     default routing settings
+	 * @param   bool      allow undefined args?
+	 * @param   bool      allow params?
 	 * @return  bool
 	 */
-	public function connect($route, $defaults = array(), $baseRoute = false, $queryParams = false)
+	public function connect($route, $defaults = array(), $allowArgs = false, $allowParams = false)
 	{
 		# route only once
 		if ($this->routed)
 			return false;
 
-		if ($queryParams) {
+		if ($allowParams) {
 			$qm = strpos($this->url, '?');
 			if ($qm !== false) {
 				$this->urlParams = substr($this->url, $qm + 1);
 				$this->url = rtrim(substr($this->url, 0, $qm), '/');
 
-				$query = array();				
-				if (!empty($this->urlParams))
-					$query = explode('&', $this->urlParams);
-
-				foreach ($query as $param) {
-					list ($key, $val) = explode('=', $param);
-					$this->params[$key] = $val;
-				}
+				parse_str($this->urlParams, $this->params);
 			}
 		}
 
@@ -127,7 +121,7 @@ class Router
 			preg_match_all('#\<\:(\w+)( [^>]+)?\>#', $route, $matches);
 			foreach ($matches[2] as $i => $match) {
 				if (empty($match))
-					$match = $baseRoute ? '[^/]+' : '[^/]+?';
+					$match = $allowArgs ? '[^/]+' : '[^/]+?';
 
 				# escape other text
 				$newRoute .= preg_quote($parts[$i], '#') . '(' . trim($match) . ')';
@@ -141,7 +135,7 @@ class Router
 
 
 		# match url and routing
-		if ($baseRoute === false) {
+		if (!$allowArgs) {
 			if (!preg_match("#^$newRoute$#", $this->url, $m))
 				return false;
 
@@ -162,7 +156,6 @@ class Router
 
 			$lastChar = end($m);
 			$lastChar = strlen($lastChar[0]) + $lastChar[1];
-
 			if (strlen($this->url) > $lastChar) {
 				$args = explode('/', substr($this->url, $lastChar + 1));
 				foreach ($args as $i => $arg)
@@ -198,7 +191,7 @@ class Router
 				if ($val === null) {
 					$url = preg_replace("#&?$key=(?:[^&]+)#", '', $url);
 				} else {
-					if (preg_match("#&?$key=([^&]+)#", $url, $matches))
+					if (preg_match("#&$key=([^&]+)#", '&' . $url, $matches))
 						$url = preg_replace("#&?$key=[^&]+#", "&$key=$val", $url);
 					else
 						$url .= "&$key=$val";
