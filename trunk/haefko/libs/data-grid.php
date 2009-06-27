@@ -242,7 +242,7 @@ class DataGrid extends Object
 		);
 
 		if (!empty($this->actionsCallback))
-			$actions = call_user_func($this->actionsCallback, $actions, $template, $row);
+			$actions = call_user_func($this->actionsCallback, $actions, $this, $template, $row);
 
 		return implode('', $actions);
 	}
@@ -268,15 +268,14 @@ class DataGrid extends Object
 
 
 	/**
-	 * Creates sorting url for column
-	 * @param   string   column name
+	 * Creates url changing params
+	 * @param   string   param name
+	 * @param   string   param value
 	 * @return  string
 	 */
-	public function columnUrl($column)
+	public function paramUrl($var, $value)
 	{
-		return Controller::get()->url('', array(
-			$this->name . '-order' => $this->getOrderState($column))
-		);
+		return Controller::get()->url('', array($this->name . '-' . $var => $value));
 	}
 
 
@@ -337,25 +336,46 @@ class DataGrid extends Object
 
 
 	/**
-	 * Loads data for datagrid
-	 * @param   bool        throws exception on empty result?
-	 * @throws  Exception
-	 * @return  DataGrid
+	 * Loads data for datagrid and return true if there are some data
+	 * @return  bool
 	 */
-	public function getData($throwException = true)
+	public function getData()
 	{
 		$page = $this->getVar('page');
 		$order = $this->getSqlOrder();
 
 		$this->query->setOrder($order);
 		$this->query->setPagination($page, $this->limit);
-		$this->query->paginator->variableName = $this->name . '-page';
 		$this->query->execute();
 
-		if ($throwException && $this->query->count() == 0)
-			throw new Exception('Empty result.');
+		return $this->query->count() > 0;
+	}
 
-		return $this;
+
+	/**
+	 * Returns url expresison for table order by $column
+	 * @param   string  column
+	 * @return  string
+	 */
+	public function getOrderState($column)
+	{
+		$order = $this->order;
+
+		if (!isset($order[$column]['state']))
+			$order[$column]['state'] = 'a';
+		elseif ($order[$column]['state'] == 'a')
+			$order[$column]['state'] = 'd';
+		else
+			unset($order[$column]);
+
+		$res = array();
+		foreach ($order as $key => $val)
+			$res[] = $val['state'] . $key;
+
+		if(empty($res))
+			return null;
+		else
+			return implode('|', $res);
 	}
 
 
@@ -395,33 +415,6 @@ class DataGrid extends Object
 		}	
 		
 		return implode(', ', $sql);
-	}
-
-
-	/**
-	 * Returns url expresison for table order by $column
-	 * @param   string  column
-	 * @return  string
-	 */
-	protected function getOrderState($column)
-	{
-		$order = $this->order;
-
-		if (!isset($order[$column]['state']))
-			$order[$column]['state'] = 'a';
-		elseif ($order[$column]['state'] == 'a')
-			$order[$column]['state'] = 'd';
-		else
-			unset($order[$column]);
-
-		$res = array();
-		foreach ($order as $key => $val)
-			$res[] = $val['state'] . $key;
-
-		if(empty($res))
-			return null;
-		else
-			return implode('|', $res);
 	}
 
 

@@ -219,6 +219,57 @@ class HtmlHelper extends Object
 
 
 	/**
+	 * Renders paginator
+	 * @param   Paginator
+	 * @param   string       url param name
+	 * @param   int          page aroung the current
+	 * @param   string       link text for previous page
+	 * @param   string       link text for next page
+	 * @return  string
+	 */
+	public function paginator(Paginator $paginator, $urlVarName = 'page', $round = 2, $prev = 'Previous', $next = 'Next')
+	{
+		$pages = array(1 => true, 2 => true);
+		for ($i = $paginator->page - $round, $to = $paginator->page + $round; $i <= $to; $i++)
+			$pages[max(min($i, $paginator->pages), 1)] = true;
+
+		$pages[$paginator->pages - 1] = true;
+		$pages[$paginator->pages] = true;
+
+		$_prev = 0;
+		$pagination = array();
+		foreach (array_keys($pages) as $page) {
+			if ($_prev != $page - 1)
+				$pagination[] = '-';
+
+			$pagination[] = $_prev = $page;
+		}
+
+
+		$render = '<div class="pagination">';
+		if ($paginator->hasPrev())
+			$render .= $this->link(Controller::get()->url('', array($urlVarName => $paginator->page - 1)), '&lqauo; ' . $prev, null, false);
+		else
+			$render .= '<span class="button">&lqauo; ' . $prev . '</span>';
+
+		foreach ($pagination as $page) {
+			if (is_int($page))
+				$render .= $this->link(Controller::get()->url('', array($urlVarName => $page)), $page, $page == $paginator->page ? array('class' => 'current') : array());
+			else
+				$render .= '<span>&hellip;</span>';
+		}
+
+		if ($paginator->hasNext())
+			$render .= $this->link(Controller::get()->url('', array($urlVarName => $paginator->page + 1)), $next . ' &rqauo;', null, false);
+		else
+			$render .= '<span class="button">' . $next . ' &raquo;</span>';
+
+		$render .= '</div>';
+		return $render;
+	}
+
+
+	/**
 	 * Returns parsed and sanitized URL
 	 * @param   string  url
 	 * @return  string
@@ -227,6 +278,7 @@ class HtmlHelper extends Object
 	{
 		if (substr($url, 0, 4) == 'www.')
 			$url = "http://$url";
+
 		if (strpos($url, '://') === false)
 			$url = call_user_func(array(Controller::get(), 'url'), $url);
 
