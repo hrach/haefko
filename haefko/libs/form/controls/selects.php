@@ -64,8 +64,8 @@ class FormSelectControl extends FormControl
 	{
 		$options = Html::el();
 
-		if ($this->defaultValue != '') {
-			$options->addHtml($this->getOption('', $this->defaultValue));
+		if ($this->emptyValue != '') {
+			$options->addHtml($this->getOption('', $this->emptyValue));
 		}
 
 		foreach ($this->options as $key => $val) {

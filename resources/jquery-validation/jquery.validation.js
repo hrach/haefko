@@ -89,7 +89,7 @@ $.fn.validate = function(rules, conditions) {
 		// conditions
 		for (y in conditions) {
 			cond = conditions[y];
-			valid = isValid(cond['rule'], getValue(cond['control'], cond['default']), cond['arg']);
+			valid = isValid(cond['rule'], getValue(cond['control'], cond['empty']), cond['arg']);
 			valid = cond['negative'] ? !valid : valid;
 			if (valid)
 				rules = rules.concat(cond['rules']);
@@ -102,7 +102,7 @@ $.fn.validate = function(rules, conditions) {
 				continue;
 
 			removeError(row['control']);
-			valid = isValid(row['rule'], getValue(row['control'], row['default']), row['arg'], row);
+			valid = isValid(row['rule'], getValue(row['control'], row['empty']), row['arg'], row);
 			if (valid == null)
 				continue;
 

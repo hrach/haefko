@@ -94,9 +94,9 @@ class FormJqueryJsValidator extends Object implements IFormJsValidator
 		if ($rule->negative)
 			$r['negative'] = $rule->negative;
 
-		$default = $rule->control->getDefaultValue();
-		if (!empty($default))
-			$r['default'] = $default;
+		$empty = $rule->control->getEmptyValue();
+		if (!empty($empty))
+			$r['empty'] = $empty;
 
 			
 			
