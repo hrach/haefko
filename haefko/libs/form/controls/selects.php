@@ -43,8 +43,7 @@ class FormSelectControl extends FormControl
 
 	protected function getHtmlControl()
 	{
-		return parent::getHtmlControl()->setTag('select')
-		                               ->onfocus("this.onmousewheel=function(){return false}");
+		return parent::getHtmlControl()->setTag('select')->onfocus("this.onmousewheel=function(){return false}");
 	}
 
 	protected function getControl()

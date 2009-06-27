@@ -32,7 +32,7 @@ class HtmlHelper extends Object
 		$el = Html::el('a')->setAttrs($attrs)
 		                   ->href($url);
 
-		if ($escape == true)
+		if ($escape)
 			$el->setText($text === null ? $url : $text);
 		else
 			$el->setHtml($text === null ? $url : $text);
@@ -69,7 +69,7 @@ class HtmlHelper extends Object
 
 		$button = Html::el('button');
 		$button->type('submit');
-		if ($escape == true)
+		if ($escape)
 			$button->addText($text);
 		else
 			$button->addHtml($text);
@@ -248,9 +248,9 @@ class HtmlHelper extends Object
 
 		$render = '<div class="pagination">';
 		if ($paginator->hasPrev())
-			$render .= $this->link(Controller::get()->url('', array($urlVarName => $paginator->page - 1)), '&lqauo; ' . $prev, null, false);
+			$render .= $this->link(Controller::get()->url('', array($urlVarName => $paginator->page - 1)), '&laquo; ' . $prev, null, false);
 		else
-			$render .= '<span class="button">&lqauo; ' . $prev . '</span>';
+			$render .= '<span class="button">&laquo; ' . $prev . '</span>';
 
 		foreach ($pagination as $page) {
 			if (is_int($page))
@@ -260,7 +260,7 @@ class HtmlHelper extends Object
 		}
 
 		if ($paginator->hasNext())
-			$render .= $this->link(Controller::get()->url('', array($urlVarName => $paginator->page + 1)), $next . ' &rqauo;', null, false);
+			$render .= $this->link(Controller::get()->url('', array($urlVarName => $paginator->page + 1)), $next . ' &raquo;', null, false);
 		else
 			$render .= '<span class="button">' . $next . ' &raquo;</span>';
 
