@@ -143,12 +143,12 @@ class CrudController extends AppController
 	 */
 	public function crudUrl($action, $arg = null)
 	{
-		if ($arg == null)
+		if (empty($arg))
 			$link = $this->link;
 		else
 			$link = $this->link . '/' . $arg;
 
-		return $this->url($this->link . '/' . $arg, null, array('action' => $action));
+		return $this->url($link, null, array('action' => $action));
 	}
 
 

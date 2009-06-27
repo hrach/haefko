@@ -18,7 +18,7 @@
 		<?php foreach ($grid->columns as $column): ?>
 		<th>
 			<?php if (in_array($column, $grid->orderable) || empty($grid->orderable)): ?>
-				<?= $html->link($grid->paramUrl($column, $grid->getOrderState($column)),
+				<?= $html->link($grid->paramUrl('order', $grid->getOrderState($column)),
 				                $grid->columnLabel($column) . $grid->columnStateNum($column),
 				                $grid->columnStateClass($column), false) ?>
 			<?php else: ?>
