@@ -40,7 +40,7 @@ abstract class FormControl extends Object
 	protected $value;
 
 	/** @var mixed */
-	protected $defaultValue;
+	protected $emptyValue;
 
 	/** @var array */
 	protected $filters = array();
@@ -329,12 +329,12 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Returns default value
+	 * Returns empty value
 	 * @return  mixed
 	 */
-	public function getDefaultValue()
+	public function getEmptyValue()
 	{
-		return $this->defaultValue;
+		return $this->emptyValue;
 	}
 
 
@@ -359,13 +359,13 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Sets default value
+	 * Sets empty value
 	 * @param   mixed  empty value
 	 * @return  FormControl  $this
 	 */
-	public function setDefaultValue($value)
+	public function setEmptyValue($value)
 	{
-		$this->defaultValue = $value;
+		$this->emptyValue = $value;
 		return $this;
 	}
 
@@ -391,13 +391,13 @@ abstract class FormControl extends Object
 		if ($this->value === '0' || !empty($this->value))
 			return $this->value;
 		else
-			return $this->defaultValue;
+			return $this->emptyValue;
 	}
 
 
 
 	/**
-	 * Filters value by filters and null them if value is equall to defaultValue
+	 * Filters value by filters and null them if value is equall to emptyValue
 	 * @return  void
 	 */
 	protected function filter($value)
@@ -405,7 +405,7 @@ abstract class FormControl extends Object
 		foreach ($this->filters as $filter)
 			$value = (string) call_user_func($filter, $value);
 
-		if ($this->defaultValue == $value)
+		if ($this->emptyValue == $value)
 			$value = '';
 
 		return $value;
