@@ -13,18 +13,12 @@
  */
 
 
-ob_start();
-$startTime = microtime(true);
-
-
-require_once dirname(__FILE__) . '/loader.php';
 require_once dirname(__FILE__) . '/libs/tools.php';
 require_once dirname(__FILE__) . '/libs/object.php';
 require_once dirname(__FILE__) . '/libs/http.php';
 require_once dirname(__FILE__) . '/libs/debug.php';
 require_once dirname(__FILE__) . '/libs/cache.php';
 require_once dirname(__FILE__) . '/libs/config.php';
-require_once dirname(__FILE__) . '/application/libs/exceptions.php';
 require_once dirname(__FILE__) . '/application/libs/inflector.php';
 require_once dirname(__FILE__) . '/application/libs/router.php';
 
@@ -365,6 +359,72 @@ class Application extends Object
 		} catch (ApplicationException $e) {
 			eval('class AppController extends Controller {}');
 		}
+	}
+
+
+}
+
+
+
+class ApplicationException extends Exception
+{
+
+
+	/** @var string */
+	public $error;
+
+	/** @var mixed */
+	public $variable;
+
+
+	/**
+	 * Constructor
+	 * @param   string  error type
+	 * @param   string  view variable
+	 * @return  void
+	 */
+	public function __construct($error, $variable = null)
+	{
+		static $errors = array('routing', 'missing-controller', 'missing-method', 'missing-view', 'missing-helper', 'missing-file');
+		if (!in_array($error, $errors))
+			throw new Exception("Unsupported ApplicationException type '$error'.");
+
+		$this->error = $error;
+		$this->variable = $variable;
+		parent::__construct("$error: $variable");
+	}
+
+
+}
+
+
+class ApplicationError extends Exception
+{
+
+
+	/** @var string ErrorView */
+	public $view;
+
+
+	/**
+	 * Constructor
+	 * @param   string    error view
+	 * @param   string    is view debugable?
+	 * @param   int|null  error code
+	 * @return  void
+	 */
+	public function __construct($view, $debug, $errorCode = 404)
+	{
+		Application::$error = true;
+
+		if ($debug === true && Config::read('Core.debug') == 0)
+			$view = '404';
+
+		if ($errorCode !== null)
+			Http::headerError($errorCode);
+
+		$this->view = $view;
+		parent::__construct("Application error: $view.");
 	}
 
 
