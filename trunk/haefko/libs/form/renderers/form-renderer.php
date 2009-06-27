@@ -41,7 +41,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	 */
 	public function __construct()
 	{
-		$js = 'jqeury';
+		$js = 'jquery';
 		if (class_exists('Config', false))
 			$js = Config::read('Forms.javascript.validator', 'jquery');
 

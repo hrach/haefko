@@ -15,20 +15,37 @@
 class FormCheckboxControl extends FormInputControl
 {
 
+
+	/**
+	 * Set the control value
+	 * @param   mixed   new value
+	 * @return  bool
+	 */
+	public function setValue($value)
+	{
+		$this->value = (bool) $value;
+	}
+
+
+	/**
+	 * Returns Html object of form control
+	 * @return  Html
+	 */
 	protected function getHtmlControl()
 	{
 		return parent::getHtmlControl()->type('checkbox')->class('checkbox');
 	}
 
-	public function setValue($value)
-	{
-		$this->value = (bool) $value;
-	}
-	
+
+	/**
+	 * Returns html control
+	 * @return  Html
+	 */
 	protected function getControl()
 	{
 		return parent::getControl()->value(null)->checked($this->value);
 	}
+
 
 }
 
@@ -36,15 +53,48 @@ class FormCheckboxControl extends FormInputControl
 class FormMultiCheckboxControl extends FormInputControl
 {
 
+
+	/** @var string - Control separator */
 	public $listSeparator = '<br />';
+
+	/** @var array */
 	protected $options = array();
 
+
+	/**
+	 * Constructor
+	 * @param   Form     form
+	 * @param   string   control name
+	 * @param   mixed    label (null = from name, false = no label)
+	 * @return  void
+	 */
 	public function __construct($form, $name, $options, $label)
 	{
 		parent::__construct($form, $name, $label);
 		$this->options = $options;
 	}
 
+
+	/**
+	 * Set the control value
+	 * @param   mixed   new value
+	 * @return  bool
+	 */
+	public function setValue($value)
+	{
+		foreach ((array) $value as $key) {
+			if (!isset($this->options[$key]))
+				return false;
+		}
+
+		$this->value = $value;
+	}
+
+
+	/**
+	 * Returns Html object of form control
+	 * @return  Html
+	 */
 	protected function getHtmlControl()
 	{
 		$control = parent::getHtmlControl()->type('checkbox')->class('checkbox');
@@ -52,6 +102,11 @@ class FormMultiCheckboxControl extends FormInputControl
 		return $control;
 	}
 
+
+	/**
+	 * Returns html control
+	 * @return  Html
+	 */
 	public function getControl()
 	{
 		$label = Html::el('label');

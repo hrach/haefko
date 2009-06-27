@@ -15,9 +15,21 @@
 class FormSelectControl extends FormControl
 {
 
+
+	/** @var array */
 	protected $options = array();
+
+	/** @var array - Options without tree structure */
 	protected $values = array();
 
+
+	/**
+	 * Constructor
+	 * @param   Form     form
+	 * @param   string   control name
+	 * @param   mixed    label (null = from name, false = no label)
+	 * @return  void
+	 */
 	public function __construct($form, $name, $options, $label = null)
 	{
 		$this->options = $options;
@@ -33,6 +45,12 @@ class FormSelectControl extends FormControl
 		parent::__construct($form, $name, $label);
 	}
 
+
+	/**
+	 * Set the control value
+	 * @param   mixed   new value
+	 * @return  bool
+	 */
 	public function setValue($value)
 	{
 		if (!$this->isAllowedValue($value))
@@ -41,16 +59,32 @@ class FormSelectControl extends FormControl
 		parent::setValue($value);
 	}
 
+
+	/**
+	 * Returns Html object of form control
+	 * @return  Html
+	 */
 	protected function getHtmlControl()
 	{
 		return parent::getHtmlControl()->setTag('select')->onfocus("this.onmousewheel=function(){return false}");
 	}
 
+
+	/**
+	 * Returns html control
+	 * @return  Html
+	 */
 	protected function getControl()
 	{
 		return parent::getControl()->setHtml($this->getOptions());
 	}
 
+
+	/**
+	 * Returns treu if is the value allowed
+	 * @param   string   value
+	 * @return  bool
+	 */
 	protected function isAllowedValue($value)
 	{
 		if (!in_array($value, $this->values))
@@ -59,6 +93,11 @@ class FormSelectControl extends FormControl
 		return true;
 	}
 
+
+	/**
+	 * Returns html options tags
+	 * @return  string
+	 */
 	protected function getOptions()
 	{
 		$options = Html::el();
@@ -85,6 +124,13 @@ class FormSelectControl extends FormControl
 		return $options;
 	}
 
+
+	/**
+	 * Returns option control
+	 * @param   string    control name
+	 * @param   string    control value
+	 * @return  Html
+	 */
 	protected function getOption($name, $value)
 	{
 		return Html::el('option', $value, array(
@@ -100,13 +146,12 @@ class FormSelectControl extends FormControl
 class FormMultipleSelectControl extends FormSelectControl
 {
 
-	protected function getHtmlControl()
-	{
-		$control = parent::getHtmlControl()->multiple(true);
-		$control->name .= '[]';
-		return $control;
-	}
 
+	/**
+	 * Set the control value
+	 * @param   mixed   new value
+	 * @return  bool
+	 */
 	public function setValue($value)
 	{
 		foreach ((array) $value as $key) {
@@ -117,6 +162,25 @@ class FormMultipleSelectControl extends FormSelectControl
 		$this->value = $value;
 	}
 
+
+	/**
+	 * Returns Html object of form control
+	 * @return  Html
+	 */
+	protected function getHtmlControl()
+	{
+		$control = parent::getHtmlControl()->multiple(true);
+		$control->name .= '[]';
+		return $control;
+	}
+
+
+	/**
+	 * Returns option control
+	 * @param   string    control name
+	 * @param   string    control value
+	 * @return  Html
+	 */
 	protected function getOption($name, $value)
 	{
 		return Html::el('option', $value, array(
@@ -124,5 +188,6 @@ class FormMultipleSelectControl extends FormSelectControl
 			'selected' => in_array($name, (array) $this->getHtmlValue())
 		));
 	}
+
 
 }

@@ -20,6 +20,13 @@ require_once dirname(__FILE__) . '/file.php';
 require_once dirname(__FILE__) . '/buttons.php';
 
 
+/**
+ * Implements the basic functionality of form control
+ *
+ * @author      Jan Skrasek
+ * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
+ * @package     Haefko_Forms
+ */
 abstract class FormControl extends Object
 {
 
@@ -89,6 +96,11 @@ abstract class FormControl extends Object
 		$this->htmlErrorLabel   = $this->getHtmlErrorLabel();
 	}
 
+
+	/**
+	 * Returns Html object of form control
+	 * @return  Html
+	 */
 	protected function getHtmlControl()
 	{
 		return Html::el(null, null, array(
@@ -97,6 +109,12 @@ abstract class FormControl extends Object
 		));
 	}
 
+
+	/**
+	 * Returns Html object of control label
+	 * @param   Html|string|false   $label
+	 * @return  Html|false
+	 */
 	protected function getHtmlLabel($label)
 	{
 		if ($label === false)
@@ -110,7 +128,12 @@ abstract class FormControl extends Object
 
 		return $label;
 	}
-	
+
+
+	/**
+	 * Returns Html object container of control error
+	 * @return  Html
+	 */
 	protected function getHtmlError()
 	{
 		return Html::el('div', null, array(
@@ -118,7 +141,12 @@ abstract class FormControl extends Object
 			'class' => 'control-error'
 		));
 	}
-	
+
+
+	/**
+	 * Returns Html object of control error
+	 * @return  Html
+	 */
 	protected function getHtmlErrorLabel()
 	{
 		return Html::el('label', null, array(
@@ -214,6 +242,11 @@ abstract class FormControl extends Object
 		return $this->isRendered;
 	}
 
+
+	/**
+	 * Returns Html object of error label
+	 * @return  Html
+	 */
 	public function getErrorLabel()
 	{
 		/** @var Html */
@@ -221,6 +254,7 @@ abstract class FormControl extends Object
 		$label->setText($this->error);
 		return $label;
 	}
+
 
 	/**
 	 * Renders label tag
@@ -241,6 +275,11 @@ abstract class FormControl extends Object
 		return $this->getControl();
 	}
 
+
+	/**
+	 * Returns html control error block
+	 * @return  Html
+	 */
 	public function error()
 	{
 		if ($this->hasError()) {
@@ -250,6 +289,7 @@ abstract class FormControl extends Object
 		
 		return $this->htmlError;
 	}
+
 
 	/**
 	 * Sets error
@@ -383,7 +423,7 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Returns default value for html tag
+	 * Returns value for html tag
 	 * @return  string
 	 */
 	protected function getHtmlValue()
@@ -418,14 +458,25 @@ abstract class FormControl extends Object
 abstract class FormInputControl extends FormControl
 {
 
+
+	/**
+	 * Returns Html object of form control
+	 * @return  Html
+	 */
 	protected function getHtmlControl()
 	{
 		return parent::getHtmlControl()->setTag('input');
 	}
 
+
+	/**
+	 * Returns html control
+	 * @return  Html
+	 */
 	protected function getControl()
 	{
 		return parent::getControl()->value($this->getHtmlValue());
 	}
+
 
 }

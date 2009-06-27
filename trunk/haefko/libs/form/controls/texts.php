@@ -12,19 +12,31 @@
  */
 
 
+ 
 class FormTextareaControl extends FormControl
 {
 
+
+	/**
+	 * Returns Html object of form control
+	 * @return  Html
+	 */
 	protected function getHtmlControl()
 	{
 		$control = parent::getHtmlControl();
 		return $control->setTag('textarea');
 	}
 
+
+	/**
+	 * Returns html control
+	 * @return  Html
+	 */
 	protected function getControl()
 	{
 		return parent::getControl()->setHtml($this->getHtmlValue());
 	}
+
 
 }
 
@@ -32,6 +44,24 @@ class FormTextareaControl extends FormControl
 class FormHiddenControl extends FormInputControl
 {
 
+
+	/**
+	 * Constructor
+	 * @param   Form     form
+	 * @param   string   control name
+	 * @param   mixed    label (null = from name, false = no label)
+	 * @return  void
+	 */
+	public function __construct(Form $form, $name)
+	{
+		parent::__construct($form, $name, false);
+	}
+
+
+	/**
+	 * Returns Html object of form control
+	 * @return  Html
+	 */
 	protected function getHtmlControl()
 	{
 		$control = parent::getHtmlControl();
@@ -39,19 +69,21 @@ class FormHiddenControl extends FormInputControl
 	}
 
 
-	public function __construct(Form $form, $name)
-	{
-		parent::__construct($form, $name, false);
-	}
-
 }
 
 
 class FormTextControl extends FormInputControl
 {
 
+
+	/** @var array */
 	protected $filters = array('trim');
 
+
+	/**
+	 * Returns Html object of form control
+	 * @return  Html
+	 */
 	protected function getHtmlControl()
 	{
 		$control = parent::getHtmlControl();
@@ -60,9 +92,16 @@ class FormTextControl extends FormInputControl
 
 }
 
+
 class FormDatepickerControl extends FormInputControl
 {
 
+
+	/**
+	 * Set the control value
+	 * @param   mixed   new value
+	 * @return  bool
+	 */
 	public function setValue($value)
 	{
 		if (!empty($value))
@@ -70,8 +109,12 @@ class FormDatepickerControl extends FormInputControl
 
 		parent::setValue($value);
 	}
-	
-	
+
+
+	/**
+	 * Returns value for html tag
+	 * @return  string
+	 */
 	public function getHtmlValue()
 	{
 		$value = parent::getHtmlValue();
@@ -80,6 +123,11 @@ class FormDatepickerControl extends FormInputControl
 		return $value;		
 	}
 
+
+	/**
+	 * Returns Html object of form control
+	 * @return  Html
+	 */
 	protected function getHtmlControl()
 	{
 		$control = parent::getHtmlControl();
@@ -88,9 +136,15 @@ class FormDatepickerControl extends FormInputControl
 
 }
 
+
 class FormPasswordControl extends FormInputControl
 {
-	
+
+
+	/**
+	 * Returns Html object of form control
+	 * @return  Html
+	 */
 	protected function getHtmlControl()
 	{
 		$control = parent::getHtmlControl();
@@ -98,9 +152,14 @@ class FormPasswordControl extends FormInputControl
 	}
 
 
+	/**
+	 * Returns value for html tag
+	 * @return  string
+	 */
 	protected function getHtmlValue()
 	{
 		return '';
 	}
+
 
 }

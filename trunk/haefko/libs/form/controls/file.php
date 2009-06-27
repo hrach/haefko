@@ -15,8 +15,17 @@
 class FormFileControl extends FormInputControl
 {
 
-	protected $htmlType = 'file';
-	protected $htmlTypeClass = 'file';
+
+	/**
+	 * Returns Html object of form control
+	 * @return  Html
+	 */
+	protected function getHtmlControl()
+	{
+		$control = parent::getHtmlControl();
+		return $control->type('file')->class('file');
+	}
+
 
 }
 
@@ -51,14 +60,18 @@ class FormUploadedFile
 	 */
 	public function __construct(FormControl $control, $data)
 	{
-		$this->state = $data['error'][$control->name];
-		$this->name = $data['name'][$control->name];
-		$this->temp = $data['tmp_name'][$control->name];
-		$this->type = $data['type'][$control->name];
-		$this->size = $data['size'][$control->name];
+		$this->state = $data['error'];
+		$this->name = $data['name'];
+		$this->temp = $data['tmp_name'];
+		$this->type = $data['type'];
+		$this->size = $data['size'];
 	}
 
 
+	/**
+	 * Retursn true if is the file successfully uploaded
+	 * @return  bool
+	 */
 	public function ok()
 	{
 		return $this->state == UPLOAD_ERR_OK;
@@ -92,6 +105,10 @@ class FormUploadedFile
 	}
 
 
+	/**
+	 * Retursn file size
+	 * @return  string
+	 */
 	public function getSize()
 	{
 		static $s = array('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB');
