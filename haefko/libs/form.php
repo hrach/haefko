@@ -35,9 +35,6 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	/** @var string - Form name */
 	public $name;
 
-	/** @var array - Rules without control */
-	public $rules = array();
-
 	/** @var Html */
 	private $form;
 
@@ -46,9 +43,6 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/** @var array */
 	private $controls = array();
-
-	/** @var array */
-	private $errors = array();
 
 	/** @var bool - Is form CSRF protected? */
 	private $protected = false;
@@ -101,24 +95,21 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	public function addProtection($errorMessage = 'Security token did not match - possible CSRF attack!')
 	{
 		if (!class_exists('Session'))
-			throw new Exception('Form protection works only with Session class.');
+			throw new Exception('Form protection needs loaded Session class.');
 
-
-		# control
 		$this->protected = true;
 		$this->controls[self::$SECURITY_CONTROL] = new FormHiddenControl($this, self::$SECURITY_CONTROL);
 
-
-		if (Session::exists('CSRF.protection.' . $this->name)) {
-			$hash = Session::read('CSRF.protection.' . $this->name);
+		$key = 'CSRF.protection.' . $this->name;
+		if (Session::exists($key)) {
+			$hash = Session::read($key);
 		} else {
 			$hash = md5(Session::getName());
 			Session::write($key, $hash);
 		}
 
-
 		$this->controls[self::$SECURITY_CONTROL]->setValue($hash);
-		$this->rules[] = new Rule($this->controls[self::$SECURITY_CONTROL], Rule::EQUAL, $hash, $message);
+		$this->controls[self::$SECURITY_CONTROL]->addRule(Rule::EQUAL, $hash, $errorMessage);
 		return $this;
 	}
 
@@ -339,7 +330,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 		$render = '';
 		foreach ($this->controls as /** @var FormControl */$control) {
 			if ($control instanceof FormHiddenControl && !$control->isRendered())
-				$render .= $control->control();
+				$render .= $control->control() . $control->error();
 		}
 
 		$render .= $this->form->endTag();
@@ -374,11 +365,6 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	public function isValid()
 	{
 		$valid = true;
-		foreach ($this->rules as $rule) {
-			if (!$rule->isValid())
-				$valid = false;
-		}
-
 		foreach ($this->controls as $control) {
 			if (!$control->isValid())
 				$valid = false;
