@@ -12,9 +12,6 @@
  */
 
 
-require_once dirname(__FILE__) . '/fatal-error-exception.php';
-
-
 class Debug
 {
 
@@ -77,14 +74,10 @@ class Debug
 		static $errMessage = "<strong>Uncatchable application exception!</strong>\n<br /><span style='font-size:small'>Please contact server administrator. The error has been logged.</span>";
 
 		if (class_exists('Application', false)) {
-
 			try {
-
 				$app = Application::get();
 				$app->processException($exception);
-
 			} catch (Exception $e) {
-
 				if (Config::read('core.debug') == 0) {
 					self::log($e->getMessage());
 					echo $errMessage;
@@ -93,9 +86,7 @@ class Debug
 
 				self::showException($e);
 			}
-
 		} else {
-		
 			if ((class_exists('Config', false) && Config::read('core.debug') > 0) || self::$active) {
 				self::showException($exception);
 			} else {
@@ -103,12 +94,10 @@ class Debug
 				echo $errMessage;
 			    exit(1);
 			}
-
 		}
 	}
-	
-	
-	
+
+
 	/**
 	 * Returns time in miliseconds
 	 * @return  float
@@ -173,7 +162,7 @@ class Debug
 			return;
 
 
-		if (class_exists('Config', false) && Config::read('core.debug') > 0) {
+		if ((class_exists('Config', false) && Config::read('core.debug') > 0) || self::$active) {
 			self::showException(new FatalErrorException($error));
 		} else {
 			self::log(strip_tags($error['message']) . " - $error[file] on line $error[line]");
@@ -327,4 +316,60 @@ function dump()
 {
 	$args = func_get_args();
 	return call_user_func_array(array('Debug', 'dump'), $args);
+}
+
+
+class FatalErrorException extends Exception
+{
+
+
+	/** @var array */
+	protected $error;
+
+
+	/**
+	 * Contructor
+	 * @param   array
+	 * @return  FatalErrorException
+	 */
+	public function __construct($error)
+	{
+		$this->error = $error;
+		parent::__construct(ucfirst($error['message']) . ' in file "' . basename($error['file']) . '".');
+	}
+
+
+	/**
+	 * Returns trace array for fatal error
+	 * @return  array
+	 */
+	public function getFatalTrace()
+	{
+		return array(array(
+			'line' => $this->error['line'],
+			'file' => $this->error['file'],
+		));
+	}
+
+
+	/**
+	 * Returns error tile
+	 * @param  string
+	 */
+	public function getErrorTitle()
+	{
+		$errors = array(
+			64 => 'COMPILE ERROR',
+			16 => 'CORE ERROR',
+			4 => 'PARSE ERROR',
+			1 => 'ERROR'
+		);
+
+		if (isset($errors[$this->error['type']]))
+			return $errors[$this->error['type']];
+
+		return "Unknown error";
+	}
+
+
 }
