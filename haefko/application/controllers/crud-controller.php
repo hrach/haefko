@@ -67,11 +67,8 @@ class CrudController extends AppController
 		$grid = $this->view->grid = $this->getDataGrid();
 		$grid->setQuery($query);
 
-		try {
-			$grid->getData(true);
-		} catch (Exception $e) {
+		if (!$grid->getData(true))
 			$this->error();
-		}
 	}
 
 
@@ -147,13 +144,11 @@ class CrudController extends AppController
 	public function crudUrl($action, $arg = null)
 	{
 		if ($arg == null)
-			return $this->url($this->link, null, array(
-				'action' => $action
-			));
+			$link = $this->link;
 		else
-			return $this->url($this->link . '/' . $arg, null, array(
-				'action' => $action
-			));
+			$link = $this->link . '/' . $arg;
+
+		return $this->url($this->link . '/' . $arg, null, array('action' => $action));
 	}
 
 

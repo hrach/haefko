@@ -18,7 +18,9 @@
 		<?php foreach ($grid->columns as $column): ?>
 		<th>
 			<?php if (in_array($column, $grid->orderable) || empty($grid->orderable)): ?>
-				<?= $html->link($grid->columnUrl($column), $grid->columnLabel($column) . $grid->columnStateNum($column), $grid->columnStateClass($column), false) ?>
+				<?= $html->link($grid->paramUrl($column, $grid->getOrderState($column)),
+				                $grid->columnLabel($column) . $grid->columnStateNum($column),
+				                $grid->columnStateClass($column), false) ?>
 			<?php else: ?>
 				<?= $grid->columnLabel($column) ?>
 			<?php endif; ?>
@@ -49,8 +51,8 @@
 			$paginator = $grid->query->paginator;
 
 			if (!$paginator->isFirst()) {
-				echo $paginator->link('', 1, '<span class="first">First</span>');
-				echo $paginator->link('', $paginator->page - 1, '<span class="prev">Previous</span>');
+				echo '<a href="' . $grid->paramUrl('page', 1) . '"><span class="first">First</span></a>';
+				echo '<a href="' . $grid->paramUrl('page', $paginator->page - 1) . '"><span class="prev">Previous</span></a>';
 			} else {
 				echo '<span class="first-off">First</span>';
 				echo '<span class="prev-off">Previous</span>';
@@ -66,8 +68,8 @@
 			echo '</form>';
 
 			if (!$paginator->isLast()) {
-				echo $paginator->link('', $paginator->page + 1, '<span class="next">Next</span>');
-				echo $paginator->link('', $paginator->pages, '<span class="last">Last</span>');
+				echo '<a href="' . $grid->paramUrl('page', $paginator->page + 1) . '"><span class="next">Next</span></a>';
+				echo '<a href="' . $grid->paramUrl('page', $paginator->pages) . '"><span class="last">Last</span></a>';
 			} else {
 				echo '<span class="next-off">Next</span>';
 				echo '<span class="last-off">Last</span>';
