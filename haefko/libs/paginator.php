@@ -34,12 +34,14 @@ class Paginator extends Object
 
 	/**
 	 * Constructor
-	 * @param   int  page
-	 * @param   int  pages
-	 * @return  void
+	 * @param   int   page
+	 * @param   int   total records
+	 * @param   int   records on page
+	 * @return  Paginator
 	 */
-	public function __construct($page, $pages)
+	public function __construct($page, $total, $limit)
 	{
+		$pages = ceil($total / $limit);
 		$page = (int) $page;
 		$this->page = $page < 1 ? 1 : $page;
 		$this->pages = (int) $pages;

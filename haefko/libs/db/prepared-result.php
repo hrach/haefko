@@ -59,7 +59,7 @@ class DbPreparedResult extends DbResult
 		$this->query .= ' LIMIT ' . ($page - 1) * $limit . ', ' . $limit;
 
 		require_once dirname(__FILE__) . '/../paginator.php';
-		$this->paginator = new Paginator($page, ceil($count / $limit));
+		$this->paginator = new Paginator($page, $count, $limit);
 
 		return $this;
 	}
