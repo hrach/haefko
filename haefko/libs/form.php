@@ -14,6 +14,7 @@
 
 require_once dirname(__FILE__) . '/tools.php';
 require_once dirname(__FILE__) . '/html.php';
+require_once dirname(__FILE__) . '/http.php';
 require_once dirname(__FILE__) . '/object.php';
 
 require_once dirname(__FILE__) . '/form/rule.php';
@@ -549,17 +550,28 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	private function loadData()
 	{
+		$data = Http::getFormRequest();
+		if (isset($data[$this->name]))
+			$data = $data[$this->name];
+		else
+			return;
+
 		foreach ($this->controls as $id => $control) {
-			if ($control instanceof FormFileControl && isset($_FILES[$this->name]['name'][$id])) {
-				$this->data[$id] = new FormUploadedFile($control, $_FILES[$this->name]);
+			if (!isset($data[$id])) {
+				if ($control instanceof FormMultiCheckboxControl || $control instanceof FormMultipleSelectControl)
+					$data[$id] = array();
+				else
+					continue;
+			}
+
+			if ($control instanceof FormFileControl) {
+				$this->data[$id] = new FormUploadedFile($control, $data[$id]);
 				$control->setValue($this->data[$id]->name);
-			} elseif (isset($_POST[$this->name][$id])) {
-				if ($control instanceof FormSubmitControl) {
-					$this->submitBy = $id;
-				} else {
-					$control->setValue($_POST[$this->name][$id]);
-					$this->data[$id] = $control->getValue();
-				}
+			} elseif ($control instanceof FormSubmitControl) {
+				$this->submitBy = $id;
+			} else {
+				$control->setValue($data[$id]);
+				$this->data[$id] = $control->getValue();
 			}
 		}
 

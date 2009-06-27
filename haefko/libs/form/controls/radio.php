@@ -15,10 +15,24 @@
 class FormRadioControl extends FormInputControl
 {
 
+
+	/** @var string - Control separator */
 	public $listSeparator = '<br />';
+
+	/** @var array */
 	protected $options = array();
+
+	/** @var array - Options without tree structure */
 	protected $values = array();
 
+
+	/**
+	 * Constructor
+	 * @param   Form     form
+	 * @param   string   control name
+	 * @param   mixed    label (null = from name, false = no label)
+	 * @return  void
+	 */
 	public function __construct($form, $name, $options, $label = null)
 	{
 		parent::__construct($form, $name, $label);
@@ -26,11 +40,21 @@ class FormRadioControl extends FormInputControl
 		$this->values = array_keys($options);
 	}
 
+
+	/**
+	 * Returns Html object of form control
+	 * @return  Html
+	 */
 	protected function getHtmlControl()
 	{
 		return parent::getHtmlControl()->type('radio');
 	}
 
+
+	/**
+	 * Returns html control
+	 * @return  Html
+	 */
 	protected function getControl()
 	{
 		$label = Html::el('label');
@@ -57,9 +81,15 @@ class FormRadioControl extends FormInputControl
 		return $container;
 	}
 
+
+	/**
+	 * Returns html label
+	 * @return  Html
+	 */
 	protected function getLabel()
 	{
 		return parent::getLabel()->for(null);
 	}
+
 
 }

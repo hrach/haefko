@@ -15,16 +15,30 @@
 abstract class FormButtonControl extends FormControl
 {
 
+
+	/**
+	 * Constructor
+	 * @param   Form     form
+	 * @param   string   control name
+	 * @param   mixed    label (null = from name, false = no label)
+	 * @return  void
+	 */
 	public function __construct(Form $form, $name, $label)
 	{
 		parent::__construct($form, $name, false);
 		$this->setValue($label);
 	}
 
+
+	/**
+	 * Returns html control
+	 * @return  Html
+	 */
 	protected function getControl()
 	{
 		return parent::getControl()->value($this->getHtmlValue());
 	}
+
 
 }
 
@@ -32,10 +46,16 @@ abstract class FormButtonControl extends FormControl
 class FormSubmitControl extends FormButtonControl
 {
 
+
+	/**
+	 * Returns Html object of form control
+	 * @return  Html
+	 */
 	protected function getHtmlControl()
 	{
 		return parent::getHtmlControl()->setTag('input')->type('submit')->class('button');
 	}
+
 
 }
 
@@ -43,9 +63,15 @@ class FormSubmitControl extends FormButtonControl
 class FormResetControl extends FormButtonControl
 {
 
+
+	/**
+	 * Returns Html object of form control
+	 * @return  Html
+	 */
 	protected function getHtmlControl()
 	{
 		return parent::getHtmlControl()->setTag('input')->type('reset')->class('button');
 	}
+
 
 }

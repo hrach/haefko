@@ -109,6 +109,29 @@ class Http
 
 
 	/**
+	 * Returns request data for form
+	 * @return  array
+	 */
+	public static function getFormRequest()
+	{
+		$data = array();
+		if (!empty($_FILES)) {
+			foreach ($_FILES as $form => $value) {
+				$controls = array_keys($value['name']);
+				foreach ($controls as $control) {
+					$fields = array_keys($value);
+					foreach ($fields as $field)
+						$data[$form][$control][$field] = $value[$field][$control]; 
+				}
+			}
+		}
+
+		$data = array_merge_recursive($data, $_POST);
+		return $data;
+	}
+
+
+	/**
 	 * Returns referer
 	 * @return  string|null
 	 */
