@@ -8,16 +8,13 @@
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8.5 - $Id$
- * @package     Haefko_Libs
+ * @package     Haefko_Loaders
  */
 
 
 require_once dirname(__FILE__) . '/../object.php';
 
 
-/**
- * 
- */
 abstract class Loader extends Object
 {
 

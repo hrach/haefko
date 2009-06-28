@@ -3,7 +3,6 @@
 /**
  * Haefko - your php5 framework
  *
- * @name 
  * @author      Jan Skrasek
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
@@ -264,7 +263,6 @@ class Application extends Object
 
 			exit;
 		}
-
 
 		if (!($exception instanceof ApplicationException || Config::read('Core.debug') == 0)) {
 			Debug::showException($exception);
