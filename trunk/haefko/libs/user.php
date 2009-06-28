@@ -190,7 +190,7 @@ class User extends Object
 	{
 		if ($key == 'id' || $key == 'roles')
 			return $this->session->read($key);
-		elseif (isset($this->sesion->data->key))
+		elseif (isset($this->session->data->$key))
 			return $this->session->data->$key;
 		else
 			throw new Exception("Undefined user data variable '$key'.");
