@@ -18,7 +18,6 @@ require_once dirname(__FILE__) . '/http.php';
 class Session
 {
 
-
 	/** @var bool */
 	private static $started = false;
 
@@ -40,10 +39,31 @@ class Session
 	/** @var bool */
 	protected static $secure;
 
+	/** @var array */
+	protected static $namespaces = array();
+
+
+	/**
+	 * Returnsn namepsace seesion object
+	 * @param $namespace namespace name
+	 * @return SessionNamespace
+	 */
+	public static function getNamespace($namespace)
+	{
+		if (!self::$started) self::start();
+
+		$namespace = strtolower($namespace);
+		require_once dirname(__FILE__) . '/session-namespace.php';
+		if (isset(self::$namespaces[$namespace]))
+			return self::$namespaces[$namespace];
+		else
+			return self::$namespaces[$namespace] = new SessionNamespace($namespace);
+	}
+
 
 	/**
 	 * Starts session
-	 * @return  void
+	 * @return void
 	 */
 	public static function start()
 	{
@@ -65,27 +85,24 @@ class Session
 
 	/**
 	 * Returns session id / name
+	 * @return string
 	 */
 	public static function getName()
 	{
-		if (!self::$started)
-			self::start();
-
+		if (!self::$started) self::start();
 		return session_id();
 	}
 
 
 	/**
 	 * Reads session variable
-	 * @param   string    variable name
-	 * @param   mixed     default value
-	 * @return  mixed
+	 * @param string variable name
+	 * @param mixed default value
+	 * @return mixed
 	 */
 	public static function read($var, $default = null)
 	{
-		if (!self::$started)
-			self::start();
-
+		if (!self::$started) self::start();
 		if (array_key_exists($var, $_SESSION))
 			return $_SESSION[$var];
 		else
@@ -94,11 +111,11 @@ class Session
 
 
 	/**
-	 * Safe reads session variable 
+	 * Safe reads session variable
 	 * If session is not started returns default
-	 * @param   string    variable name
-	 * @param   mixed     default value
-	 * @return  mixed
+	 * @param string variable name
+	 * @param mixed default value
+	 * @return mixed
 	 */
 	public static function safeRead($var, $default = null)
 	{
@@ -110,30 +127,26 @@ class Session
 
 
 	/**
-	 * Checks if session $var exists
-	 * @param   string    variable name
-	 * @return  bool
+	 * Returns true if session variable exists
+	 * @param string variable name
+	 * @return bool
 	 */
 	public static function exists($var)
 	{
-		if (!self::$started)
-			self::start();
-
+		if (!self::$started) self::start();
 		return array_key_exists($var, $_SESSION);
 	}
 
 
 	/**
 	 * Writes $val to session $var
-	 * @param   string    variable name
-	 * @param   mixed     value
-	 * @return  void
+	 * @param string|array variable name
+	 * @param mixed value
+	 * @return void
 	 */
 	public static function write($var, $val)
 	{
-		if (!self::$started)
-			self::start();
-
+		if (!self::$started) self::start();
 		if (is_array($var)) {
 			foreach ($var as $key => $val)
 				$_SESSION[$key] = $val;
@@ -144,27 +157,25 @@ class Session
 
 
 	/**
-	 * Unsets session variable
-	 * @param   string    variable name
-	 * @return  void
+	 * Deletes session variable
+	 * @param string variable name
+	 * @return void
 	 */
 	public static function delete($var)
 	{
-		if (!self::$started)
-			self::start();
-
+		if (!self::$started) self::start();
 		unset($_SESSION[$var]);
 	}
 
 
 	/**
 	 * Inits default configuration
-	 * @return  void
+	 * @return void
 	 */
 	public static function init()
 	{
 		self::$name = 'haefko-session';
-		self::$lifeTime = 259200; // 3 days
+		self::$lifeTime = 259200; # 3 days
 		self::$path = Http::$baseUri . '/';
 		self::$domain = Http::$domain;
 		self::$crossDomain = false;
@@ -179,7 +190,7 @@ class Session
 
 	/**
 	 * Inits configurations from Config
-	 * @return  void
+	 * @return void
 	 */
 	public static function initConfig()
 	{
@@ -194,8 +205,8 @@ class Session
 
 	/**
 	 * Checks sent headers
-	 * @throws  Exception
-	 * @return  void
+	 * @throws Exception
+	 * @return void
 	 */
 	private static function checkHeaders()
 	{
@@ -207,13 +218,12 @@ class Session
 
 	/**
 	 * Sets session configuration
-	 * @return  void
+	 * @return void
 	 */
 	private static function writeConfig()
 	{
 		if (function_exists('ini_set'))
 			ini_set('session.use_cookies', 1);
-
 
 		$domain = self::$domain;
 		if (self::$crossDomain) {
