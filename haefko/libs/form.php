@@ -79,7 +79,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 			'action' => $url
 		));
 
-		
+
 		return $this->name;
 	}
 
@@ -100,12 +100,14 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 		$this->protected = true;
 		$this->controls[self::$SECURITY_CONTROL] = new FormHiddenControl($this, self::$SECURITY_CONTROL);
 
-		$key = 'CSRF.protection.' . $this->name;
-		if (Session::exists($key)) {
-			$hash = Session::read($key);
+		$session = Session::getNamespace('Form.csrf-protection');
+		$key = $this->name;
+
+		if ($session->exists($key)) {
+			$hash = $session->read($key);
 		} else {
 			$hash = md5(Session::getName());
-			Session::write($key, $hash);
+			$session->write($key, $hash);
 		}
 
 		$this->controls[self::$SECURITY_CONTROL]->setValue($hash);
@@ -174,7 +176,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	public function addFile($control, $label = null)
 	{
-		$this->form->enctype = 'multipart/form-data'; 
+		$this->form->enctype = 'multipart/form-data';
 		$this[$control] = new FormFileControl($this, $control, $label);
 		return $this;
 	}
@@ -461,7 +463,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	public function offsetSet($id, $value)
 	{
 		$this->controls[$id] = $value;
-		
+
 	}
 
 
