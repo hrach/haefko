@@ -15,6 +15,11 @@
 require_once dirname(__FILE__) . '/object.php';
 
 
+/**
+ * @author      Jan Skrasek, Zdenek Topic
+ * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek, Zdenek Topic
+ * @package     Haefko_Libs
+ */
 class User extends Object
 {
 
@@ -216,6 +221,11 @@ class User extends Object
 }
 
 
+/**
+ * @author      Jan Skrasek, Zdenek Topic
+ * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek, Zdenek Topic
+ * @package     Haefko_Libs
+ */
 interface IUserHandler
 {
 
