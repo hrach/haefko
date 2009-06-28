@@ -16,7 +16,9 @@ require_once dirname(__FILE__) . '/object.php';
 
 
 /**
- * @author       Wamer, Jan Skrasek
+ * @author      Jan Skrasek, Zdenek Topic
+ * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek, Zdenek Topic
+ * @package     Haefko_Libs
  */
 class Permission extends Object
 {
@@ -108,7 +110,7 @@ class Permission extends Object
 	 * @return  Permission
 	 */
 	public function deny($roles, $resources = '*', $actions = '*')
-	{	
+	{
 		$this->setAccess(false, $roles, $resources, $actions);
 		return $this;
 	}
@@ -123,7 +125,7 @@ class Permission extends Object
 	 * @return  void
 	 */
 	protected function setAccess($access, $roles, $resources, $actions)
-	{	
+	{
 		if ($resources == '*')
 			$resources = array_keys($this->resources);
 
@@ -146,7 +148,9 @@ class Permission extends Object
 
 
 /**
- * @author      Wamer, Jan Skrasek
+ * @author      Jan Skrasek, Zdenek Topic
+ * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek, Zdenek Topic
+ * @package     Haefko_Libs
  */
 class PermissionRole extends Object
 {
@@ -213,6 +217,7 @@ class PermissionRole extends Object
 
 
 	/**
+	 * Returns true if role has any parents
 	 * @return  bool
 	 */
 	public function hasParents()
