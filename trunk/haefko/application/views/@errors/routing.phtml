@@ -21,10 +21,11 @@
 <div class="error">
 	<h1>ERROR: No routing match</h1>
 	<p>Check URL and routing for keying mistakes.</p>
-	<p>Basic routing suggestion: <pre><code class="php">$router = $application->getRouter();
-$router->defaults(array('controller' => 'default'));
-$router->connect('/');
-$router->connect('/<:controller>');
-$router->connect('/<:controller>/<:action>', null, true);
-</code></pre></p>
+	<p>Basic routing suggestion: </p>
+<pre><code class="php">$router = $application-&gt;getRouter();
+$router-&gt;defaults(array('controller' =&gt; 'default'));
+$router-&gt;connect('/');
+$router-&gt;connect('/&lt;:controller&gt;');
+$router-&gt;connect('/&lt;:controller&gt;/&lt;:action&gt;', null, true);
+</code></pre>
 </div>

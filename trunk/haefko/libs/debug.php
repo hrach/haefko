@@ -31,12 +31,12 @@ class Debug
 
 	/**
 	 * Constructor
-	 * @throws  Exception
-	 * @return  void
+	 * @throws Exception
+	 * @return void
 	 */
 	public function __construct()
 	{
-		throw Exception('Class Debug cannot be instance.');
+		throw new Exception('Class Debug cannot be instance.');
 	}
 
 
@@ -50,15 +50,19 @@ class Debug
 		if ($active)
 			self::$active = true;
 
-		self::$isFirebug = isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'FirePHP/');
+		static $init = false;
+		if (!$init) {
+			self::$isFirebug = isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'FirePHP/');
 
-		set_error_handler('Debug::errorHandler');
-		set_exception_handler('Debug::exceptionHandler');
-		register_shutdown_function('Debug::shutdownHandler');
+			set_error_handler('Debug::errorHandler');
+			set_exception_handler('Debug::exceptionHandler');
+			register_shutdown_function('Debug::shutdownHandler');
 
-		if (function_exists('ini_set')) {
-			ini_set('log_errors', false);
-			ini_set('display_errors', false);
+			if (function_exists('ini_set')) {
+				ini_set('log_errors', false);
+				ini_set('display_errors', false);
+			}
+			$init = true;
 		}
 	}
 
@@ -74,6 +78,7 @@ class Debug
 		static $errMessage = "<strong>Uncatchable application exception!</strong>\n<br /><span style='font-size:small'>Please contact server administrator. The error has been logged.</span>";
 
 		if (class_exists('Application', false)) {
+
 			try {
 				$app = Application::get();
 				$app->processException($exception);
@@ -289,9 +294,14 @@ class Debug
 		return true;
 	}
 
-	
-	public static function showException($exception) 
-	{	
+
+	/**
+	 * Displays exception errro page
+	 * @param Exception
+	 * @return void
+	 */
+	public static function showException($exception)
+	{
 		require_once dirname(__FILE__) . '/tools.php';
 		$rendered = ob_get_contents();
 		ob_clean();

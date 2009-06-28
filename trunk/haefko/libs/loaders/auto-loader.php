@@ -8,7 +8,7 @@
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.8.5 - $Id$
- * @package     Haefko_Libs
+ * @package     Haefko_Loaders
  */
 
 
@@ -86,7 +86,7 @@ class AutoLoader extends Loader
 			require_once $_SERVER['DOCUMENT_ROOT'] . $this->classes[$class];
 		} elseif (!$this->rebuild && $this->autoRebuild) {
 			$this->rebuild();
-			
+
 			if (isset($this->classes[$class]) && file_exists($_SERVER['DOCUMENT_ROOT'] . $this->classes[$class]))
 				require_once $_SERVER['DOCUMENT_ROOT'] . $this->classes[$class];
 		}

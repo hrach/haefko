@@ -19,7 +19,7 @@ function getHighlightedCode($filename, $line, $lines = 15, $id = false, $hide = 
 {
 	$start = max(floor($line - ($lines / 2)), 0);
 	$file = highlight_file($filename, true);
-	
+
 	$file = explode("\n", $file);
 	if ($hide) {
 		echo "<p><a href='javascript:toggle($id)' id='a-$id'>source</a>&nbsp;&nbsp;<strong>File: </strong>$filename&nbsp;&nbsp;<strong>Line: </strong>$line</p>";
@@ -52,7 +52,7 @@ function getHighlightedCode($filename, $line, $lines = 15, $id = false, $hide = 
 		}
 	}
 	echo '</span></code></pre>';
-	
+
 	if ($hide)
 		echo "</div>";
 }
@@ -167,8 +167,7 @@ function toggle(id)
 		if (empty($trace[$i]))
 			$i = 0;
 
-		getHighlightedCode($trace[$i]['file'], $trace[$i]['line']); 
-	
+		getHighlightedCode($trace[$i]['file'], $trace[$i]['line']);
 	?>
 	</div>
 
@@ -176,7 +175,6 @@ function toggle(id)
 	<div class="block">
 		<ol>
 		<?php
-
 		for ($n = 0, $total = count($trace) - 1; $n <= $total; $n++) {
 			$t = $trace[$total - $n];
 
@@ -184,17 +182,14 @@ function toggle(id)
 			if (isset($t['file'])) {
 				getHighlightedCode($t['file'], $t['line'], 7, $n, true);
 			} else {
-				echo "<p><a href='javascript:toggle($n)' id='a-$n'>args</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>PHPInline</strong> ";
+				echo "<p>&nbsp;<strong>PHPInline:</strong> ";
 				if (!empty($t['class']))
 					echo $t['class'] . '::';
 				echo $t['function'] . '()</p>';
-				echo "<div id='block-$n' style='display: none'>";
-				dump($t['args']);
-				echo '</div>';
 			}
-			
 			echo '</li>';
 		}
+
 
 		?>
 		</ol>
