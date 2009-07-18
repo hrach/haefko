@@ -7,8 +7,8 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Libs
+ * @version     0.9 - $Id$
+ * @package     Haefko
  */
 
  
@@ -18,7 +18,6 @@ require_once dirname(__FILE__) . '/template.php';
 
 class DataGrid extends Object
 {
-
 
 	/** @var int - Instances counter */
 	protected static $counter = '';
@@ -56,10 +55,10 @@ class DataGrid extends Object
 
 	/**
 	 * Constructor
-	 * @param   string     data grid name
-	 * @return  DataGrid
+	 * @param string $name data grid name
+	 * @return DataGrid
 	 */
-	public function __construct($name = '')
+	public function __construct($name = null)
 	{
 		if (empty($name))
 			$name = 'dg' . self::$counter++;
@@ -71,14 +70,18 @@ class DataGrid extends Object
 
 	/**
 	 * Renders datagrid
-	 * @return  string
+	 * @param Cache $cache
+	 * @return string
 	 */
-	public function render()
+	public function render(Cache $cache = null)
 	{
 		if (empty($this->columns))
 			$this->columns = $this->query->getColumnNames();
 
-		$template = new Template();
+		if (!($cache instanceof Cache))
+			$cache = new Cache();
+
+		$template = new Template(null, $cache);
 		$template->setFile(dirname(__FILE__) . '/data-grid.template.phtml');
 		$template->getHelper('html');
 
@@ -92,7 +95,7 @@ class DataGrid extends Object
 
 	/**
 	 * Returns datagrid name
-	 * @return  string
+	 * @return string
 	 */
 	public function getName()
 	{
@@ -102,8 +105,8 @@ class DataGrid extends Object
 
 	/**
 	 * Sets limit on the page
-	 * @param   int  limit
-	 * @return  DataGrid
+	 * @param int $limit
+	 * @return DataGrid
 	 */
 	public function setLimit($limit)
 	{
@@ -114,8 +117,8 @@ class DataGrid extends Object
 
 	/**
 	 * Sets link mask for urls
-	 * @param   string   link mask
-	 * @return  DataGrid
+	 * @param string $link link mask
+	 * @return DataGrid
 	 */
 	public function setLink($link)
 	{
@@ -126,8 +129,8 @@ class DataGrid extends Object
 
 	/**
 	 * Sets columns' labels
-	 * @param   array    labels
-	 * @return  DataGrid
+	 * @param array $labels
+	 * @return DataGrid
 	 */
 	public function setLabels($labels)
 	{
@@ -138,8 +141,8 @@ class DataGrid extends Object
 
 	/**
 	 * Sets datasource
-	 * @param   DbPreparedResult   datasource
-	 * @return  DataGrid
+	 * @param DbPreparedResult $query datasource
+	 * @return DataGrid
 	 */
 	public function setQuery(DbPreparedResult $query)
 	{
@@ -150,7 +153,7 @@ class DataGrid extends Object
 
 	/**
 	 * Returns query
-	 * @return  DbPreparedResult 
+	 * @return DbPreparedResult 
 	 */
 	public function getQuery()
 	{
@@ -160,8 +163,8 @@ class DataGrid extends Object
 
 	/**
 	 * Sets orderable columns 
-	 * @param   array|string    orderable columns
-	 * @return  DataGrid
+	 * @param array|string $columns orderable columns
+	 * @return DataGrid
 	 */
 	public function setOrderable($columns)
 	{
@@ -172,7 +175,7 @@ class DataGrid extends Object
 
 	/**
 	 * Returns orderable columns
-	 * @return  array
+	 * @return array
 	 */
 	public function getOrderable()
 	{
@@ -181,9 +184,9 @@ class DataGrid extends Object
 
 
 	/**
-	 * Sets if datagrid show actions
-	 * @param   bool
-	 * @return  DataGrid
+	 * Sets if datagrid shows actions
+	 * @param bool $show
+	 * @return DataGrid
 	 */
 	public function setShowActions($show)
 	{
@@ -194,7 +197,7 @@ class DataGrid extends Object
 
 	/**
 	 * Returns bool if datagrid shows actions
-	 * @return  bool
+	 * @return bool
 	 */
 	public function getShowActions()
 	{
@@ -204,9 +207,9 @@ class DataGrid extends Object
 
 	/**
 	 * Sets actions' callback
-	 * @param   mixed     actions' callback
-	 * @throws  Exception
-	 * @return  DataGrid
+	 * @param mixed $callback actions' callback
+	 * @throws Exception
+	 * @return DataGrid
 	 */
 	public function setActionsCallback($callback)
 	{
@@ -220,7 +223,7 @@ class DataGrid extends Object
 
 	/**
 	 * Returns actions' callback
-	 * @return  mixed
+	 * @return mixed
 	 */
 	public function getActionsCallback()
 	{
@@ -230,11 +233,11 @@ class DataGrid extends Object
 
 	/**
 	 * Invokes actions callback
-	 * @param   Template
-	 * @param   mixed        result row
-	 * @return  string
+	 * @param Template $template
+	 * @param DbResultNode $row result row
+	 * @return string
 	 */
-	public function invokeActionsCallback(Template $template, $row)
+	public function invokeActionsCallback(Template $template, DbResultNode $row)
 	{
 		$actions = array(
 			$template->getHelper('html')->link($this->url('update', $row['id']), '<span>Edit</span>', array('class' => 'edit'), false),
@@ -250,9 +253,9 @@ class DataGrid extends Object
 
 	/**
 	 * Creates link
-	 * @param   string  action
-	 * @param   mixed   param
-	 * @return  string
+	 * @param string $action
+	 * @param mixed $param
+	 * @return string
 	 */
 	public function url($action, $param = null)
 	{
@@ -269,9 +272,9 @@ class DataGrid extends Object
 
 	/**
 	 * Creates url changing params
-	 * @param   string   param name
-	 * @param   string   param value
-	 * @return  string
+	 * @param string $var param name
+	 * @param string $value
+	 * @return string
 	 */
 	public function paramUrl($var, $value)
 	{
@@ -281,8 +284,8 @@ class DataGrid extends Object
 
 	/**
 	 * Returns column order state class
-	 * @param   string  column name
-	 * @return  string
+	 * @param string $column column name
+	 * @return string
 	 */
 	public function columnStateClass($column)
 	{
@@ -297,8 +300,8 @@ class DataGrid extends Object
 
 	/**
 	 * Returns column order num
-	 * @param   string  column name
-	 * @return  string
+	 * @param string $column column name
+	 * @return string
 	 */
 	public function columnStateNum($column)
 	{
@@ -311,8 +314,8 @@ class DataGrid extends Object
 
 	/**
 	 * Returns column label
-	 * @param   string  column name
-	 * @return  string
+	 * @param string $column column name
+	 * @return string
 	 */
 	public function columnLabel($column)
 	{
@@ -325,8 +328,8 @@ class DataGrid extends Object
 
 	/**
 	 * Returns variable content
-	 * @param   string   variable name
-	 * @return  string
+	 * @param string $name variable name
+	 * @return string
 	 */
 	public function getVar($name)
 	{
@@ -337,7 +340,7 @@ class DataGrid extends Object
 
 	/**
 	 * Loads data for datagrid and return true if there are some data
-	 * @return  bool
+	 * @return bool
 	 */
 	public function getData()
 	{
@@ -354,8 +357,8 @@ class DataGrid extends Object
 
 	/**
 	 * Returns url expresison for table order by $column
-	 * @param   string  column
-	 * @return  string
+	 * @param string $column
+	 * @return string
 	 */
 	public function getOrderState($column)
 	{
@@ -381,7 +384,7 @@ class DataGrid extends Object
 
 	/**
 	 * Transforms url-table-order as array
-	 * @return  array
+	 * @return array
 	 */
 	protected function initOrder()
 	{
@@ -405,7 +408,7 @@ class DataGrid extends Object
 
 	/**
 	 * Returns sql order
-	 * @return  string
+	 * @return string
 	 */
 	protected function getSqlOrder()
 	{

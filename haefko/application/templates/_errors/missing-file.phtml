@@ -7,17 +7,17 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Application
- * @subpackage  View
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Templates
  */
 
 
 ?>
-<?php
-	$this->title = 'Missing file | haefko';
-?>
+{block prepend #title}Missing file | haefko {/block}
+{block #content}
 <div class="error">
 	<h1>ERROR: Missing file</h1>
-	<p>Check whether you created missing file <code><?= $variable ?></code>.</p>
+	<p>Check whether you created missing file <code>{$variable}</code>.</p>
 </div>
+{/block}

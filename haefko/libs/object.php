@@ -7,7 +7,7 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
+ * @version     0.9 - $Id$
  * @package     Haefko_Libs
  */
 
@@ -18,7 +18,7 @@ abstract class Object
 
 	/**
 	 * Returns class name
-	 * @return  string
+	 * @return string
 	 */
 	public function getClass()
 	{
@@ -28,12 +28,12 @@ abstract class Object
 
 	/**
 	 * Returns class ancestors
-	 * @param   string    class
-	 * @return  array
+	 * @return array
 	 */
-	public function getAncestors($class)
+	public function getAncestors()
 	{
-		$classes = array($class);
+		$class = $this;
+		$classes = array($this);
 		while($class = get_parent_class($class))
 			$classes[] = $class;
 
@@ -43,8 +43,8 @@ abstract class Object
 
 	/**
 	 * Magic method
-	 * @throws  Exception
-	 * @return  mixed
+	 * @throws Exception
+	 * @return mixed
 	 */
 	public function __get($key)
 	{
@@ -59,8 +59,8 @@ abstract class Object
 
 	/**
 	 * Magic method
-	 * @throws  Exception
-	 * @return  mixed
+	 * @throws Exception
+	 * @return mixed
 	 */
 	public function __set($key, $value)
 	{
@@ -77,26 +77,26 @@ abstract class Object
 
 	/**
 	 * Interface __call()
-	 * @param  mixed $name
-	 * @param  mixed $args
+	 * @param mixed $method method name
+	 * @param mixed $args
 	 * @throws Exception
 	 * @return mixed
 	 */
-	public function __call($name, $args)
+	public function __call($method, $args)
 	{
-		if (empty($name))
+		if (empty($method))
 			throw new Exception("Method name can not be empty.");
 
 		$classes = $this->getAncestors($this);
 		foreach ($classes as $class) {
 			$class = get_class($class);
-			if (function_exists("prototype_{$class}_$name")) {
+			if (function_exists("prototype_{$class}_$method")) {
 				array_unshift($args, $this);
-				return call_user_func_array("prototype_{$class}_$name", $args);
+				return call_user_func_array("prototype_{$class}_$method", $args);
 			}
 		}
 
-		throw new Exception('Undefined method ' . get_class($this) . "::$name().");
+		throw new Exception('Undefined method ' . get_class($this) . "::$method().");
 	}
 
 

@@ -7,8 +7,8 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Libs
+ * @version     0.9 - $Id$
+ * @package     Haefko
  */
 
 
@@ -21,7 +21,7 @@ class SessionNamespace extends Object
 
 	/**
 	 * Constructor
-	 * @param string namepsace name
+	 * @param string $namespace namepsace name
 	 * @return SessionNamespace
 	 */
 	public function __construct($namespace)
@@ -67,8 +67,8 @@ class SessionNamespace extends Object
 
 	/**
 	 * Reads variable
-	 * @param string variable name
-	 * @param mixed defautl value (when variable is not set)
+	 * @param string $name variable name
+	 * @param mixed $default default value (when variable is not set)
 	 * @return mixed
 	 */
 	public function read($name, $default = null)
@@ -82,9 +82,9 @@ class SessionNamespace extends Object
 
 	/**
 	 * Writes variable value
-	 * @param string variable name
-	 * @param mixed variable value
-	 * @param int|string expiration expression, null = no expiration
+	 * @param string $name variable name
+	 * @param mixed $value variable value
+	 * @param int|string $expiration expiration expression, null = no expiration
 	 * @return SessionNamespace
 	 */
 	public function write($name, $value, $expiration = null)
@@ -102,7 +102,7 @@ class SessionNamespace extends Object
 
 	/**
 	 * Checks if variable exists
-	 * @param string variable name
+	 * @param string $name variable name
 	 * @return bool
 	 */
 	public function exists($name)
@@ -113,7 +113,7 @@ class SessionNamespace extends Object
 
 	/**
 	 * Deletes variable
-	 * @param string variable name
+	 * @param string $name variable name
 	 * @return SessionNamespace
 	 */
 	public function delete($name)
@@ -126,7 +126,7 @@ class SessionNamespace extends Object
 
 	/**
 	 * Sets namespace expiration time
-	 * @param int|string time expression
+	 * @param int|string $time time expression
 	 * @return SessionNamespace
 	 */
 	public function setExpiration($time)
@@ -140,9 +140,9 @@ class SessionNamespace extends Object
 
 
 	/**
-	 * Setted
-	 * @param string key name
-	 * @param mixed value
+	 * Setter
+	 * @param string $key key name
+	 * @param mixed $val value
 	 * @return void
 	 */
 	public function __set($key, $val)
@@ -153,12 +153,34 @@ class SessionNamespace extends Object
 
 	/**
 	 * Getter
-	 * @param string key name
+	 * @param string $key key name
 	 * @return mixed
 	 */
 	public function __get($key)
 	{
 		return $this->read($key);
+	}
+
+
+	/**
+	 * Isseter
+	 * @param string $key key name
+	 * @return bool
+	 */
+	public function __isset($key)
+	{
+		return $this->exists($key);
+	}
+
+
+	/**
+	 * Unsetter
+	 * @param string $key key name
+	 * @return void
+	 */
+	public function __unset($key)
+	{
+		$this->delete($key);
 	}
 
 

@@ -13,7 +13,6 @@
 
 
 require_once dirname(__FILE__) . '/loader.php';
-require_once dirname(__FILE__) . '/../tools.php';
 
 
 class HaefkoLoader extends Loader
@@ -26,10 +25,10 @@ class HaefkoLoader extends Loader
 		'application'  => 'application.php',
 		'inflector'    => 'application/libs/inflector.php',
 		'router'       => 'application/libs/router.php',
+		'apptemplate'  => 'application/libs/app-template.php',
 		# libs
 		'cache'        => 'libs/cache.php',
 		'config'       => 'libs/config.php',
-		'cookie'       => 'libs/cookie.php',
 		'datagrid'     => 'libs/data-grid.php',
 		'debug'        => 'libs/debug.php',
 		'object'       => 'libs/object.php',
@@ -39,11 +38,17 @@ class HaefkoLoader extends Loader
 		'l10n'         => 'libs/l10n.php',
 		'paginator'    => 'libs/paginator.php',
 		'session'      => 'libs/session.php',
-		'template'     => 'libs/template.php',
 		'tools'        => 'libs/tools.php',
+		# templates
+		'itemplate'      => 'libs/itemplate.php',
+		'template'       => 'libs/template.php',
+		'filterhelper'   => 'libs/template/filter-helper.php',
+		'htmlhelper'     => 'libs/template/html-helper.php',
+		'jshelper'       => 'libs/template/js-helper.php',
+		'rsshelper'       => 'libs/template/rss-helper.php',
 		# user
-		'identity'     => 'libs/identity.php',
 		'iidentity'    => 'libs/iidentity.php',
+		'identity'     => 'libs/identity.php',
 		'permission'   => 'libs/permission.php',
 		'user'         => 'libs/user.php',
 		# database
@@ -63,10 +68,8 @@ class HaefkoLoader extends Loader
 	public function load($class)
 	{
 		$c = strtolower($class);
-		if (Tools::endWith($c, 'controller'))
-			return Application::get()->loadClass('controller', $class);
-		elseif (Tools::endWith($c, 'helper'))
-			return Application::get()->loadClass('helper', $class);
+		if (strpos($c, 'controller') !== false)
+			return Application::get()->loadControllerClass($class);
 
 		if (isset($this->classes[$c]))
 			require_once dirname(__FILE__) . '/../../' . $this->classes[$c];

@@ -7,8 +7,9 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Forms
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Forms
  */
 
 
@@ -24,7 +25,6 @@ require_once dirname(__FILE__) . '/form/controls/controls.php';
 
 class Form extends Object implements ArrayAccess, IteratorAggregate
 {
-
 
 	/** @var string - Name of control with hash */
 	public static $SECURITY_CONTROL = 'csrf_protection';

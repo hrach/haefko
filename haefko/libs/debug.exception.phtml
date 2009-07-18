@@ -15,6 +15,7 @@
 ?>
 <?php
 
+header('Content-type: text/html');
 function getHighlightedCode($filename, $line, $lines = 15, $id = false, $hide = false)
 {
 	$start = max(floor($line - ($lines / 2)), 0);
@@ -157,15 +158,19 @@ function toggle(id)
 	<div class="block">
 	<?php
 
-		$i = 0;
+		$i = -1;
 		$trace = $exception instanceof FatalErrorException ? $exception->getFatalTrace() : $exception->getTrace();
 		foreach ($trace as $i => $item) {
 			if (isset($item['file']) && strpos($item['file'], dirname(dirname(__FILE__))) === false)
 				break;
 		}
 
-		if (empty($trace[$i]))
-			$i = 0;
+		if (empty($trace[$i]) || !isset($trace[$i]['file'])) {
+			foreach ($trace as $i => $item) {
+				if (isset($item['file']))
+					break;
+			}
+		}
 
 		getHighlightedCode($trace[$i]['file'], $trace[$i]['line']);
 	?>

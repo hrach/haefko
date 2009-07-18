@@ -7,8 +7,8 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Libs
+ * @version     0.9 - $Id$
+ * @package     Haefko
  */
 
 
@@ -48,8 +48,8 @@ class User extends Object
 
 	/**
 	 * Returns true if user has rights for $action on $resource
-	 * @param string resource name
-	 * @param string aciton name
+	 * @param string $res resource name
+	 * @param string $action aciton name
 	 * @return bool
 	 */
 	public function isAllowed($res, $action)
@@ -70,7 +70,7 @@ class User extends Object
 
 	/**
 	 * Sets user handler for authentication
-	 * @param string user handler class name
+	 * @param mixed $handler user handler class name
 	 * @return User
 	 */
 	public function setUserHandler($handler)
@@ -82,9 +82,9 @@ class User extends Object
 
 	/**
 	 * Authenticates by provided credentials
-	 * @param string username
-	 * @param string password
-	 * @param array extra data
+	 * @param string $username
+	 * @param string $password
+	 * @param array $extra optional data
 	 * @return bool
 	 */
 	public function authenticate($username, $password, $extra = array())
@@ -118,7 +118,7 @@ class User extends Object
 
 	/**
 	 * Sets user authentication expiration time
-	 * @param int|string time expression
+	 * @param int|string $time time expression
 	 * @return User
 	 */
 	public function setExpiration($time)
@@ -157,7 +157,7 @@ class User extends Object
 
 	/**
 	 * Returns true if user is in role $name
-	 * @param $name role name
+	 * @param string $name role name
 	 * @return bool
 	 */
 	public function isInRole($name)
@@ -168,8 +168,8 @@ class User extends Object
 
 	/**
 	 * Setter
-	 * @param string property name
-	 * @param mixed property value
+	 * @param string $key property name
+	 * @param mixed $val property value
 	 * @return void
 	 */
 	public function __set($key, $val)
@@ -183,7 +183,7 @@ class User extends Object
 
 	/**
 	 * Getter
-	 * @param string property name
+	 * @param string $key property name
 	 * @return mixed
 	 */
 	public function __get($key)
@@ -199,7 +199,7 @@ class User extends Object
 
 	/**
 	 * Proccesses user indentity
-	 * @param false|Identity user identity
+	 * @param false|Identity $identity user identity
 	 * @throws Exception
 	 * @return bool
 	 */
@@ -232,7 +232,7 @@ interface IUserHandler
 
 	/**
 	 * Returns user indentity or false
-	 * @param array user credentials - array with keys username, password, extra
+	 * @param array $credentials user credentials - array with keys username, password, extra
 	 * @return IIdentity|false
 	 */
 	public function authenticate($credentials);
@@ -240,7 +240,7 @@ interface IUserHandler
 
 	/**
 	 * Returns updated users identity
-	 * @param mixed id - user primary key
+	 * @param mixed $id user primary key
 	 * @return IIdentity
 	 */
 	public function updateIdentity($id);

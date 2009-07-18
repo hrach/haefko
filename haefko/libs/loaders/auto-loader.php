@@ -49,12 +49,12 @@ class AutoLoader extends Loader
 	 * @param   string|Cache    cache path or Cache class instance
 	 * @return  void
 	 */
-	public function __construct($store = './')
+	public function __construct($storage = './')
 	{
-		if ($store instanceof Cache)
-			$this->cache = $store;
+		if ($storage instanceof Cache)
+			$this->cache = $storage;
 		else
-			$this->cache = new Cache(true, $store, false);
+			$this->cache = new Cache(true, $storage);
 	}
 
 
@@ -102,7 +102,7 @@ class AutoLoader extends Loader
 	{
 		$this->findClasses();
 		$this->rebuild = true;
-		$this->cache->write('autoload', 'classes', $this->classes);
+		$this->cache->save('autoloader', $this->classes);
 		return $this;
 	}
 
@@ -114,7 +114,7 @@ class AutoLoader extends Loader
 	public function register()
 	{
 		parent::register(array($this, 'load'));
-		$this->classes = $this->cache->read('autoload', 'classes');
+		$this->classes = $this->cache->read('autoloader');
 		if ($this->classes === null)
 			$this->rebuild();
 

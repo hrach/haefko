@@ -7,9 +7,8 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Application
- * @subpackage  Controller
+ * @version     0.9 - $Id$
+ * @package     Haefko
  */
 
 
@@ -17,17 +16,8 @@ abstract class Controller extends Object
 {
 
 
-	/** @var bool Ajax request? */
-	public $isAjax = false;
-
-	/** @var Application */
-	private $application;
-
-	/** @var View */
-	private $view;
-
-
 	/**
+	 *
 	 * Returns self instance
 	 * @return  Controller
 	 */
@@ -37,29 +27,77 @@ abstract class Controller extends Object
 	}
 
 
+	/** @var bool - Allow include templates which are not situated in module */
+	protected $allowTemplatePathReduction = false;
+
+	/** @var array */
+	protected $services = array(
+		'rss' => array(
+			'layout' => 'rss-layout',
+			'helpers' => 'rss',
+		),
+		'xml' => array(
+			'layout' => 'xml-layout',
+		),
+	);
+
+	/** @var Application */
+	private $application;
+
+	/** @var ITemplate */
+	private $template;
+
+	/** @var stdClass */
+	private $routing;
+
+
 	/**
 	 * Constructor
 	 * @return  void
 	 */
-	public function __construct($class = 'View')
+	public function __construct()
 	{
 		$this->application = Application::get();
-		$this->isAjax = Http::isAjax();
 
-		# load view
-		if (!empty($this->application->router->service) && !Application::$error)
-			$class = Tools::camelize($this->application->router->service . 'View');
+		$this->routing = (object) array();
+		$this->routing->controller = Tools::dash($this->application->router->controller);
+		$this->routing->module = $this->application->router->module;
+		$this->routing->action = $this->application->router->action;
+		$this->routing->template = '';
+		$this->routing->service = $this->application->router->service;
+		$this->routing->ajax = Http::isAjax();
+		$this->routing->ext = 'phtml';
 
-		$this->application->loadFile('views/' . Tools::dash($class) . '.php');
-		$this->view = new $class($this);
+		# TEMPLATE
+		$this->template = $this->getTemplateInstace();
+		if (!($this->template instanceof ITemplate))
+			throw new LogicException('You must return template class which implements ITemplate interface.');
 
-		$this->view->setRouting('controller', $this->application->router->controller);
-		$this->view->setRouting('module', $this->application->router->module);
-		$this->view->setRouting('service', $this->application->router->service);
-		$this->view->setRouting('ajax', $this->isAjax);
+		# SERVICES & LAYOUT
+		$layout = 'layout';
+		if (isset($this->services[$this->routing->service])) {
+			$service = $this->services[$this->routing->service];
+			if (isset($service['layout']))
+				$layout = $service['layout'];
+			
+			if (isset($service['helpers'])) {
+				foreach ((array) $service['helpers'] as $helper)
+					$this->template->getHelper($helper);
+			}
+		}
 
-		if ($this->isAjax)
-			$this->view->layout(false);
+		$this->template->setExtendsFile($layout);
+		$this->routing->layout = $layout;
+	}
+
+
+	/**
+	 * Returns template class instance
+	 * @return ITemplate
+	 */
+	protected function getTemplateInstace()
+	{
+		return new AppTemplate(null, $this->application->cache);
 	}
 
 
@@ -74,12 +112,23 @@ abstract class Controller extends Object
 
 
 	/**
-	 * Returns View instance
-	 * @return  View
+	 * Returns template instance
+	 * @return ITemplate
+	 */
+	public function getTemplate()
+	{
+		return $this->template;
+	}
+
+
+	/**
+	 * Returns template instance
+	 * @return ITemplate
 	 */
 	public function getView()
 	{
-		return $this->view;
+		trigger_error('View is deprecated', E_USER_WARNING);
+		return $this->template;
 	}
 
 
@@ -105,15 +154,16 @@ abstract class Controller extends Object
 
 
 	/**
-	 * Jumps out of application and display error $view
-	 * @param   string    error view
-	 * @param   bool      is error page only for debug mode?
-	 * @param   int|null  error code
-	 * @return  void
+	 * Jumps out of application and display error $template
+	 * @param string $template error template name
+	 * @param bool $debug is error page only for debug mode?
+	 * @param int|null $errorCode
+	 * @throws ApplicationError
+	 * @return void
 	 */
-	public function error($view = '404', $debug = false, $errorCode = 404)
+	public function error($template = '404', $debug = false, $errorCode = 404)
 	{
-		throw new ApplicationError($view, $debug, $errorCode);
+		throw new ApplicationError($template, $debug, $errorCode);
 	}
 
 
@@ -152,61 +202,159 @@ abstract class Controller extends Object
 
 	/**
 	 * Runns actino call
-	 * @return  void
+	 * @return void
 	 */
 	public function render()
 	{
 		try {
+			# INITS
 			call_user_func(array($this, 'init'));
-			$method = Tools::camelize($this->application->router->action);
+			if ($this->routing->template !== false)
+				$this->routing->template = $this->routing->action;
 
-
-			# ajax call
-			if ($this->isAjax && method_exists(get_class($this), $method . 'AjaxAction')) {
+			# METHOD
+			$method = Tools::camelize($this->routing->action);
+			if ($this->routing->ajax && method_exists($this, $method . 'AjaxAction'))
 				$method .= 'AjaxAction';
-
-				if ($this->view->getView() !== false)
-					$this->view->view($this->application->router->action);
-
-				$args = $this->application->router->getArgs();
-				unset($args['controller'], $args['module'], $args['action'], $args['service']);
-
-				call_user_func(array($this, 'beforeAction'));
-				$return = call_user_func_array(array($this, $method), $args);
-				call_user_func(array($this, 'afterAction'));
-
-				if ($return !== null) {
-					if (!is_array($return)) {
-						if (is_object($return))
-							$return = (array) $return;
-
-						$return = array('response' => $return);
-					}
-
-					echo json_encode($return);
-					exit;
-				}
-			} else {
+			elseif (method_exists($this, $method . 'Action'))
 				$method .= 'Action';
-				$exists = method_exists(get_class($this), $method);
-				if (!$exists)
-					throw new ApplicationException('missing-method', $method);
+			else
+				throw new ApplicationException('missing-method', $method);
 
-				if ($this->view->getView() !== false)
-					$this->view->view($this->application->router->action);
+			# CALL
+			$args = $this->application->router->getArgs();
+			unset($args['controller'], $args['module'], $args['action'], $args['service']);
 
-				$args = $this->application->router->getArgs();
-				unset($args['controller'], $args['module'], $args['action'], $args['service']);
+			call_user_func(array($this, 'beforeAction'));
+			$return = call_user_func_array(array($this, $method), $args);
+			call_user_func(array($this, 'afterAction'));
+			if ($this->routing->ajax && $return !== null)
+				$this->proccessAjaxResponse($return);
 
-				call_user_func(array($this, 'beforeAction'));
-				call_user_func_array(array($this, $method), $args);
-				call_user_func(array($this, 'afterAction'));
-			}
-		} catch (ApplicationError $e) {
-			$this->view->view($e->view);
+			$this->template->setExtendsFile($this->routing->layout);
+			$this->template->setFile($this->getTemplateFile($this->routing));
+
+		} catch (ApplicationError $exception) {
+			$template = '404';
+			if (Config::read('core.debug') > 0)
+				$template = $exception->errorFile;
+
+			$this->template->setFile($this->getErrorTemplateFile($template));
 		}
 
-		return $this->view->renderTemplates();
+		return $this->template->render();
+	}
+
+
+	/**
+	 * Sets view template to error template
+	 * @param Exception $exception
+	 */
+	public function setErrorTemplate($template)
+	{
+		$this->template->setFile($this->getErrorTemplateFile($template));
+		return $this;
+	}
+
+
+	/**
+	 * Proccess method result - output result fox ajax
+	 * @param mixes $return method result
+	 */
+	protected function proccessAjaxResponse($return)
+	{
+		if (!is_array($return)) {
+			if (is_object($return))
+				$return = (array) $return;
+			else
+				$return = array('response' => $return);
+		}
+
+		ob_clean();
+		echo json_encode($return);
+		exit;
+	}
+
+
+	/**
+	 * Returns template relative path
+	 * @param array $modules
+	 * @param string $controller
+	 * @param string $template
+	 * @param string $service
+	 * @param string $ext
+	 * @return string
+	 */
+	protected function constructTemplatePath($modules, $controller, $template, $service, $ext)
+	{
+		$module = null;
+		if (!empty($modules))
+			$module = implode('-module/', $modules) . '-module/';
+		if (!empty($service))
+			$service = ".$service";
+
+		return "/templates/$module$controller/$template$service.$ext";
+	}
+
+
+	/**
+	 * Returns error template relative path
+	 * @param string $errorTemplate
+	 * @param string $ext
+	 * @return string
+	 */
+	protected function constructErrorTemplatePath($errorTemplate, $ext)
+	{
+		return "/templates/_errors/$errorTemplate.$ext";
+	}
+
+
+	/**
+	 * Returns template file path
+	 * @throws ApplicationException
+	 * @return string
+	 */
+	private function getTemplateFile($routing, $return = false)
+	{
+		$app = $this->application->path;
+		$core = $this->application->corePath . '/application';
+
+		$file = $this->constructTemplatePath($routing->module, $routing->controller,
+			$routing->template, $routing->service, $routing->ext);
+		if (file_exists($app . $file))
+			return $app . $file;
+		elseif (file_exists($core . $file))
+			return $core . $file;
+
+		$file1 = $this->constructTemplatePath(array(), $routing->controller,
+			$routing->template, $routing->service, $routing->ext);
+		if ($this->allowTemplatePathReduction && file_exists($app . $file1))
+			return $app . $file1;
+		if (file_exists($core . $file1))
+			return $core . $file1;
+
+		throw new ApplicationException('missing-view', $file);
+	}
+
+
+	/**
+	 * Returns error template file path
+	 * @param string $errorTemplate
+	 * @throws RuntimeException
+	 * @return string
+	 */
+	private function getErrorTemplateFile($errorTemplate)
+	{
+		$app = $this->application->path;
+		$core = $this->application->corePath . '/application';
+
+		$file = $this->constructErrorTemplatePath($errorTemplate, $this->routing->ext);
+		if (file_exists($app . $file))
+			return $app . $file;
+		elseif (file_exists($core . $file))
+			return $core . $file;
+
+		throw new RuntimeException("Missing error template '$file'.");
 	}
 
 

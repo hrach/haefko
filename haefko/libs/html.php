@@ -7,8 +7,8 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Libs
+ * @version     0.9 - $Id$
+ * @package     Haefko
  */
 
 
@@ -18,9 +18,9 @@ require_once dirname(__FILE__) . '/object.php';
 class Html extends Object
 {
 
-
 	/** @var array - Tags without pairs */
-	public static $nonPairs = array('area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source');
+	public static $nonPairs = array('area', 'base', 'br', 'col', 'command', 'embed',
+		'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source');
 
 	/** @var string - Tag's name*/
 	protected $tag;
@@ -61,7 +61,7 @@ class Html extends Object
 		$el = new Html();
 		$el->setTag($tag, $hasPair);
 
-		if (!empty($text))
+		if (!empty($text) || $text == 0)
 			$el->setText($text);
 
 		if (!empty($attrs))
@@ -80,14 +80,14 @@ class Html extends Object
 
 	/**
 	 * Overloaded attributes's setter
-	 * @param   string   attribut name
-	 * @param   array    attribut value
-	 * @return  Html
+	 * @param string $name attribut name
+	 * @param array $args attribut value
+	 * @return Html
 	 */
 	public function __call($name, $args)
 	{
 		# unset attribut
-		if (empty($args[0]) && $args[0] !== '0') {
+		if (empty($args[0]) && $args[0] !== 0) {
 			$this->attrs[$name] = null;
 		# add to array attribut
 		} elseif (isset($this->attrs[$name]) && is_array($this->attrs[$name])) {
@@ -153,7 +153,6 @@ class Html extends Object
 	public function setTag($name, $hasPair = null)
 	{
 		$this->tag = $name;
-
 		if ($hasPair === null)
 			$this->hasPair = !in_array($this->tag, self::$nonPairs);
 		else
@@ -171,7 +170,7 @@ class Html extends Object
 	public function setAttrs($attrs)
 	{
 		foreach ((array) $attrs as $name => $value)
-			$this->$name($value);
+			$this->__call($name, array($value));
 
 		return $this;
 	}
@@ -196,7 +195,7 @@ class Html extends Object
 	 */
 	public function addHtml($value = null)
 	{
-		if (!empty($value) || $value === 0)
+		if (!empty($value) || $value == 0)
 			$this->content[] = $value;
 
 		return $this;
@@ -222,7 +221,7 @@ class Html extends Object
 	 */
 	public function addText($value = null)
 	{
-		if (!empty($value) || $value === 0)
+		if (!empty($value) || $value == 0)
 			$this->content[] = htmlspecialchars($value);
 
 		return $this;
@@ -323,7 +322,7 @@ class Html extends Object
 	 */
 	protected function renderAttributes()
 	{
-		$r = '';	
+		$r = '';
 		foreach ((array) $this->attrs as $key => $value) {
 			if (is_array($value))
 				$value = implode(' ', $value);

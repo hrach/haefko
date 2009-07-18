@@ -7,14 +7,13 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Application
+ * @version     0.9 - $Id$
+ * @package     Haefko
  */
 
 
 class Router
 {
-
 
 	/** @var bool */
 	public $routed = false;
@@ -72,8 +71,9 @@ class Router
 		$services = func_get_args();
 		foreach ($services as $service) {
 			$service = strtolower($service);
-			if ($this->url == $service || Tools::endWith($this->url, "/$service")) {
-				$this->url = trim(Tools::rTrim($this->url, "$service"), '/');
+			
+			if (substr($this->url, -strlen($service)) == $service) {
+				$this->url = substr($this->url, 0, -strlen($this->url));
 				$this->routing['service'] = $service;
 				return true;
 			}

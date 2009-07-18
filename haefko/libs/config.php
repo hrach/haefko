@@ -7,14 +7,13 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Application
+ * @version     0.9 - $Id$
+ * @package     Haefko
  */
 
 
 class Config
 {
-
 
 	/** @var array */
 	public static $config = array();
@@ -22,28 +21,26 @@ class Config
 
 	/**
 	 * Writes configuration
-	 * Where $key == 'servers' is parser only configuration for actual server-name
-	 * @param   mixed   key name
-	 * @param   mixed   value
-	 * @return  void
+	 * @param string $key key name
+	 * @param mixed $val
+	 * @return void
 	 */
 	public static function write($key, $val)
 	{
 		$key = strtolower($key);
 		if ($key == 'servers' && is_array($val)) {
 			$server = $_SERVER['SERVER_NAME'];
-			if (self::read('Config.www', true))
-				$server = Tools::lTrim($server, 'www.');
+			if (self::read('config.ingnore-subdomain', true))
+				$server = preg_replace('#([^\/\.]+?\.[^\/\.]+)$#', '$1', $server);
 
 			if (isset($val[$server]))
 				self::multiWrite($val[$server]);
-			elseif (class_exists('Debug'))
+			elseif (class_exists('Debug', false) && self::read('core.debug') > 0)
 				Debug::log("Undefined server configuration for '$server'.");
 
 		} else {
 			$levels = explode('.', $key);
 			$level = & self::$config;
-
 			foreach ($levels as $name) {
 				if (!isset($level[$name]))
 					$level[$name] = array();
@@ -52,15 +49,14 @@ class Config
 			}
 
 			$level = $val;
-
 		}
 	}
 
 
 	/**
 	 * Writes array of configuration
-	 * @param   array     array of cofigurations pairs
-	 * @return  void
+	 * @param array $config array of cofigurations pairs
+	 * @return void
 	 */
 	public static function multiWrite($config)
 	{
@@ -71,10 +67,9 @@ class Config
 
 	/**
 	 * Reads configuration value
-	 * If $key doesn't exists, return $default
-	 * @param   string    key
-	 * @param   mixed     default value
-	 * @return  mixed
+	 * @param string $key key name
+	 * @param mixed $default default value
+	 * @return mixed
 	 */
 	public static function read($key, $default = null)
 	{
@@ -95,27 +90,26 @@ class Config
 
 	/**
 	 * Parses YAML configuration file
-	 * @param   string    filename
-	 * @throws  Exception
-	 * @return  array
+	 * @param string $file configuration file
+	 * @throws RuntimeException
+	 * @return array
 	 */
 	public static function parseFile($file)
 	{
 		if (!is_file($file))
-			throw new Exception('Missing configuration file ' . Tools::relativePath($file) . '.');
+			throw new RuntimeException("Missing configuration file '$file'.");
 
 		$data = trim(file_get_contents($file));
 		$data = preg_replace("#\t#", '    ', $data);
 		$data = explode("\n", $data);
-
 		return self::parseNode($data);
 	}
 
 
 	/**
 	 * Parses config node
-	 * @param   string    config node
-	 * @return  array
+	 * @param string config node
+	 * @return array
 	 */
 	protected static function parseNode($data)
 	{

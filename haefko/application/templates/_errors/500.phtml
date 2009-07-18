@@ -7,19 +7,17 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Application
- * @subpackage  View
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Templates
  */
 
 
 ?>
-<?php
-	Http::headerError(500);
-	$this->title = 'Error: Internal server error';
-?>
+{block prepend #title}Internal server error {/block}
+{block #content}
 <div class="error">
-	<h1>Error: Internal server error</h1>
+	<h1>Internal server error</h1>
 	<p>We are apologizing. The requested service is not currently available.</p>
 	<p>The server encountered an internal error.</p>
 	<ul>
@@ -27,3 +25,4 @@
 		<li>If the error doesn't disappear, contact administrator / author please.</li>
 	</ul>
 </div>
+{/block}

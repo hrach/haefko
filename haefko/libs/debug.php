@@ -124,8 +124,10 @@ class Debug
 	 */
 	public static function renderToolbar()
 	{
-		if (Config::read('Core.debug') > 2 && !empty(self::$toolbar))
+		if (Config::read('core.debug') > 2 || self::$active) {
+			self::toolbar('Rendering time: ' . self::getTime() . 'ms');
 			require_once dirname(__FILE__) . '/debug.toolbar.phtml';
+		}
 	}
 
 
@@ -160,22 +162,31 @@ class Debug
 	public static function shutdownHandler()
 	{
 		$error = error_get_last();
-		if (empty($error))
-			return;
-
-		if (!($error['type'] & error_reporting()) || !($error['type'] & (E_ERROR | E_CORE_ERROR | E_COMPILE_ERROR | E_PARSE)))
-			return;
-
-
-		if ((class_exists('Config', false) && Config::read('core.debug') > 0) || self::$active) {
-			self::showException(new FatalErrorException($error));
-		} else {
-			self::log(strip_tags($error['message']) . " - $error[file] on line $error[line]");
-			ob_clean();
-			echo "<strong>Uncatchable application exception!</strong>\n<br /><span style='font-size:small'>"
-			   . "Please contact server administrator. The error has been logged.</span>";
-			exit(1);
+		if (isset($error['type']) &&
+			$error['type'] & (E_ERROR | E_CORE_ERROR | E_COMPILE_ERROR | E_PARSE)) {
+			if ((class_exists('Config', false) && Config::read('core.debug') > 0) || self::$active) {
+				self::showException(new FatalErrorException($error));
+			} else {
+				dump($error);
+				exit;
+				self::log(strip_tags($error['message']) . " - $error[file] on line $error[line]");
+				ob_clean();
+				echo "<strong>Uncatchable application exception!</strong>\n<br /><span style='font-size:small'>"
+				   . "Please contact server administrator. The error has been logged.</span>";
+				exit(1);
+			}
 		}
+
+
+		foreach (headers_list() as $header) {
+			if (stripos($header, 'content-type:') === 0) {
+				if (substr($header, 14, 9) === 'text/html')
+					break;
+				return;
+			}
+		}
+
+		self::renderToolbar();
 	}
 
 
@@ -226,7 +237,7 @@ class Debug
 	 */
 	public static function toolbar($message, $group = '')
 	{
-		if (Config::read('core.debug') < 3)
+		if (!(Config::read('core.debug') > 2 || self::$active))
 			return false;
 
 		# redirect content to firebug
@@ -304,7 +315,7 @@ class Debug
 	{
 		require_once dirname(__FILE__) . '/tools.php';
 		$rendered = ob_get_contents();
-		ob_clean();
+		@ob_clean(); # necessary
 		require_once dirname(__FILE__) . '/debug.exception.phtml';
 	}
 
@@ -355,6 +366,7 @@ class FatalErrorException extends Exception
 	 */
 	public function getFatalTrace()
 	{
+		//return debug_backtrace();
 		return array(array(
 			'line' => $this->error['line'],
 			'file' => $this->error['file'],

@@ -7,8 +7,8 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Libs
+ * @version     0.9 - $Id$
+ * @package     Haefko
  */
 
 
@@ -23,7 +23,6 @@ require_once dirname(__FILE__) . '/object.php';
 class Permission extends Object
 {
 
-
 	/** @var array */
 	private $roles = array();
 
@@ -35,7 +34,7 @@ class Permission extends Object
 
 	/**
 	 * Constructor
-	 * @return  Permission
+	 * @return Permission
 	 */
 	public function __construct()
 	{
@@ -45,9 +44,9 @@ class Permission extends Object
 
 	/**
 	 * Adds role
-	 * @param   string	role name
-	 * @param   array	 parents
-	 * @return  Permission
+	 * @param string $name role name
+	 * @param array $parents role parents
+	 * @return Permission
 	 */
 	public function addRole($name, $parents = array())
 	{
@@ -58,8 +57,8 @@ class Permission extends Object
 
 	/**
 	 * Adds resource
-	 * @param   string        resource name
-	 * @return  Permission
+	 * @param string $name resource name
+	 * @return Permission
 	 */
 	public function addResource($name)
 	{
@@ -70,10 +69,10 @@ class Permission extends Object
 
 	/**
 	 * Checks whether role is in resource and action allowed
-	 * @param   array|string  roles
-	 * @param   string        resource name
-	 * @param   string        actions
-	 * @return  bool
+	 * @param array|string $role roles
+	 * @param string $res resource name
+	 * @param string $action
+	 * @return bool
 	 */
 	public function isAllowed($role, $res, $action)
 	{
@@ -90,39 +89,37 @@ class Permission extends Object
 
 	/**
 	 * Allows roles in resources in actions
-	 * @param   array|string	roles
-	 * @param   array|string	resources
-	 * @param   array|string	allowed actions
-	 * @return  Permission
+	 * @param array|string $roles
+	 * @param array|string $resources
+	 * @param array|string $actions allowed actions
+	 * @return Permission
 	 */
 	public function allow($roles, $resources = '*', $actions = '*')
 	{
-		$this->setAccess(true, $roles, $resources, $actions);
-		return $this;
+		return $this->setAccess(true, $roles, $resources, $actions);
 	}
 
 
 	/**
 	 * Denies roles in resources in actions
-	 * @param   array|string	roles
-	 * @param   array|string	resources
-	 * @param   array|string	allowed actions
-	 * @return  Permission
+	 * @param array|string $roles
+	 * @param array|string $resources
+	 * @param array|string $actions denied actions
+	 * @return Permission
 	 */
 	public function deny($roles, $resources = '*', $actions = '*')
 	{
-		$this->setAccess(false, $roles, $resources, $actions);
-		return $this;
+		return $this->setAccess(false, $roles, $resources, $actions);
 	}
 
 
 	/**
 	 * Sets access for roles in resources in actions
-	 * @param   bool          access
-	 * @param   array|string  roles
-	 * @param   array|string  resources
-	 * @param   array|string  allowed actions
-	 * @return  void
+	 * @param bool $access
+	 * @param array|string $roles
+	 * @param array|string $resources
+	 * @param array|string $actions
+	 * @return Permission
 	 */
 	protected function setAccess($access, $roles, $resources, $actions)
 	{
@@ -141,6 +138,8 @@ class Permission extends Object
 					$this->roles[$role]->setAccess($access, $resource, $action);
 			}
 		}
+
+		return $this;
 	}
 
 
@@ -155,7 +154,6 @@ class Permission extends Object
 class PermissionRole extends Object
 {
 
-
 	/** @var string - Role name*/
 	private $name;
 
@@ -168,9 +166,9 @@ class PermissionRole extends Object
 
 	/**
 	 * Constructor
-	 * @param   string   role name
-	 * @param   array    parents
-	 * @return  PermissionRole
+	 * @param string $name role name
+	 * @param array $parents
+	 * @return PermissionRole
 	 */
 	public function __construct($name, $parents)
 	{
@@ -181,9 +179,9 @@ class PermissionRole extends Object
 
 	/**
 	 * Checks whether action is allowed on resource
-	 * @param   string    resource name
-	 * @param   string    action name
-	 * @return  bool
+	 * @param string $res resource name
+	 * @param string $action action name
+	 * @return bool
 	 */
 	public function isAllowed($res, $action)
 	{
@@ -194,10 +192,10 @@ class PermissionRole extends Object
 
 	/**
 	 * Sets access for action on role
-	 * @param   bool       access
-	 * @param   string     resource name
-	 * @param   string     action name
-	 * @return  PermissionRole
+	 * @param bool $access
+	 * @param string $res resource name
+	 * @param string $action action name
+	 * @return PermissionRole
 	 */
 	public function setAccess($access, $res, $action)
 	{
@@ -208,7 +206,7 @@ class PermissionRole extends Object
 
 	/**
 	 * Returns parents
-	 * @return  array
+	 * @return array
 	 */
 	public function getParents()
 	{
@@ -218,7 +216,7 @@ class PermissionRole extends Object
 
 	/**
 	 * Returns true if role has any parents
-	 * @return  bool
+	 * @return bool
 	 */
 	public function hasParents()
 	{
@@ -228,9 +226,9 @@ class PermissionRole extends Object
 
 	/**
 	 * Checks whether is set resource and action
-	 * @param   string    resource name
-	 * @param   string    action name
-	 * @return  bool
+	 * @param string $res resource name
+	 * @param string $action action name
+	 * @return bool
 	 */
 	public function isDefined($res, $action)
 	{

@@ -7,8 +7,8 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Libs
+ * @version     0.9 - $Id$
+ * @package     Haefko
  */
 
 
@@ -17,7 +17,6 @@ require_once dirname(__FILE__) . '/object.php';
 
 class Paginator extends Object
 {
-
 
 	/** @var int */
 	protected $page;
@@ -34,10 +33,10 @@ class Paginator extends Object
 
 	/**
 	 * Constructor
-	 * @param   int   page
-	 * @param   int   total records
-	 * @param   int   records on page
-	 * @return  Paginator
+	 * @param int $page current page
+	 * @param int $total total pages count
+	 * @param int $limit limit of records per page
+	 * @return Paginator
 	 */
 	public function __construct($page, $total, $limit)
 	{
@@ -52,7 +51,7 @@ class Paginator extends Object
 
 	/**
 	 * Returns current page num
-	 * @return  int
+	 * @return int
 	 */
 	public function getPage()
 	{
@@ -61,8 +60,8 @@ class Paginator extends Object
 
 
 	/**
-	 * Returns sum of pages
-	 * @return  int
+	 * Returns count of pages
+	 * @return int
 	 */
 	public function getPages()
 	{
@@ -71,8 +70,8 @@ class Paginator extends Object
 
 
 	/**
-	 * Returns true when exists prev page
-	 * @return  bool
+	 * Returns true when exists previous page
+	 * @return bool
 	 */
 	public function hasPrev()
 	{
@@ -82,7 +81,7 @@ class Paginator extends Object
 
 	/**
 	 * Returns true when exists next page
-	 * @return  bool
+	 * @return bool
 	 */
 	public function hasNext()
 	{
@@ -92,7 +91,7 @@ class Paginator extends Object
 
 	/**
 	 * Returns true when current page is the first
-	 * @return  bool
+	 * @return bool
 	 */
 	public function isFirst()
 	{
@@ -102,7 +101,7 @@ class Paginator extends Object
 
 	/**
 	 * Returns true when current page is the last
-	 * @return  bool
+	 * @return bool
 	 */
 	public function isLast()
 	{

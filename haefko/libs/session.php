@@ -7,8 +7,8 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Libs
+ * @version     0.9 - $Id$
+ * @package     Haefko
  */
 
 
@@ -44,7 +44,7 @@ class Session
 
 
 	/**
-	 * Returnsn namepsace seesion object
+	 * Returns namepsace session object
 	 * @param $namespace namespace name
 	 * @return SessionNamespace
 	 */
@@ -75,7 +75,7 @@ class Session
 
 	/**
 	 * Destroys session
-	 * @return  void
+	 * @return void
 	 */
 	public static function destroy()
 	{
@@ -96,8 +96,8 @@ class Session
 
 	/**
 	 * Reads session variable
-	 * @param string variable name
-	 * @param mixed default value
+	 * @param string $var variable name
+	 * @param mixed $default default value
 	 * @return mixed
 	 */
 	public static function read($var, $default = null)
@@ -113,8 +113,8 @@ class Session
 	/**
 	 * Safe reads session variable
 	 * If session is not started returns default
-	 * @param string variable name
-	 * @param mixed default value
+	 * @param string $var variable name
+	 * @param mixed $deafult default value
 	 * @return mixed
 	 */
 	public static function safeRead($var, $default = null)
@@ -128,7 +128,7 @@ class Session
 
 	/**
 	 * Returns true if session variable exists
-	 * @param string variable name
+	 * @param string $var variable name
 	 * @return bool
 	 */
 	public static function exists($var)
@@ -140,8 +140,8 @@ class Session
 
 	/**
 	 * Writes $val to session $var
-	 * @param string|array variable name
-	 * @param mixed value
+	 * @param string|array $var variable name
+	 * @param mixed $val value
 	 * @return void
 	 */
 	public static function write($var, $val)
@@ -158,7 +158,7 @@ class Session
 
 	/**
 	 * Deletes session variable
-	 * @param string variable name
+	 * @param string $var variable name
 	 * @return void
 	 */
 	public static function delete($var)

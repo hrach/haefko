@@ -7,17 +7,15 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Application
- * @subpackage  View
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Templates
  */
 
 
 ?>
-<?php
-	$this->title = 'No routing match | haefko';
-?>
-
+{block prepend #title}No routing match | haefko {/block}
+{block #content}
 <div class="error">
 	<h1>ERROR: No routing match</h1>
 	<p>Check URL and routing for keying mistakes.</p>
@@ -29,3 +27,4 @@ $router-&gt;connect('/&lt;:controller&gt;');
 $router-&gt;connect('/&lt;:controller&gt;/&lt;:action&gt;', null, true);
 </code></pre>
 </div>
+{/block}

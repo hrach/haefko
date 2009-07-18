@@ -7,16 +7,15 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Application
- * @subpackage  View
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Templates
  */
 
 
 ?>
-<?php
-	$this->title = 'Error: Page not found';
-?>
+{block prepend #title}Error: Page not found {/block}
+{block #content}
 <div class="error">
 	<h1>Error: Page not found</h1>
 	<p>We apologize for the inconvenience, but the page you are looking for
@@ -25,5 +24,6 @@
 		<li>If you typed in the address, try to re-check the spelling.</li>
 		<li>If you followed link from somewhere, please let them know the page does not exist.</li>
 	</ul>
-	<p>It might just be the best to start at our <?= $html->link('', 'homepage') ?>.</p>
+	<p>It might just be the best to start at our <a href="{$base}">homepage</a>.</p>
 </div>
+{/block}

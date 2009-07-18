@@ -7,8 +7,8 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Application
+ * @version     0.9 - $Id$
+ * @package     Haefko
  */
 
 
@@ -18,16 +18,18 @@ require_once dirname(__FILE__) . '/libs/http.php';
 require_once dirname(__FILE__) . '/libs/debug.php';
 require_once dirname(__FILE__) . '/libs/cache.php';
 require_once dirname(__FILE__) . '/libs/config.php';
-require_once dirname(__FILE__) . '/application/libs/inflector.php';
 require_once dirname(__FILE__) . '/application/libs/router.php';
 
 
 /**
  * @property-read Router $router
+ * @property-read Controller $controller
+ * @property-read Cache $cache
+ * @property-read string $path
+ * @property-read string $corePath
  */
 class Application extends Object
 {
-
 
 	/** @var bool Error mode */
 	public static $error = false;
@@ -50,16 +52,16 @@ class Application extends Object
 
 
 	/**
-	 * Returs framework version and logo
-	 * @param   bool     add image?
-	 * @return  string
+	 * Returns framework version and logo
+	 * @param bool $image image version?
+	 * @return string
 	 */
 	public static function getFrameworkInfo($image = true)
 	{
 		if ($image)
 			return '<a href="http://haefko.skrasek.com"><img src="http://haefko.skrasek.com/media/powered.png" class="hf-powered" /></a>';
 		else
-			return '<a href="http://haefko.skrasek.com">Haefko 0.8.5</a>';
+			return '<a href="http://haefko.skrasek.com">Haefko 0.9</a>';
 	}
 
 
@@ -88,49 +90,22 @@ class Application extends Object
 	public function __construct($path = '/app', $config = '/config.yml')
 	{
 		self::$self = & $this;
-
-		header('X-Powered-By: Haefko/0.8');
+		header('X-Powered-By: Haefko/0.9');
 		$this->path = rtrim(dirname($_SERVER['SCRIPT_FILENAME']) . $path, '/');
 		$this->corePath = rtrim(dirname(__FILE__), '/');
-
 
 		if ($config !== false)
 			Config::multiWrite(Config::parseFile($this->path . $config));
 
 
 		if (Config::read('cache.storage.relative', true))
-			$cachePath = $this->path . Config::read('cache.storage.path', '/temp/cache');
+			$cachePath = $this->path . Config::read('cache.storage.path', '/temp/');
 		else
 			$cachePath = Config::read('cache.storage.path');
-
 
 		$this->router = new Router();
 		$this->cache = new Cache(true, $cachePath);
 		$this->initConfig();
-	}
-
-
-	/**
-	 * Desctructor
-	 * @return  void
-	 */
-	public function __destruct()
-	{
-		$this->terminate();
-	}
-
-
-	/**
-	 * Prints debuggin information
-	 * @return  void
-	 */
-	public function terminate()
-	{
-		# debug full time
-		Debug::toolbar('Rendering time: ' . Debug::getTime() . 'ms');
-
-		# render toolbar
-		Debug::renderToolbar();
 	}
 
 
@@ -140,31 +115,25 @@ class Application extends Object
 	 */
 	public function initConfig()
 	{
+		$this->cache->enabled = (bool) Config::read('cache.enabled', true);
 		Debug::$logFile = Config::read('debug.log', $this->path . '/temp/errors.log');
 
 		switch (Config::read('core.debug', 0)) {
 		case 0:
-			$this->cache->lifeTime = 60*60*24; # 1 day
 			error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
 			break;
 		case 1:
-			$this->cache->lifeTime = 60*60; # 1 hour
 			error_reporting(E_ALL ^ E_NOTICE);
 			break;
 		case 2:
-			$this->cache->lifeTime = 60*5; # 5 minutes
 			error_reporting(E_ALL);
 			break;
 		default:
-			$this->cache->lifeTime = 30; # 30 seconds
 			error_reporting(E_ALL);
 			break;
 		}
 
-		if (Config::read('cache.enabled', true))
-			$this->cache->enabled = true;
-		else
-			$this->cache->enabled = false;
+		
 	}
 
 
@@ -177,7 +146,7 @@ class Application extends Object
 	public function loadFile($file)
 	{
 		$file1 = $this->path . "/$file";
-		$file2 = dirname(__FILE__) . "/application/$file";
+		$file2 = $this->corePath . "/application/$file";
 
 		if (file_exists($file1))
 			return require_once $file1;
@@ -195,16 +164,12 @@ class Application extends Object
 	 * @throws  Exception|ApplicationException
 	 * @return  void
 	 */
-	public function loadClass($type, $class)
+	public function loadControllerClass($class)
 	{
-		if (!in_array($type, array('controller', 'helper')))
-			throw new Exception("Unsupported class-type '$type'.");
-
-		$file = call_user_func(array('Inflector', "{$type}File"), $class);
-		$this->loadFile($file);
-
+		$file = str_replace(array('_-', '_'), array('/', '/'), Tools::dash($class));
+		$this->loadFile("controllers/$file.php");
 		if (!class_exists($class, false))
-			throw new ApplicationException('missing-' . $type, $class);
+			throw new ApplicationException('missing-controller', $class);
 	}
 
 
@@ -235,13 +200,17 @@ class Application extends Object
 	 */
 	public function run()
 	{
-		$this->loadAppController();
+		$this->loadAppControllerClass();
 		if ($this->router->routed === false || empty($this->router->controller))
 			throw new ApplicationException('routing');
 
-		$class = Inflector::controllerClass($this->router->controller, $this->router->module);
-		$this->loadClass('controller', $class);
 
+		$module = implode('_', $this->router->module);
+		$class = $this->router->controller . 'Controller';
+		if (!empty($module))
+			$class = $module . '_' . $class;
+
+		$this->loadControllerClass($class);
 		$this->controller = new $class;
 		echo $this->controller->render();
 	}
@@ -254,48 +223,49 @@ class Application extends Object
 	 */
 	public function processException(Exception $exception)
 	{
-		# ajax support
-		if (isset($this->contorller) && $this->controller->isAjax) {
-			if (Config::read('Core.debug') == 0)
+		if (isset($this->contorller) && $this->controller->routing->ajax) {
+			Http::headerError(500);
+			if (Config::read('core.debug') == 0)
 				echo json_encode(array('response' => 'Internal server error.'));
 			else
 				echo json_encode(array('response' => $exception->getMessage()));
 
-			exit;
+			exit(1);
 		}
 
-		if (!($exception instanceof ApplicationException || Config::read('Core.debug') == 0)) {
+		# show details when exception is no ApplicationException and debug level is not 0
+		if (!($exception instanceof ApplicationException) && Config::read('core.debug') > 0) {
 			Debug::showException($exception);
 			exit(1);
 		}
 
-
 		self::$error = true;
-		$this->loadAppController();
+		$this->loadAppControllerClass();
 		$this->controller = new AppController();
+		$this->controller->init();
 
-
-		if (Config::read('Core.debug') == 0) {
-			if ($exception instanceof ApplicationException) {
-				$this->controller->view->view('404');
+		if ($exception instanceof ApplicationException) {
+			if (Config::read('core.debug') > 0) {
+				$template = $exception->errorFile;
+				Http::headerError(404);
+				$this->controller->template->variable = $exception->variable;
 			} else {
-				$this->controller->view->view('500');
+				$template = '500';
+				Http::headerError(500);
 				Debug::log($exception->getMessage());
 			}
 		} else {
-			$this->controller->view->view($exception->error);
-			$this->controller->view->variable = $exception->variable;
-			$this->controller->view->message = $exception->getMessage();
+			$template = '404';
 		}
 
-		$this->controller->init();
-		echo $this->controller->view->renderTemplates();
+		$this->controller->setErrorTemplate($template);
+		echo $this->controller->template->render();
 	}
 
 
 	/**
-	 * Returns controller
-	 * @return  Controller
+	 * Returns application controller object
+	 * @return Controller
 	 */
 	public function getController()
 	{
@@ -305,7 +275,7 @@ class Application extends Object
 
 	/**
 	 * Returns application path
-	 * @return  string
+	 * @return string
 	 */
 	public function getPath()
 	{
@@ -315,7 +285,7 @@ class Application extends Object
 
 	/**
 	 * Returns framework core path
-	 * @return  string
+	 * @return string
 	 */
 	public function getCorePath()
 	{
@@ -324,8 +294,8 @@ class Application extends Object
 
 
 	/**
-	 * Returns Router
-	 * @return  Router
+	 * Returns application Router object
+	 * @return Router
 	 */
 	public function getRouter()
 	{
@@ -334,8 +304,8 @@ class Application extends Object
 
 
 	/**
-	 * Returns Cache
-	 * @return  Cache
+	 * Returns application Cache object
+	 * @return Cache
 	 */
 	public function getCache()
 	{
@@ -347,13 +317,13 @@ class Application extends Object
 	 * Loads or creates AppController
 	 * @return  void
 	 */
-	private function loadAppController()
+	private function loadAppControllerClass()
 	{
 		if (class_exists('AppController', false))
 			return true;
 
 		try {
-			$this->loadClass('controller', 'AppController');
+			$this->loadControllerClass('AppController');
 		} catch (ApplicationException $e) {
 			eval('class AppController extends Controller {}');
 		}
@@ -367,9 +337,8 @@ class Application extends Object
 class ApplicationException extends Exception
 {
 
-
-	/** @var string */
-	public $error;
+	/** @var string - Error view template name */
+	public $errorFile;
 
 	/** @var mixed */
 	public $variable;
@@ -381,15 +350,15 @@ class ApplicationException extends Exception
 	 * @param   string  view variable
 	 * @return  void
 	 */
-	public function __construct($error, $variable = null)
+	public function __construct($errorType, $variable = null)
 	{
 		static $errors = array('routing', 'missing-controller', 'missing-method', 'missing-view', 'missing-helper', 'missing-file');
-		if (!in_array($error, $errors))
+		if (!in_array($errorType, $errors))
 			throw new Exception("Unsupported ApplicationException type '$error'.");
 
-		$this->error = $error;
+		$this->errorFile = $errorType;
 		$this->variable = $variable;
-		parent::__construct("$error: $variable");
+		parent::__construct(ucfirst(str_replace('-', ' ', $errorType)) . " '$variable'.");
 	}
 
 
@@ -399,19 +368,17 @@ class ApplicationException extends Exception
 class ApplicationError extends Exception
 {
 
-
-	/** @var string ErrorView */
-	public $view;
+	/** @var string - Error view template name */
+	public $errorFile;
 
 
 	/**
 	 * Constructor
-	 * @param   string    error view
-	 * @param   string    is view debugable?
-	 * @param   int|null  error code
-	 * @return  void
+	 * @param string $view view template name
+	 * @param bool $debug is exception debuggable?
+	 * @param int $errorCode http error code
 	 */
-	public function __construct($view, $debug, $errorCode = 404)
+	public function __construct($template, $debug = false, $errorCode = 404)
 	{
 		Application::$error = true;
 
@@ -421,8 +388,8 @@ class ApplicationError extends Exception
 		if ($errorCode !== null)
 			Http::headerError($errorCode);
 
-		$this->view = $view;
-		parent::__construct("Application error: $view.");
+		$this->errorFile = $template;
+		parent::__construct("Application error: $template.");
 	}
 
 
