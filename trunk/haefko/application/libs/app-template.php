@@ -18,7 +18,6 @@ require_once dirname(__FILE__) . '/../../libs/template.php';
 
 /**
  * Extends Template class by templates extending and inheriting
- * @property
  */
 class AppTemplate extends Template
 {
@@ -31,18 +30,11 @@ class AppTemplate extends Template
 	public function __construct($file = null, Cache $cache = null)
 	{
 		parent::__construct($file, $cache);
-
-		$this->tplFunctions['link'] = array($this, 'cbLinkFunction');
+		$this->tplFunctions['link'] = '$controller->url';
 
 		$this->getHelper('html');
 		$this->getHelper('filter');
 		$this->setVar('base', Http::$baseUri);
-	}
-
-
-	protected function cbLinkFunction($expression)
-	{
-		return '<?php echo $controller->url(' . $expression . ') ?>';
 	}
 
 
@@ -58,6 +50,11 @@ class AppTemplate extends Template
 
 	
 
+	/**
+	 * Sets extending template filename
+	 * @param string $file
+	 * @return Template
+	 */
 	public function setExtendsFile($file = null)
 	{
 		if (empty($file)) {
