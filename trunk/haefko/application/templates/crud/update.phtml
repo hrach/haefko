@@ -1,4 +1,15 @@
-<h1><?= $controllerTitle ?></h1>
+{**
+ * Haefko - your php5 framework
+ *
+ * @author      Jan Skrasek
+ * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
+ * @link        http://haefko.skrasek.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Templates
+ *}
+<h1>{$controllerTitle}</h1>
 
-<p><?= $html->link($controller->crudUrl('index'), 'Entry list') ?></p>
-<?= $form->renderer->render() ?>
+<p><a href="{$controller->crudUrl('index')}">Entry list</a></p>
+{$form->renderer->render()|raw}
