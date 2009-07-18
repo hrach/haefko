@@ -28,6 +28,9 @@ class DataGrid extends Object
 	/** @var string - DataGrid name */
 	protected $name;
 
+	/** @var Cache */
+	protected $cache;
+
 	/** @var DbPreparedQuery */
 	protected $query;
 
@@ -56,32 +59,33 @@ class DataGrid extends Object
 	/**
 	 * Constructor
 	 * @param string $name data grid name
+	 * @param Cache|null $cache
 	 * @return DataGrid
 	 */
-	public function __construct($name = null)
+	public function __construct($name = null, Cache $cache = null)
 	{
+		if (!($cache instanceof Cache))
+			$cache = new Cache();
+
 		if (empty($name))
 			$name = 'dg' . self::$counter++;
-		
+
 		$this->name = $name;
+		$this->cache = $cache;
 		$this->initOrder();
 	}
 
 
 	/**
 	 * Renders datagrid
-	 * @param Cache $cache
 	 * @return string
 	 */
-	public function render(Cache $cache = null)
+	public function render()
 	{
 		if (empty($this->columns))
 			$this->columns = $this->query->getColumnNames();
 
-		if (!($cache instanceof Cache))
-			$cache = new Cache();
-
-		$template = new Template(null, $cache);
+		$template = new Template(null, $this->cache);
 		$template->setFile(dirname(__FILE__) . '/data-grid.template.phtml');
 		$template->getHelper('html');
 

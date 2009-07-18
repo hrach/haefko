@@ -177,7 +177,7 @@ class CrudController extends AppController
 	 */
 	protected function getDataGrid()
 	{
-		$grid = new DataGrid();
+		$grid = new DataGrid(null, $this->application->cache);
 		return $grid->setLimit($this->limit)
 		            ->setLink($this->link)
 		            ->setLabels($this->labels);
