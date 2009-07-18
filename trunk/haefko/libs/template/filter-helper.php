@@ -32,8 +32,8 @@ class FilterHelper extends Object
 			if (empty($varName))
 				$varName = 'filter';
 
-			static $filters = array('escape', 'trim', 'capitalize', 'lower', 'upper',
-				'nl2br', 'strip', 'stripTags', 'date', 'format', 'shuffle', 'explode',
+			static $filters = array('escape', 'trim', 'lower', 'upper', 'nl2br',
+				'strip', 'stripTags', 'date', 'format', 'shuffle', 'explode',
 				'implode');
 
 			foreach ($filters as $f)
@@ -53,9 +53,11 @@ class FilterHelper extends Object
 		switch ($mode) {
 			case 'js':
 			case 'javascript':
-
+				$var = str_replace(']]>', ']]\x3E', json_encode($s));
+				return htmlspecialchars($var, ENT_QUOTES);
 			case 'css':
-
+				$var = addcslashes($s, "\x00..\x2C./:;<=>?@[\\]^`{|}~");
+				return htmlspecialchars($var, ENT_QUOTES);
 			case 'html':
 			case 'xhtml':
 			default:
@@ -73,17 +75,6 @@ class FilterHelper extends Object
 	public function trim($var, $chars = null)
 	{
 		return trim($vars, $chars);
-	}
-
-
-	/**
-	 * Capitalize filter
-	 * @param string $var
-	 * @return string
-	 */
-	public function capitalize($var)
-	{
-
 	}
 
 

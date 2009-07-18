@@ -347,11 +347,11 @@ class Template extends Object implements ITemplate
 
 
 	/**
-	 *
-	 * @param <type> $id
-	 * @param <type> $function
-	 * @param <type> $mode
-	 * @return <type>
+	 * Register functions block
+	 * @param string $id
+	 * @param string $function function name
+	 * @param string $mode mode - append / prepen
+	 * @return Template
 	 */
 	public function registerBlock($id, $function, $mode = '')
 	{
@@ -567,9 +567,9 @@ class Template extends Object implements ITemplate
 
 
 	/**
-	 *
-	 * @param <type> $expression
-	 * @return <type>
+	 * Callback for assign function
+	 * @param string $expression
+	 * @return string
 	 */
 	protected function cbAssignFunction($expression)
 	{

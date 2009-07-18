@@ -27,7 +27,7 @@ class RssHelper extends Object
 
 	/**
 	 * Returns formatted date in RFC822 format
-	 * @param int|null $time timestamp
+	 * @param int|string|null $time timestamp or arg for strtotime
 	 * @return string
 	 */
 	public function date($time = null)
@@ -38,7 +38,10 @@ class RssHelper extends Object
 
 
 	/**
-	 *
+	 * Returns tag
+	 * @param string $tag tag name
+	 * $param string $content tag content
+	 * @return string
 	 */
 	public function rssTag($tag, $content)
 	{
@@ -46,17 +49,34 @@ class RssHelper extends Object
 	}
 
 
+	/**
+	 * Wrapper for pubDate tag
+	 * @param int|string|null $time timestamp or arg for strtotime
+	 * @return string
+	 */
 	public function pubDate($time)
 	{
 		return $this->rssTag('pubDate', $this->date($time));
 	}
 
+
+	/**
+	 * Wrapper for title tag
+	 * @param string $content
+	 * @return string
+	 */
 	public function title($content)
 	{
 		return $this->rssTag('title', strip_tags($content));
 	}
 
 
+	/**
+	 * Call interface
+	 * @param string $name method name
+	 * @param array $args
+	 * @return string
+	 */
 	public function __call($name, $args)
 	{
 		if (isset($this->pairs[$name]))
