@@ -210,7 +210,7 @@ abstract class Controller extends Object
 			# INITS
 			call_user_func(array($this, 'init'));
 			if ($this->routing->template !== false)
-				$this->routing->template = $this->routing->action;
+				$this->routing->template = Tools::dash($this->routing->action);
 
 			# METHOD
 			$method = Tools::camelize($this->routing->action);
