@@ -39,7 +39,6 @@ class Template extends Object implements ITemplate
 		'{/foreach}' => '<?php endforeach; ?>',
 		'{/while}' => '<?php endwhile; ?>',
 		'{else}' => '<?php else: ?>',
-		'{* %% *}' => '',
 	);
 
 	/** @var array */
@@ -441,6 +440,9 @@ class Template extends Object implements ITemplate
 	protected function createTemplateTemp($cacheFile)
 	{
 		$file = file_get_contents($this->file);
+
+		# comments
+		$file = preg_replace('#\{\*.+\*\}#s', '', $file);
 
 		# keywords
 		$keywords_k = $keywords_v = array();

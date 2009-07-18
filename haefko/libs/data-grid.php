@@ -13,6 +13,7 @@
 
  
 require_once dirname(__FILE__) . '/object.php';
+require_once dirname(__FILE__) . '/cache.php';
 require_once dirname(__FILE__) . '/template.php';
 
 
@@ -69,6 +70,9 @@ class DataGrid extends Object
 
 		if (empty($name))
 			$name = 'dg' . self::$counter++;
+
+		if (!class_exists('Application', false))
+			throw new Exception('Datagrid works only in application mode.');
 
 		$this->name = $name;
 		$this->cache = $cache;
@@ -282,7 +286,9 @@ class DataGrid extends Object
 	 */
 	public function paramUrl($var, $value)
 	{
-		return Controller::get()->url('', array($this->name . '-' . $var => $value));
+		return Controller::get()->url('', array(
+			$this->name . '-' . $var => $value
+		));
 	}
 
 

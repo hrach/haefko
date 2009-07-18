@@ -1,6 +1,17 @@
-<h1><?= $controllerTitle ?></h1>
+{**
+ * Haefko - your php5 framework
+ *
+ * @author      Jan Skrasek
+ * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
+ * @link        http://haefko.skrasek.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Templates
+ *}
+<h1>{$controllerTitle}</h1>
 <div class="crud-remove-block">
-	<p>Are you sure you want to remove entry <strong>"<?= $entry ?>"</strong>?</p>
+	<p>Are you sure you want to remove entry <strong>"{$entry}"</strong>?</p>
 	<form method="post">
 	<input type="submit" class="button" name="yes" value="Yes, remove"/>
 	<input type="submit" class="button" name="no" value="No"/>
