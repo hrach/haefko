@@ -1,0 +1,38 @@
+/**
+ * Haefko - your php5 framework
+ *
+ * @author      Jan Skrasek
+ * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
+ * @link        http://haefko.skrasek.com
+ * @license     http://www.opensource.org/licenses/mit-license.html
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ */
+
+
+div.pagination {
+	margin-bottom: 20px;
+}
+
+div.pagination span.button, div.pagination a {
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+	padding: 2px 8px;
+	margin: 2px;
+}
+
+div.pagination a {
+	background: #3B699F;
+	color: white;
+	text-decoration: none;
+}
+
+div.pagination span.button {
+	background: #99BBDF;
+	color: white;
+}
+
+div.pagination span {
+	margin: 0 4px;
+}
