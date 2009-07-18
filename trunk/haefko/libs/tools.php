@@ -7,8 +7,8 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Libs
+ * @version     0.9 - $Id$
+ * @package     Haefko
  */
 
 
@@ -18,8 +18,8 @@ class Tools
 
 	/**
 	 * Camelizes string
-	 * @param   string
-	 * @return  string
+	 * @param string $string
+	 * @return string
 	 */
 	public static function camelize($string)
 	{
@@ -29,8 +29,8 @@ class Tools
 
 	/**
 	 * Dashs string
-	 * @param   string
-	 * @return  string
+	 * @param string $string
+	 * @return string
 	 */
 	public static function dash($string)
 	{
@@ -40,8 +40,8 @@ class Tools
 
 	/**
 	 * Underscores string
-	 * @param   string
-	 * @return  string
+	 * @param string $string
+	 * @return string
 	 */
 	public static function underscore($string)
 	{
@@ -51,8 +51,8 @@ class Tools
 
 	/**
 	 * Strips diacritics
-	 * @param   string
-	 * @return  string
+	 * @param string $string
+	 * @return string
 	 */
 	public static function toAscii($string)
 	{
@@ -60,7 +60,7 @@ class Tools
 
 			/**
 			 * @author David GRUDL
-			 * @link   http://davidgrudl.cz
+			 * @link http://davidgrudl.cz
 			 */
 			static $table = array(
 				"\xc3\xa1"=>"a","\xc3\xa4"=>"a","\xc4\x8d"=>"c","\xc4\x8f"=>"d","\xc3\xa9"=>"e",
@@ -85,10 +85,10 @@ class Tools
 	/**
 	 * Renders cool url
 	 * Strips diacritics and replaces non-alfanumeric chars by dash
-	 * @author  Jakub Vrana
-	 * @link    http://php.vrana.cz
-	 * @param   string
-	 * @return  string
+	 * @author Jakub Vrana
+	 * @link http://php.vrana.cz
+	 * @param string $string
+	 * @return string
 	 */
 	public static function toCoolUrl($string) {
 		$string = preg_replace('~[^\\pL0-9_]+~u', '-', $string);
@@ -103,9 +103,9 @@ class Tools
 
 	/**
 	 * Returns true when the $string start with $substring
-	 * @param   string
-	 * @param   string  substring
-	 * @return  bool
+	 * @param string $string
+	 * @param string $sub substring
+	 * @return bool
 	 */
 	public static function startWith($string, $sub)
 	{
@@ -115,9 +115,9 @@ class Tools
 
 	/**
 	 * Returns true when the $string end with $substring
-	 * @param   string
-	 * @param   string  substring
-	 * @return  bool
+	 * @param string $string
+	 * @param string $sub substring
+	 * @return bool
 	 */
 	public static function endWith($string, $sub)
 	{
@@ -126,39 +126,9 @@ class Tools
 
 
 	/**
-	 * Strips $sub from the start of $string
-	 * @param   string
-	 * @param   string  substring
-	 * @return  string
-	 */
-	public static function lTrim($string, $sub)
-	{
-		if (self::startWith($string, $sub))
-			return substr($string, strlen($sub));
-
-		return $string;
-	}
-
-
-	/**
-	 * Strips $sub string from the end of $string
-	 * @param   string
-	 * @param   string  substring
-	 * @return  string
-	 */
-	public static function rTrim($string, $sub)
-	{
-		if (self::endWith($string, $sub))
-			return substr($string, 0, -strlen($sub));
-
-		return $string;
-	}
-
-
-	/**
 	 * Returns relative application path
-	 * @param   string  path
-	 * @return  string
+	 * @param string $path
+	 * @return string
 	 */
 	public static function relativePath($path)
 	{
@@ -173,9 +143,9 @@ class Tools
 
 
 /**
- * Return argument's array
- * @param   mixed    arg
- * @return  array
+ * Returns argument's array
+ * @param mixed arg
+ * @return array
  */
 function a()
 {
@@ -184,10 +154,10 @@ function a()
 
 
 /**
- * Return associated argument's array
- * @param   string   key
- * @param   mixed    value
- * @return  array
+ * Returns associated argument's array
+ * @param string key
+ * @param mixed value
+ * @return array
  */
 function aa()
 {
@@ -209,35 +179,6 @@ if (!function_exists('lcfirst')) {
 	{
 		$string[0] = strtolower($string[0]);
 		return (string) $string;
-	}
-
-}
-
-
-if (!function_exists('json_encode')) {
-
-	function json_encode($val)
-	{
-		if (is_array($val)) {
-			if (array_keys($val) === range(0, count($val) - 1)) {
-				return '[' . implode(',', array_map('json_encode', $val)) . ']';
-			} else {
-				$array = array();
-				foreach ($val as $k => $v)
-					$array[] = json_encode((string) $k) . ': ' . json_encode($v);
-
-				return '{' . implode(',', $array) . '}';
-			}
-		} elseif (is_string($val)) {
-			$val = addslashes($val);
-			return '"' . addcslashes($val, "\x8..\xA\xC\xD/") . '"';
-		} elseif (is_bool($val)) {
-			return $val ? 'true' : 'false';
-		} elseif (is_numeric($val)) {
-			return (string) $val;
-		}
-
-		return null;
 	}
 
 }

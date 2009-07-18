@@ -7,8 +7,8 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Application
+ * @version     0.9 - $Id$
+ * @package     Haefko
  * @subpackage  Database
  */
 
@@ -20,18 +20,18 @@ require_once dirname(__FILE__) . '/db-structure.php';
 abstract class DbTable extends Object
 {
 
-
 	/** @var DbStructure */
 	public static $structure;
 
+
 	/**
 	 * Creates table class and returns class name
-	 * @param   string  table name
-	 * @return  string
+	 * @param string $name table name
+	 * @return string
 	 */
-	public static function init($name)
+	public static function init($table)
 	{
-		$class = Tools::camelize($name) . 'Table';
+		$class = Tools::camelize($table) . 'Table';
 		if (!class_exists($class, false))
 			eval("class $class extends DbTable {}");
 
@@ -57,14 +57,15 @@ abstract class DbTable extends Object
 
 	/**
 	 * Constructor
-	 * @param   string    primary key value
-	 * @throws  Exception
-	 * @return  void
+	 * @param mixed $primaryKeyValue
+	 * @throws Exception
+	 * @return DbTable
 	 */
 	public function __construct($primaryKeyValue = null)
 	{
 		if (empty($this->table)) {
-			$table = Tools::rTrim($this->getClass(), 'Table');
+			$table = $this->getClass();
+			$table = strpos($table, 'Table') == strlen($table) - 5 ? substr($table, 0, -5) : $table;
 			$table = Tools::underscore($table);
 			$this->table = $table;
 		}
@@ -80,8 +81,8 @@ abstract class DbTable extends Object
 
 	/**
 	 * Selects $cols from table
-	 * @param   string|array  selected columns
-	 * @return  DbResultNode
+	 * @param string|array $cols selected columns
+	 * @return DbResultNode
 	 */
 	public function get($cols = '*')
 	{
@@ -93,9 +94,9 @@ abstract class DbTable extends Object
 
 	/**
 	 * Selects $cols from table by $col
-	 * @param   string        column
-	 * @param   string|array  selected columns
-	 * @return  DbResultNode
+	 * @param string $col column
+	 * @param string|array $cols selected columns
+	 * @return DbResultNode
 	 */
 	public function getBy($col, $cols = '*')
 	{
@@ -107,10 +108,10 @@ abstract class DbTable extends Object
 
 	/**
 	 * Returns table form
-	 * @param   array    cols for edit
-	 * @param   array    cols labels
-	 * @throws  Exception
-	 * @return  Form
+	 * @param array $editCols
+	 * @param array $labels
+	 * @throws Exception
+	 * @return Form
 	 */
 	public function getForm($editCols = array(), $labels = array())
 	{
@@ -157,7 +158,7 @@ abstract class DbTable extends Object
 				$options = array();
 				foreach ($data['length'] as $optLabel)
 					$options[$optLabel] = ucfirst($optLabel);
-				
+
 				$form->addSelect($name, $options, $label);
 				break;
 
@@ -202,9 +203,10 @@ abstract class DbTable extends Object
 
 	/**
 	 * Sets column value
-	 * @param   string  column name
-	 * @param   mixed   column value
-	 * @param   string  column modificator
+	 * @param string $column column name
+	 * @param mixed $value column value
+	 * @param string $mod column modificator
+	 * @return DbTable
 	 */
 	public function set($column, $value, $mod = null)
 	{
@@ -227,12 +229,12 @@ abstract class DbTable extends Object
 
 	/**
 	 * Imports data from array
-	 * @param   array     column => value
-	 * @return  DbTable   $this
+	 * @param array $data column => value
+	 * @return DbTable
 	 */
-	public function import(array $data)
+	public function import($data)
 	{
-		foreach ($data as $column => $value)
+		foreach ((array) $data as $column => $value)
 			$this->set($column, $value);
 
 		return $this;
@@ -241,7 +243,7 @@ abstract class DbTable extends Object
 
 	/**
 	 * Saves (inserts|updates) db entry
-	 * @return  mixed     primary key's value
+	 * @return mixed primary key's value
 	 */
 	public function save()
 	{
@@ -272,7 +274,7 @@ abstract class DbTable extends Object
 
 	/**
 	 * Removes db entry
-	 * @return  bool
+	 * @return bool
 	 */
 	public function remove()
 	{
@@ -283,30 +285,28 @@ abstract class DbTable extends Object
 
 
 	/**
-	 * 
-	 * @param   string    method name
-	 * @param   array     array of arguments
-	 * @throws  BadMethodCallException
-	 * @return  DbTable   $this
+	 * Call interface
+	 * @param string $method
+	 * @param array $args
+	 * @throws BadMethodCallException
+	 * @return DbTable
 	 */
 	public function __call($method, $args)
 	{
-		if (Tools::startWith($method, 'set')) {
-			$column = Tools::lTrim($method, 'set');
-			$column = str_replace('_', '.', $column);
-			$column = Tools::underscore($column);
-			
-			return $this->set($column, array_shift($args), array_shift($args));
-		}
+		if (!Tools::startWith($method, 'set'))
+			throw new BadMethodCallException("Undefined method DbTable::$method().");
 
-		throw new BadMethodCallException("Undefined method DbTable::$method().");
+		$column = Tools::lTrim($method, 'set');
+		$column = str_replace('_', '.', $column);
+		$column = Tools::underscore($column);
+		return $this->set($column, array_shift($args), array_shift($args));
 	}
 
 
 	/**
 	 * Returns modificator for column
-	 * @param   string    column name
-	 * @return  string
+	 * @param string $column column name
+	 * @return string
 	 */
 	private function getModificator($column)
 	{
@@ -323,8 +323,8 @@ abstract class DbTable extends Object
 
 	/**
 	 * Transforms array of cols as sql string
-	 * @param   string  cols
-	 * @return  string
+	 * @param string $cols
+	 * @return string
 	 */
 	private function toSqlCols($cols)
 	{

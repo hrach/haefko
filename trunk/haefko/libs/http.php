@@ -7,17 +7,13 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Libs
+ * @version     0.9 - $Id$
+ * @package     Haefko
  */
-
-
-require_once dirname(__FILE__) . '/tools.php';
 
 
 class Http
 {
-
 
 	/** @var string */
 	public static $domain;
@@ -92,8 +88,15 @@ class Http
 	public static function getRequest()
 	{
 		$url = urldecode($_SERVER['REQUEST_URI']);
-		$url = Tools::lTrim($url, dirname($_SERVER['SCRIPT_NAME']));
-		$url = Tools::lTrim($url, '/' . basename($_SERVER['SCRIPT_NAME']));
+
+		$script = dirname($_SERVER['SCRIPT_NAME']);
+		if (strpos($url, $script) === 0)
+			$url = substr($url, strlen($script));
+
+		$script = basename($_SERVER['SCRIPT_NAME']);
+		if (strpos($url, $script) === 0)
+			$url = substr($url, strlen($script));
+
 		return trim($url, '/\\');
 	}
 

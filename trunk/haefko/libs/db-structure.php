@@ -7,8 +7,8 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Application
+ * @version     0.9 - $Id$
+ * @package     Haefko
  * @subpackage  Database
  */
 
@@ -19,7 +19,6 @@ require_once dirname(__FILE__) . '/cache.php';
 class DbStructure
 {
 
-
 	/** @var array */
 	public static $modificators = array(
 		'varchar' => Db::TEXT,
@@ -29,27 +28,22 @@ class DbStructure
 		'text' => Db::TEXT,
 		'mediumtext' => Db::TEXT,
 		'longtext' => Db::TEXT,
-
 		'bool' => Db::BOOL,
 		'enum' => Db::TEXT,
 		'set' => Db::SET,
-
 		'date' => Db::DATE,
 		'time' => Db::TIME,
 		'datetime' => Db::DATETIME,
 		'timestamp' => Db::DATETIME,
-
 		'tinyint' => Db::INTEGER,
 		'int' => Db::INTEGER,
 		'mediumint' => Db::INTEGER,
 		'bigint' => Db::INTEGER,
 		'smallint' => Db::INTEGER,
-
 		'float' => Db::FLOAT,
 		'double' => Db::FLOAT,
 		'decimal' => Db::FLOAT,
 	);
-
 
 	/** @var DbTableStructure */
 	protected static $self;
@@ -63,7 +57,7 @@ class DbStructure
 
 	/**
 	 * Returns instance
-	 * @param DbTableStructure
+	 * @return DbTableStructure
 	 */
 	public static function get()
 	{
@@ -76,9 +70,9 @@ class DbStructure
 
 	/**
 	 * Constructor - loads tables cache
-	 * @return  void
+	 * @return DbTableStructure
 	 */
-	public function __construct()
+	private function __construct()
 	{
 		self::$self = & $this;
 		if (class_exists('Application', false))
@@ -86,7 +80,7 @@ class DbStructure
 		else
 			$this->cache = new Cache();
 
-		$this->structure = $this->cache->read('sql', 'tables');
+		$this->structure = $this->cache->read('db_structure');
 		if (!isset($this->structure['__tables'])) {
 			$this->structure['__tables'] = db::getDriver()->getTables();
 			$this->updated = true;
@@ -96,20 +90,21 @@ class DbStructure
 
 	/**
 	 * Desctuctor - save tables cache
-	 * @return  void
 	 */
 	public function __destruct()
 	{
 		if ($this->updated)
-			$this->cache->write('sql', 'tables', $this->structure);
+			$this->cache->save('db_structure', $this->structure, array(
+				'expire' => time() + 60*60*30
+			));
 	}
 
 
 	/**
 	 * Returns column's modificator
-	 * @param   string    table (or expression "table.column")
-	 * @param   string    column
-	 * @return  string
+	 * @param string $table table name (or expression "table.column")
+	 * @param string $columne
+	 * @return string
 	 */
 	public function getModificator($table, $column = null)
 	{
@@ -126,9 +121,9 @@ class DbStructure
 
 	/**
 	 * Returns name of table's primary key
-	 * @param   string    table name
-	 * @throws  Exception
-	 * @return  string
+	 * @param string $table table name
+	 * @throws Exception
+	 * @return string
 	 */
 	public function getPrimaryKey($table)
 	{
@@ -144,8 +139,8 @@ class DbStructure
 
 	/**
 	 * Gets list of table cols and modificators
-	 * @param   string  table name
-	 * @return  array
+	 * @param string $table table name
+	 * @return array
 	 */
 	public function getCols($table)
 	{
@@ -155,9 +150,9 @@ class DbStructure
 
 
 	/**
-	 * Checks whether table exists
-	 * @param   string    table name
-	 * @return  bool
+	 * Checks if table exists
+	 * @param string $table table name
+	 * @return bool
 	 */
 	public function tableExists($table)
 	{
@@ -167,8 +162,8 @@ class DbStructure
 
 	/**
 	 * Fetchs table structure
-	 * @param   string    table name
-	 * @return  void
+	 * @param string $table table name
+	 * @return void
 	 */
 	protected function initTable($table)
 	{

@@ -7,21 +7,79 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Libs
+ * @version     0.9 - $Id: template.php 106 2009-06-07 13:45:54Z skrasek.jan
+ * @package     Haefko
+ * @package     Templates
  */
 
 
 require_once dirname(__FILE__) . '/object.php';
+require_once dirname(__FILE__) . '/cache.php';
 require_once dirname(__FILE__) . '/itemplate.php';
+require_once dirname(__FILE__) . '/template/filter-helper.php';
 
 
+/**
+ * @property string $file
+ * @property string $temp
+ * @property string $vars
+ */
 class Template extends Object implements ITemplate
 {
 
+	/** @var array */
+	public static $defaultTplKeywords = array(
+		'{if %%}' => '<?php if (\1): ?>',
+		'{elseif %%}' => '<?php elseif (\1): ?>',
+		'{for %%}' => '<?php for (\1): ?>',
+		'{foreach %%}' => '<?php foreach (\1): ?>',
+		'{while %%}' => '<?php while (\1): ?>',
+		'{/if}' => '<?php endif; ?>',
+		'{/for}' => '<?php endfor; ?>',
+		'{/foreach}' => '<?php endforeach; ?>',
+		'{/while}' => '<?php endwhile; ?>',
+		'{else}' => '<?php else: ?>',
+		'{* %% *}' => '',
+	);
+
+	/** @var array */
+	public static $defaultTplTriggers = array(
+		'php' => array('Template', 'cbPhpFunction'),
+		'extends' => array('Template', 'cbExtendsFunction'),
+		'assign' => array('Template', 'cbAssignFunction'),
+	);
+
+	/** @var array */
+	public static $defaultTplFunctions = array(
+		'include' => '$template->subTemplate',
+		'mimetype' => '$template->setMimetype',
+	);
+
+	/** @var array */
+	public static $defaultTplFilters = array();
+
+
+
+	/** @var array */
+	public $tplKeywords = array();
+
+	/** @var array */
+	public $tplTriggers = array();
+
+	/** @var array */
+	public $tplFunctions = array();
+
+	/** @var array */
+	public $tplFilters = array();
+
+	/** @var Cache */
+	protected $cache;
 
 	/** @var string */
 	protected $file;
+
+	/** @var string */
+	protected $extendsFile;
 
 	/** @var array */
 	protected $vars = array();
@@ -29,49 +87,71 @@ class Template extends Object implements ITemplate
 	/** @var array */
 	protected $helpers = array();
 
+	/** @var array */
+	protected $registeredBlocks = array();
+
+	/** @var bool */
+	private $__hasExtends = false;
+
+	/** @var bool */
+	private $__hasBlocks = false;
+
 
 	/**
 	 * Constructor
-	 * @param   string   template file
-	 * @return  Template
+	 * @param string $file template filename
+	 * @param string $temp path for cache templates
+	 * @return Template
 	 */
-	public function __construct($file = null)
+	public function __construct($file = null, Cache $cache = null)
 	{
-		$this->setVar('escape', 'htmlSpecialChars');
-		if (!empty($file))
+		$this->tplKeywords = self::$defaultTplKeywords;
+		$this->tplTriggers = self::$defaultTplTriggers;
+		$this->tplFunctions = self::$defaultTplFunctions;
+		$this->tplFilters = self::$defaultTplFilters;
+
+		if (!($cache instanceof Cache))
+			$cache = new Cache();
+
+		if ($file !== null)
 			$this->setFile($file);
+
+		$this->cache = $cache;
+		$this->getHelper('filter');
 	}
 
 
 	/**
-	 * Loads heleper
-	 * @param   string    helper name
-	 * @param   string    var name
-	 * @return  Helper
+	 * Sets template file name
+	 * @param string $file template filename
+	 * @throws RuntimeException
+	 * @return Template
 	 */
-	public function getHelper($name, $var = null)
+	public function setFile($file)
 	{
-		static $pairs = array();
+		if (!file_exists($file))
+			throw new RuntimeException("Template file '$file' was not found.");
 
-		if (!array_key_exists($name, $pairs) || $pairs[$name] != $var) {
-			if (empty($var))
-				$var = strtolower($name);
+		$this->file = $file;
+	}
 
-			$class = Inflector::helperClass($name);
-			Application::get()->loadClass('helper', $class);
-			$pairs[$name] = $var;
-			$this->helpers[$var] = new $class;
-		}
 
-		return $this->helpers[$var];
+	/**
+	 * Returns template file name
+	 * @param string
+	 */
+	public function getFile()
+	{
+		return $this->file;
 	}
 
 
 	/**
 	 * Sets variable
-	 * @param   string    var name
-	 * @param   mixed     value
-	 * @return  Template  $this
+	 * @param string $key variable name
+	 * @param mixed $val content
+	 * @throws BadMethodCallException
+	 * @return Template
 	 */
 	public function setVar($key, $val)
 	{
@@ -84,16 +164,17 @@ class Template extends Object implements ITemplate
 
 
 	/**
-	 * Returns variable
-	 * @param   string    var name
-	 * @return  mixed
+	 * Returns variable value
+	 * @param string $key variable name
+	 * @throws BadMethodCallException
+	 * @return mixed
 	 */
 	public function getVar($key)
 	{
 		if (empty($key))
 			throw new BadMethodCallException('Key must not be empty.');
 
-		if (array_key_exists($key, $this->vars))
+		if (isset($this->vars[$key]))
 			return $this->vars[$key];
 		
 		return null;
@@ -101,20 +182,22 @@ class Template extends Object implements ITemplate
 
 
 	/**
-	 * Sets variables
-	 * @param   array     variables
-	 * @return  Template  $this
+	 * Sets multi variables values
+	 * @param array $vars associative array of variables
+	 * @return Template
 	 */
 	public function setVars($vars)
 	{
-		$this->vars = array_merge($this->vars, (array) $vars);
+		foreach ($vars as $key => $val)
+			$this->setVar($key, $val);
+
 		return $this;
 	}
 
 	
 	/**
 	 * Returns variables
-	 * @return  array
+	 * @return array
 	 */
 	public function getVars()
 	{
@@ -123,41 +206,191 @@ class Template extends Object implements ITemplate
 
 
 	/**
-	 * Sets file name
-	 * @param   string     filename
-	 * @return  Template   $this
+	 * Checks if the variable is set
+	 * @param string $key variable name
+	 * @return bool
 	 */
-	public function setFile($file)
+	public function __isset($key)
 	{
-		if (!file_exists($file))
-			throw new Exception("Template file '$file' was not found.");
-
-		$this->file = $file;
+		return isset($this->vars[$key]);
 	}
 
 
 	/**
-	 * Returns file name
-	 * @param  string
+	 * Unsets variable value
+	 * @param string $key variable name
 	 */
-	public function getFile()
+	public function __unset($key)
 	{
-		return $this->file;
+		unset($this->vars[$key]);
 	}
 
 
 	/**
-	 * Includes templatefile
-	 * @param   string    filename
-	 * @return  string
+	 * Sets variable value
+	 * @param string $key variable name
+	 * @param mixed $value value
 	 */
-	public function load($file)
+	public function __set($key, $value)
 	{
-		$template = clone $this;
+		$this->setVar($key, $value);
+	}
+
+
+	/**
+	 * Returns variable value
+	 * @param string $key variable name
+	 * @return mixed
+	 */
+	public function __get($key)
+	{
+		if (array_key_exists($key, $this->vars))
+			return $this->vars[$key];
+		else
+			parent::__get($key);
+	}
+
+
+	/**
+	 * Sets extending template filename
+	 * @param string $file
+	 * @return Template
+	 */
+	public function setExtendsFile($file = null)
+	{
+		if (empty($file)) {
+			$file = null;
+			$this->__hasExtends = false;
+		} else {
+			$this->__hasExtends = true;
+		}
+
+		$this->extendsFile = $file;
+		return $this;
+	}
+
+
+	/**
+	 * Returns extending template filename
+	 * @return string|null
+	 */
+	public function getExtendsFile()
+	{
+		return $this->extendsFile;
+	}
+
+
+	/**
+	 * Returns true if template has extending template
+	 * @return bool
+	 */
+	public function hasExtendsFile()
+	{
+		return $this->extendsFile != null;
+	}
+
+
+	/**
+	 * Returns clone of template
+	 * @return Template
+	 */
+	public function getClone()
+	{
+		$clone = clone $this;
+		return $clone->setExtendsFile();
+	}
+
+
+	/**
+	 * Loads helper
+	 * @param string $name helper name
+	 * @param string $var variable name in which will be helper instance
+	 * @return Helper
+	 */
+	public function getHelper($name, $var = null)
+	{
+		static $pairs = array();
+
+		if (!array_key_exists($name, $pairs) || $pairs[$name] != $var) {
+			if (empty($var))
+				$var = strtolower($name);
+
+			$class = ucfirst(strtolower($name)) . 'Helper';
+			$pairs[$name] = $var;
+			$this->helpers[$var] = new $class($this, $var);
+		}
+
+		return $this->helpers[$var];
+	}
+
+
+	/**
+	 * Includes sub-template file
+	 * @param string template filename
+	 * @return string
+	 */
+	public function subTemplate($file)
+	{
+		$template = $this->getClone();
 		$template->setFile($file);
-		$template->setVars($this->getVars());
-		
 		return $template->render();
+	}
+
+
+	/**
+	 * Sends mimetype header
+	 * @param string $mimetype
+	 */
+	protected function setMimetype($mimetype = 'text/html')
+	{
+		header("Content-type: $mimetype");
+	}
+
+
+	/**
+	 *
+	 * @param <type> $id
+	 * @param <type> $function
+	 * @param <type> $mode
+	 * @return <type>
+	 */
+	public function registerBlock($id, $function, $mode = '')
+	{
+		if (!isset($this->registeredBlocks[$id]))
+			$this->registeredBlocks[$id] = array(
+				'prepend' => array(),
+				'append' => array(),
+				'' => array()
+			);
+
+		$this->registeredBlocks[$id][$mode][] = $function;
+		return $this;
+	}
+
+
+	/**
+	 * Renders functions blocks and append / preppend content
+	 * @param string $id function name
+	 * @param array $vars defined variables
+	 * @return string
+	 */
+	public function getFilterBlock($id, $vars)
+	{
+		if (!isset($this->registeredBlocks[$id]))
+			return;
+
+		$render = '';
+		$blocks = $this->registeredBlocks[$id];
+		foreach (array_reverse($blocks['prepend']) as $func)
+			$render .= call_user_func($func, $vars);
+
+		if (isset($blocks[''][0]))
+			$render .= call_user_func($blocks[''][0], $vars);
+
+		foreach (array_reverse($blocks['append']) as $func)
+			$render .= call_user_func($func, $vars);
+
+		return $render;
 	}
 
 
@@ -165,80 +398,235 @@ class Template extends Object implements ITemplate
 	 * Renders template a return content
 	 * @return  string
 	 */
-    public function render($skipPrerender = false)
+    public function render()
     {
+		if (!file_exists($this->file))
+			throw new Exception("Template file '{$this->file}' was not found.");
+
+		$cacheFile = 'template_' . md5($this->file);
+		if (!$this->cache->isCached($cacheFile))
+			$this->createTemplateTemp($cacheFile);
+
 		extract($this->vars);
 		extract($this->helpers);
 
+		$template = $this;
 		if (class_exists('Application', false)) {
 			$controller = Controller::get();
 			$application = Application::get();
 		}
 
-		if (!$skipPrerender) {
-			$pre = ob_get_contents();
-			ob_clean();
-		}
+		$___pre = ob_get_contents();
+		ob_clean();
 
-		if (!file_exists($this->file))
-			throw new Exception("Template file '{$this->file}' was not found.");
-			
-		include $this->file;
+		include $this->cache->getFilename($cacheFile);
 		$return = ob_get_contents();
 		ob_clean();
-		
-		if (!$skipPrerender)
-			echo $pre;
 
+		if ($this->hasExtendsFile()) {
+			$clone = $this->getClone();
+			$clone->setFile($this->getExtendsFile());
+			$return = $clone->render() . $return;
+		}
+
+		echo $___pre;
 		return $return;
 	}
 
 
 	/**
-	 * Checks whether the variable is set
-	 * @param   string    var name
-	 * @return  boll
+	 * Creates php template file from pseudo template style
+	 * @param string $cacheFileName
 	 */
-	public function __isset($name)
+	protected function createTemplateTemp($cacheFile)
 	{
-		return isset($this->vars[$name]);
+		$file = file_get_contents($this->file);
+
+		# keywords
+		$keywords_k = $keywords_v = array();
+		foreach ($this->tplKeywords as $key => $val) {
+			$keywords_k[] = '#' . str_replace('%%', '(.+)',
+				preg_quote($key, '#')) . '#U';
+			$keywords_v[] = $val;
+		}
+		$file = preg_replace($keywords_k, $keywords_v, $file);
+
+		# variables
+		$file = preg_replace_callback('#\{(?:(?:=([^|\}]+?))|(\$[^|\}]+?))(?:\|([^\}]+?))?\}#U',
+			array($this, '__cbVariables'), $file);
+
+		# extending
+		$file = preg_replace_callback('#\{block(?: (append|prepend))? (?:\#([^}]+))\}(.*)\{/block\}#Us',
+			array($this, '__cbBlock'), $file);
+
+		# triggers
+		$triggers = implode('|', array_keys($this->tplTriggers));
+		$file = preg_replace_callback('#\{(' . $triggers .')\s+([^|]+)?\}#U',
+			array($this, '__cbTriggers'), $file);
+
+		# functions
+		$functions = implode('|', array_keys($this->tplFunctions));
+		$file = preg_replace_callback('#\{(' . $functions .')(?:\s+([^|]+))?(?:\|([^\}]+?))?\}#U',
+			array($this, '__cbFunctions'), $file);
+
+
+		# we have extends file and no blocks
+		if ($this->__hasExtends === true && $this->__hasBlocks === false)
+			$file = $this->__cbBlock(array('', '', 'content', $file));
+
+		$this->cache->save($cacheFile, $file, array(
+			'files' => array($this->file)
+		));
 	}
 
 
 	/**
-	 * Unsets variable value
-	 * @param   string    var name
-	 * @return  void
+	 * Returns template code for variables
+	 * @param array $matches
+	 * @return string
 	 */
-	public function __unset($name)
+	protected function __cbVariables($matches)
 	{
-		unset($this->vars[$name]);
+		return '<?php echo ' . $this->parseFilters($matches[1] . @$matches[2],
+			@$matches[3], @$matches[2]) . ' ?>';
 	}
 
 
 	/**
-	 * Sets variable value
-	 * @param   string    var name
-	 * @param   mixed     var value
-	 * @return  void
+	 * Returns template code for blocks
+	 * @param array $expression
+	 * @return string
 	 */
-	public function __set($name, $value)
+	protected function __cbBlock($matches)
 	{
-		$this->setVar($name, $value);
-	}
-
-
-	/**
-	 * Returns variable value
-	 * @param   string    var name
-	 * @return  mixed
-	 */
-	public function __get($name)
-	{
-		if (array_key_exists($name, $this->vars))
-			return $this->vars[$name];
+		$this->__hasBlocks = true;
+		$id = substr(md5($matches[2]), 0, 10);
+		if (!empty($matches[1]))
+			$name = '_filter_block_' . $id . '_' . substr(md5($this->file), 0, 10);
 		else
-			parent::__get($name);
+			$name = '_filter_block_' . $id;
+
+		return "<?php if (!function_exists('$name')) { "
+		     . "\$template->registerBlock('$id', '$name', '$matches[1]');"
+		     . "function $name() { extract(func_get_arg(0)); ?>$matches[3]<?php }} "
+			 . "if (!\$template->hasExtendsFile()) "
+			 . "echo \$template->getFilterBlock('$id', get_defined_vars()); ?>";
+	}
+
+
+	/**
+	 * Calls template trigger callback
+	 * @param array $matches
+	 * @return string|null
+	 */
+	protected function __cbTriggers($matches)
+	{
+		$cb = $this->tplTriggers[$matches[1]];
+		return call_user_func($cb, $matches[2]);
+	}
+
+
+	/**
+	 * Calls template function callback
+	 * @param array $matches
+	 * @return string|null
+	 */
+	protected function __cbFunctions($matches)
+	{
+		$expression = $this->tplFunctions[$matches[1]] . '(' . @$matches[2] . ')';
+		if (!empty($matches[3]))
+			$expression = $this->parseFilters($matches[3], $expression);
+
+		return "<?php echo $expression ?>";
+	}
+
+
+	/**
+	 * Callback for extending template
+	 * @param string $expression
+	 * @return string
+	 */
+	protected function cbExtendsFunction($expression)
+	{
+		$this->__hasExtends = true;
+		return '<?php $template->setExtendsFile(\'' . trim($expression, '"\'') . '\') ?>';
+	}
+
+
+	/**
+	 * Callback for php raw expression
+	 * @param string $expression
+	 * @return string
+	 */
+	protected function cbPhpFunction($expression)
+	{
+		return "<?php $expression ?>";
+	}
+
+
+	/**
+	 *
+	 * @param <type> $expression
+	 * @return <type>
+	 */
+	protected function cbAssignFunction($expression)
+	{
+		$space = strpos($expression, ' ');
+		$var = ltrim(substr($expression, 0, $space), '$');
+		$val = substr($expression, $space);
+		return "<?php \$template->setVar('$var', $val) ?>";
+	}
+
+
+	/**
+	 * Parses filter expression
+	 * @param string $variable
+	 * @param string $expression
+	 * @return string
+	 */
+	private function parseFilters($variable, $expression, $varName = null)
+	{
+		$filters = array();
+		if (empty($expression))
+			$expression = array();
+		else
+			$expression = explode('|', $expression);
+
+		foreach ($expression as $filter) {
+			if (preg_match('#([^:]+)(?:\:("[^"]+"|[^\:]+))+#', $filter, $match)) {
+				array_shift($match);
+				$filters[array_shift($match)] = $match;
+			} else {
+				$filters[$filter] = array();
+			}
+		}
+
+		if ($varName !== null) {
+			if (preg_match('#^\$(\w+)#', $varName, $matches)) {
+				if (isset($this->helpers[$matches[1]]))
+					$varName = $matches[1];
+				else
+					$varName = null;
+			} else {
+				$varName = null;
+			}
+		}
+
+		if ($varName === null) {
+			if (isset($filters['raw']))
+				unset($filters['raw']);
+			elseif (!isset($filters['escape']))
+				$filters['escape'] = array();
+		}
+
+		foreach ($filters as $name => $args) {
+			if (isset($this->tplFilters[$name]))
+				$name = $this->tplFilters[$name];
+			array_unshift($args, $variable);
+			$variable = "$name(" . implode(',', $args) . ")";
+		}
+
+		return $variable;
 	}
 
 

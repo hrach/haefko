@@ -7,15 +7,13 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Application
- * @subpackage  Controller
+ * @version     0.9 - $Id$
+ * @package     Haefko
  */
 
 
 class CrudController extends AppController
 {
-
 
 	/** @var string - Table name */
 	protected $table;
@@ -38,16 +36,18 @@ class CrudController extends AppController
 	/** @var string - Referer */
 	protected $referer;
 
+	/** @var bool */
+	protected $allowTemplatePathReduction = true;
+
 
 	/**
 	 * Inits CRUD controller - creates instance of dbTable
-	 * @throws  Exception
-	 * @return  void
+	 * @throws Exception
 	 */
 	public function init()
 	{
-		$this->view->controllerTitle = Tools::camelize($this->table);
-		$this->view->setRouting('controller', 'crud');
+		$this->template->controllerTitle = Tools::camelize($this->table);
+		$this->routing->controller = 'crud';
 		parent::init();
 
 		if (empty($this->link))
@@ -57,14 +57,13 @@ class CrudController extends AppController
 
 	/**
 	 * Index action - show paginate table contents
-	 * @return  void
 	 */
 	public function indexAction()
 	{
 		$columns = implode(", ", (array) $this->columns);
 		$query = $this->getQuery($columns);
 
-		$grid = $this->view->grid = $this->getDataGrid();
+		$grid = $this->template->grid = $this->getDataGrid();
 		$grid->setQuery($query);
 
 		if (!$grid->getData(true))
@@ -74,13 +73,12 @@ class CrudController extends AppController
 
 	/**
 	 * Create action
-	 * @return   void
 	 */
 	public function createAction()
 	{
 		$this->initReferer();
 		$table = $this->getTable();
-		$form = $this->view->form = $this->getForm($table);
+		$form = $this->template->form = $this->getForm($table);
 
 		if ($form->isSubmit()) {
 			$table->import($this->processData($form->data))
@@ -93,14 +91,13 @@ class CrudController extends AppController
 
 	/**
 	 * Update action
-	 * @param   mixed   primary key value
-	 * @return  void
+	 * @param mixed $entry primary key value
 	 */
 	public function updateAction($entry)
 	{
 		$this->initReferer();
 		$table = $this->getTable($entry);
-		$form = $this->view->form = $this->getForm($table);
+		$form = $this->template->form = $this->getForm($table);
 		
 		$row = $table->get();
 		if (empty($entry) || empty($row))
@@ -119,7 +116,6 @@ class CrudController extends AppController
 
 	/**
 	 * Delete action
-	 * @return   void
 	 */
 	public function deleteAction($entry)
 	{
@@ -131,15 +127,15 @@ class CrudController extends AppController
 			$this->refererRedirect($this->crudUrl('index'));
 		}
 
-		$this->view->entry = $entry;
+		$this->template->entry = $entry;
 	}
 
 
 	/**
 	 * Returns crud url
-	 * @param   string    action
-	 * @param   string    arg
-	 * @return  string
+	 * @param string $action action
+	 * @param string $arg arg
+	 * @return string
 	 */
 	public function crudUrl($action, $arg = null)
 	{
@@ -154,8 +150,8 @@ class CrudController extends AppController
 
 	/**
 	 * Processes saving form data
-	 * @param   array $data
-	 * @return  array
+	 * @param array $data
+	 * @return array
 	 */
 	protected function processData($data)
 	{
@@ -165,8 +161,8 @@ class CrudController extends AppController
 
 	/**
 	 * Returns table form
-	 * @param   DbTable
-	 * @return  Form
+	 * @param DbTable $table
+	 * @return Form
 	 */
 	protected function getForm($table)
 	{
@@ -177,7 +173,7 @@ class CrudController extends AppController
 
 	/**
 	 * Returns datagrid component
-	 * @return  DataGrid
+	 * @return DataGrid
 	 */
 	protected function getDataGrid()
 	{
@@ -190,8 +186,8 @@ class CrudController extends AppController
 
 	/**
 	 * Returns DbTable
-	 * @param   mixed    primary key value
-	 * @return  DbTable
+	 * @param mixed $pk primary key value
+	 * @return DbTable
 	 */
 	protected function getTable($pk = null)
 	{
@@ -205,8 +201,8 @@ class CrudController extends AppController
 
 	/**
 	 * Returns prepared query - table data source
-	 * @param   string  $columns
-	 * @return  DbPreparedResult
+	 * @param string $columns
+	 * @return DbPreparedResult
 	 */
 	protected function getQuery($columns)
 	{
@@ -219,7 +215,6 @@ class CrudController extends AppController
 
 	/**
 	 * Inits referer
-	 * @return  void
 	 */
 	protected function initReferer()
 	{
@@ -233,8 +228,7 @@ class CrudController extends AppController
 
 	/**
 	 * Redirects by referer or default url
-	 * @param   string  default url
-	 * @return  void
+	 * @param string $default default url
 	 */
 	protected function refererRedirect($default)
 	{

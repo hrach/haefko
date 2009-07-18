@@ -1,7 +1,7 @@
 <?php
 
 # load application
-require './../haefko/application.php';
+require './../haefko/loader.php';
 
 
 $application = new Application();

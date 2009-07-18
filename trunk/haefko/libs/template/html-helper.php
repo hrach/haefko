@@ -7,14 +7,34 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Application
- * @subpackage  View
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Templates
  */
 
 
 class HtmlHelper extends Object
 {
+
+
+	/**
+	 * Constructor
+	 * @param Template $template
+	 * @return HtmlHelper
+	 */
+	public function  __construct(Template $template = null, $varName = null)
+	{
+		if ($template) {
+			if (empty($varName))
+				$varName = 'html';
+
+			static $functions = array('analytics', 'encoding', 'css', 'icon',
+				'js', 'paginator', 'rss');
+
+			foreach ($functions as $f)
+				$template->tplFunctions[$f] = "\${$varName}->$f";
+		}
+	}
 
 
 	/**
@@ -190,19 +210,6 @@ class HtmlHelper extends Object
 
 
 	/**
-	 * Returns HTML title tag
-	 * @param   string    title 
-	 * @return  string
-	 */
-	public function title($title = null)
-	{
-		$el = Html::el('title');
-		$el->setText(empty($title) ? Controller::get()->view->title : $title);
-		return $el->render(0);
-	}
-
-
-	/**
 	 * Returns tracking code for Google Analytics
 	 * @param   string     id
 	 * @return  string
@@ -229,12 +236,22 @@ class HtmlHelper extends Object
 	 */
 	public function paginator(Paginator $paginator, $urlVarName = 'page', $round = 2, $prev = 'Previous', $next = 'Next')
 	{
-		$pages = array(1 => true, 2 => true);
-		for ($i = $paginator->page - $round, $to = $paginator->page + $round; $i <= $to; $i++)
-			$pages[max(min($i, $paginator->pages), 1)] = true;
+		$pages = array();
+		if ($paginator->pages > 0) {
+			$pages[1] = true;
+			if ($paginator->pages > 1)
+				$pages[2] = true;
+		}
 
-		$pages[$paginator->pages - 1] = true;
-		$pages[$paginator->pages] = true;
+		$from = max($paginator->page - $round, 1);
+		$to = min($paginator->page + $round, $paginator->pages);
+		for ($i = $from; $i <= $to; $i++)
+			$pages[$i] = true;
+
+		if ($paginator->pages > 2) {
+			$pages[max($paginator->pages - 1, 1)] = true;
+			$pages[max($paginator->pages, 1)] = true;
+		}
 
 		$_prev = 0;
 		$pagination = array();

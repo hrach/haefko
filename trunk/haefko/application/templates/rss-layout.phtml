@@ -1,0 +1,23 @@
+{mimetype 'application/rss+xml'}
+{php echo '<' . '?xml version="1.0" encoding="utf-8"?>'}
+<rss version="2.0">
+<channel>
+	<generator>haefko framework - http://haefko.skrasek.com</generator>
+	<docs>http://blogs.law.harvard.edu/tech/rss</docs>
+
+	<title>{$title}</title>
+	<description>{$description}</description>
+	<lastBuildDate>{$rss->date()}</lastBuildDate>
+	<link>{link $link, null, true}</link>
+
+	{if isset($image['title']) && isset($image['src']) && isset($image['link'])}
+	<image>
+		<title>{$image['title']}</title>
+		<url>{$image['scr']}</url>
+		<link>{link $this->image['link'], null, true}</link>
+	</image>
+	{/if}
+
+	{block #content}{/block}
+</channel>
+</rss>
