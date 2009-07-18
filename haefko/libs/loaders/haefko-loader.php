@@ -22,8 +22,7 @@ class HaefkoLoader extends Loader
 	/** @var array - Available framework classes */
 	protected $classes = array(
 		# application
-		'application'  => 'application.php',
-		'inflector'    => 'application/libs/inflector.php',
+		'application'  => 'application/libs/application.php',
 		'router'       => 'application/libs/router.php',
 		'apptemplate'  => 'application/libs/app-template.php',
 		# libs
@@ -45,7 +44,7 @@ class HaefkoLoader extends Loader
 		'filterhelper'   => 'libs/template/filter-helper.php',
 		'htmlhelper'     => 'libs/template/html-helper.php',
 		'jshelper'       => 'libs/template/js-helper.php',
-		'rsshelper'       => 'libs/template/rss-helper.php',
+		'rsshelper'      => 'libs/template/rss-helper.php',
 		# user
 		'iidentity'    => 'libs/iidentity.php',
 		'identity'     => 'libs/identity.php',

@@ -7,18 +7,18 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.9 - $Id$
+ * @version     0.9 - $Id: application.php 143 2009-07-18 16:24:50Z skrasek.jan $
  * @package     Haefko
  */
 
 
-require_once dirname(__FILE__) . '/libs/tools.php';
-require_once dirname(__FILE__) . '/libs/object.php';
-require_once dirname(__FILE__) . '/libs/http.php';
-require_once dirname(__FILE__) . '/libs/debug.php';
-require_once dirname(__FILE__) . '/libs/cache.php';
-require_once dirname(__FILE__) . '/libs/config.php';
-require_once dirname(__FILE__) . '/application/libs/router.php';
+require_once dirname(__FILE__) . '/../../libs/tools.php';
+require_once dirname(__FILE__) . '/../../libs/object.php';
+require_once dirname(__FILE__) . '/../../libs/http.php';
+require_once dirname(__FILE__) . '/../../libs/debug.php';
+require_once dirname(__FILE__) . '/../../libs/cache.php';
+require_once dirname(__FILE__) . '/../../libs/config.php';
+require_once dirname(__FILE__) . '/router.php';
 
 
 /**
@@ -92,7 +92,7 @@ class Application extends Object
 		self::$self = & $this;
 		header('X-Powered-By: Haefko/0.9');
 		$this->path = rtrim(dirname($_SERVER['SCRIPT_FILENAME']) . $path, '/');
-		$this->corePath = rtrim(dirname(__FILE__), '/');
+		$this->corePath = rtrim(dirname(dirname(dirname(__FILE__))), '/');
 
 		if ($config !== false)
 			Config::multiWrite(Config::parseFile($this->path . $config));
