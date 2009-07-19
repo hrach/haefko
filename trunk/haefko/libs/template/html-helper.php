@@ -202,10 +202,7 @@ class HtmlHelper extends Object
 	 */
 	public function encoding($charset = 'UTF-8')
 	{
-		$el = Html::el('meta')->{'http-equiv'}('Content-type')
-		                      ->content("text/html; charset=$charset");
-
-		return $el->render(0);
+		return "<meta http-equiv=\"Content-type\" content=\"text/html; charset=$charset\" />\n";
 	}
 
 
@@ -271,9 +268,11 @@ class HtmlHelper extends Object
 
 		foreach ($pagination as $page) {
 			if (is_int($page))
-				$render .= $this->link(Controller::get()->url('', array($urlVarName => $page)), $page, $page == $paginator->page ? array('class' => 'current') : array());
+				$render .= '<a href="' . Controller::get()->url('', array($urlVarName => $page))
+						.  '" class="page-link' . ($page == $paginator->page ? ' current' : '')
+						.  '">' . $page . '</a>';
 			else
-				$render .= '<span>&hellip;</span>';
+				$render .= '<span class="hellip">&hellip;</span>';
 		}
 
 		if ($paginator->hasNext())

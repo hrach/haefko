@@ -268,11 +268,11 @@ class DataGrid extends Object
 	public function url($action, $param = null)
 	{
 		if ($param === null)
-			return Controller::get()->url($this->link, null, array(
+			return Controller::get()->url($this->link, array(
 				'action' => $action
 			));
 		else
-			return Controller::get()->url($this->link . '/' . $param, null, array(
+			return Controller::get()->url($this->link . '/' . $param, array(
 				'action' => $action
 			));
 	}
@@ -286,7 +286,7 @@ class DataGrid extends Object
 	 */
 	public function paramUrl($var, $value)
 	{
-		return Controller::get()->url('', array(
+		return Controller::get()->url(null, null, array(
 			$this->name . '-' . $var => $value
 		));
 	}
@@ -344,7 +344,7 @@ class DataGrid extends Object
 	public function getVar($name)
 	{
 		$name = $this->name . '-' . $name;
-		return Application::get()->router->get($name);
+		return Application::get()->router->getParam($name);
 	}
 
 

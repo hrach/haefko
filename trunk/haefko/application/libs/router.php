@@ -12,6 +12,9 @@
  */
 
 
+require_once dirname(__FILE__) . '/../../libs/http.php';
+
+
 class Router
 {
 
@@ -21,40 +24,45 @@ class Router
 	/** @var array */
 	protected $defaults = array();
 
-
 	/** @var string */
-	protected $url;
-
-	/** @var string */
-	protected $urlParams;
-
+	protected $request;
 
 	/** @var array */
-	protected $routing = array();
+	protected $routing = array(
+		'controller' => '',
+		'module' => array(),
+		'action' => '',
+		'service' => '',
+	);
 
 	/** @var array */
-	protected $vars = array();
+	protected $args = array();
 
 	/** @var array */
 	protected $params = array();
 
 
+	/** @var null|array */
+	protected $__tempArgs;
+
+
 	/**
-	 * Initializes router
-	 * @return  void
+	 * Constructor
+	 * @return Router
 	 */
 	public function __construct()
 	{
-		$this->url = Http::getRequest();
+		$this->request = Http::$request->request;
+		$this->params = $_GET;
 	}
 
 
 	/**
 	 * Sets defaults routing setting
-	 * @param   array     defaults settings
-	 * @return  Router    $this
+	 * @param array $defaults defaults routing
+	 * @return Router
 	 */
-	public function defaults($defaults = null)
+	public function setDefaults($defaults = null)
 	{
 		$this->defaults = (array) $defaults;
 		return $this;
@@ -62,154 +70,139 @@ class Router
 
 
 	/**
-	 * Catchs service request
-	 * @param   string    service name
-	 * @return  bool
+	 * Proccesses service request
+	 * @param string $name service name
+	 * @return bool
 	 */
-	public function service()
+	public function setService($name)
 	{
-		$services = func_get_args();
-		foreach ($services as $service) {
-			$service = strtolower($service);
-			
-			if (substr($this->url, -strlen($service)) == $service) {
-				$this->url = substr($this->url, 0, -strlen($this->url));
-				$this->routing['service'] = $service;
-				return true;
-			}
-		}
+		$name = strtolower($name);
+		if (substr($this->request, -strlen($name)) != $name)
+			return false;
 
-		return false;
+		$this->request = substr($this->request, 0, -strlen($name));
+		$this->routing['service'] = $name;
+		return true;
 	}
 
 
 	/**
 	 * Connects to url
-	 * @param   string    routing expression
-	 * @param   array     default routing settings
-	 * @param   bool      allow undefined args?
-	 * @param   bool      allow params?
-	 * @return  bool
+	 * @param string $route routing expression
+	 * @param array $defaults default routing settings
+	 * @param bool $allowArg allow undefined args?
+	 * @param bool $allowParams allow query params?
+	 * @return bool
 	 */
 	public function connect($route, $defaults = array(), $allowArgs = false, $allowParams = false)
 	{
-		# route only once
 		if ($this->routed)
 			return false;
 
-		if ($allowParams) {
-			$qm = strpos($this->url, '?');
-			if ($qm !== false) {
-				$this->urlParams = substr($this->url, $qm + 1);
-				$this->url = rtrim(substr($this->url, 0, $qm), '/');
+		if (!$allowParams && !empty($this->params))
+			return false;
 
-				parse_str($this->urlParams, $this->params);
-			}
-		}
-
-
-		# set the defaults
-		$newRoute = '';
+		$routing = array();
 		$route = trim($route, '/');
-		$routing = array('controller' => '', 'action' => 'index', 'module' => array());
-		$routing = $this->normalize(array_merge($this->routing, $routing, $this->defaults, (array) $defaults));
-
-
-		# explode by variables
 		$parts = preg_split('#\<\:\w+( [^>]+)?\>#', $route);
 		if (count($parts) > 1) {
 			preg_match_all('#\<\:(\w+)( [^>]+)?\>#', $route, $matches);
+			$route = '';
 			foreach ($matches[2] as $i => $match) {
 				if (empty($match))
 					$match = $allowArgs ? '[^/]+' : '[^/]+?';
 
 				# escape other text
-				$newRoute .= preg_quote($parts[$i], '#') . '(' . trim($match) . ')';
+				$route .= preg_quote($parts[$i], '#') . '(' . trim($match) . ')';
 			}
 
 			if (!empty($parts[$i + 1]))
-				$newRoute .= $parts[$i + 1];
-		} else {
-			$newRoute = $route;
+				$route .= $parts[$i + 1];
+		}
+
+		if (!isset($matches[1]))
+			$matches[1] = array();
+
+		if ($allowArgs) {
+			$route .= '(?:/(.*?))?';
+			$matches[1][] = '__args';
 		}
 
 
-		# match url and routing
-		if (!$allowArgs) {
-			if (!preg_match("#^$newRoute$#", $this->url, $m))
-				return false;
+		if (!preg_match("#^$route$#", $this->request, $m))
+			return false;
 
-			array_shift($m);
-			if (count($m) > 0) {
-				foreach ($matches[1] as $i => $key)
-					$routing[$key] = $m[$i];
-			}
-		} else {
-			if (!preg_match("#^$newRoute#", $this->url, $m, PREG_OFFSET_CAPTURE))
-				return false;
+		array_shift($m);
+		if (count($m) == 0)
+			return false;
 
-			array_shift($m);
-			if (count($m) > 0) {
-				foreach ($matches[1] as $i => $key)
-					$routing[$key] = $m[$i][0];
-			}
+		foreach ($matches[1] as $i => $key) {
+			if (!isset($m[$i])) break;
 
-			$lastChar = end($m);
-			$lastChar = strlen($lastChar[0]) + $lastChar[1];
-			if (strlen($this->url) > $lastChar) {
-				$args = explode('/', substr($this->url, $lastChar + 1));
-				foreach ($args as $i => $arg)
-					$routing[$i + 1] = $arg;
-			}
+			if ($key == 'module')
+				$routing['module'][] = $m[$i];
+			else
+				$routing[$key] = $m[$i];
 		}
 
+
+		if ($allowArgs && !empty($routing['__args'])) {
+			$args = explode('/', $routing['__args']);
+			foreach ($args as $i => $arg)
+				$routing[$i + 1] = $arg;
+
+			unset($routing['__args']);
+		}
+
+
+		$routing = array_merge(
+			array('controller' => '', 'action' => 'index', 'module' => array(), 'service' => ''),
+			$defaults,
+			$this->defaults,
+			$routing
+		);
+
+		static $__routing = array('controller' => 1, 'module' => 1,	'action' => 1, 'service' => 1);
 		foreach ($routing as $key => $val) {
-			if (is_array($val)) {
-				foreach ($val as $k => $v)
-					$this->set($k, $v);
-			} else {
-				$this->set($key, $val);
-			}
+			if (isset($__routing[$key]))
+				$this->routing[$key] = $val;
+			else
+				$this->args[$key] = $val;
 		}
 
-		$this->routing = $this->normalize($this->routing);
 		return $this->routed = true;
 	}
 
 
 	/**
 	 * Processes the application url
-	 * @param   string    url
-	 * @param   array     args
-	 * @return  string
+	 * @param string $url url
+	 * @param array $args rewrite args
+	 * @param array|false $params rewrite params
+	 * @return string
 	 */
-	public function url($url, $params = array(), $args = array())
+	public function url($url, $args = array(), $params = false)
 	{
-		if (!empty($params)) {
-			$url = $this->urlParams;
-			foreach ($params as $key => $val) {
-				if ($val === null) {
-					$url = preg_replace("#&?$key=(?:[^&]+)#", '', $url);
-				} else {
-					if (preg_match("#&$key=([^&]+)#", '&' . $url, $matches))
-						$url = preg_replace("#&?$key=[^&]+#", "&$key=$val", $url);
-					else
-						$url .= "&$key=$val";
-				}
+		if (empty($url)) {
+			$url = $this->request;
+		} else {
+			$this->__tempArgs = (array) $args;
+			$url = preg_replace_callback('#\<\:(controller|action|module|service)(\[\d+\])?\>#i', array($this, 'cbUrlRouting'), $url);
+			$url = str_replace('<:url:>', $this->request, $url);
+			$url = preg_replace_callback('#\<\:([a-z0-9]+)\>#i', array($this, 'cbUrlArgs'), $url);
+			$this->__tempArgs = null;
+		}
+
+		if ($params !== false) {
+			$p = array();
+			$params = array_merge($this->params, (array) $params);
+			foreach ($params as $name => $value) {
+				if ($value == null) continue;
+				$p[] = urlencode($name) . '=' . urlencode($value);
 			}
 
-			if (empty($url))
-				$url = $this->url;
-			else
-				$url = $this->url . '/?' . ltrim($url, '&');
-
-		} else {
-			$args = array_merge($this->vars, $args);
-
-			$url = preg_replace('#(\<\:(\w+)\>)#e', 'isset($args["\\2"]) ? $args["\\2"] : "<:\\2>"', $url);
-			$url = preg_replace('#(\<\:(controller|action|service)\>)#e', 'isset($this->routing["\\2"]) ? Tools::dash($this->routing["\\2"]) : "<:\\2>"', $url);
-			$url = preg_replace_callback('#\<\:(module(?:\[(\d+)\])?)\>#', array($this, 'moduleCb'), $url);
-			$url = preg_replace_callback('#\<\:url\:\>#', array('Http', 'getRequest'), $url);
+			if (!empty($p))
+				$url .= '?' . implode('&', $p);
 		}
 
 		return $url;
@@ -217,81 +210,108 @@ class Router
 
 
 	/**
-	 * Returns args array
-	 * @return  array
+	 * Returns arg
+	 * @param string $key arg name
+	 * @param mixed $default
+	 * @return mixed
 	 */
-	public function getArgs()
+	public function getArg($key, $default = null)
 	{
-		return $this->vars;
+		if (!isset($this->args[$key]))
+			return $default;
+
+		return $this->args[$key];
 	}
 
 
 	/**
-	 * Returns arg or params
-	 * @param   string    arg name
-	 * @return  mixed     if arg doesn't exists returns null
+	 * Returns param
+	 * @param string $key param name
+	 * @param mixed $default
+	 * @return mixed
 	 */
-	public function get($key)
+	public function getParam($key, $default = null)
 	{
-		if (array_key_exists($key, $this->vars))
-			return $this->vars[$key];
+		if (!isset($this->params[$key]))
+			return $default;
 
-		if (array_key_exists($key, $this->params))
-			return $this->params[$key];
+		return $this->params[$key];
+	}
 
-		return null;
+
+	/**
+	 * Returns args array
+	 * @return array
+	 */
+	public function getArgs()
+	{
+		return $this->args;
+	}
+
+
+	/**
+	 * Returns params
+	 * @return array
+	 */
+	public function getParams()
+	{
+		return $this->params;
+	}
+
+
+	/**
+	 * Returns sanitized routing
+	 * @param bool $normalized return without name camelizing
+	 * @return array
+	 */
+	public function getRouting($normalized = true)
+	{
+		if (!$normalized)
+			return $this->routing;
+
+		return array(
+			'controller' => Tools::camelize($this->routing['controller']),
+			'module' => array_map(array('Tools', 'camelize'), $this->routing['module']),
+			'action' => Tools::camelize($this->routing['action']),
+			'service' => Tools::camelize($this->routing['service']),
+		);
 	}
 
 
 	/**
 	 * Getter
-	 * @param   string   variable name
-	 * @return  mixed
+	 * @param string $key arg name
+	 * @return mixed
 	 */
 	public function __get($key)
 	{
-		if (array_key_exists($key, $this->routing))
-			return $this->routing[$key];
-
-		if (array_key_exists($key, $this->vars))
-			return $this->vars[$key];
-
-		if (array_key_exists($key, $this->params))
-			return $this->params[$key];
-
-		return null;
+		return $this->getArg($key);
 	}
 
 
 	/**
 	 * Setter
-	 * @param   string    variable name
-	 * @param   mixed     value
-	 * @throws  Exception
-	 * @return  void
+	 * @throws Exception
 	 */
 	public function __set($key, $value)
 	{
-		if (empty($key))
-			throw new Exception ('You can\'t set routing variable with empty name.');
-
-		$this->routing[$key] = $value;
+		throw new Exception("You can't set 'Router::\$$key' variable.");
 	}
 
 
 	/**
 	 * Issetter
-	 * @return  bool
+	 * @return bool
 	 */
 	public function __isset($key)
 	{
-		return array_key_exists($key, $this->routing);
+		return isset($this->args[$key]);
 	}
 
 
 	/**
 	 * Unsetter
-	 * @throws  Exception
+	 * @throws Exception
 	 */
 	public function __unset($key)
 	{
@@ -300,64 +320,34 @@ class Router
 
 
 	/**
-	 * Module callback
-	 * @param   array     matches
-	 * @return  string
+	 * Url args callback
+	 * @param array $matches
+	 * @return string
 	 */
-	public function moduleCb($matches)
+	protected function cbUrlArgs($matches)
 	{
-		if ($matches[1] == 'module')
-			return Tools::dash(implode('/', $this->routing['module']));
-		elseif (isset($this->routing['module'][$matches[2]]))
-			return Tools::dash($this->routing['module'][$matches[2]]);
+		$args = array_merge($this->args, $this->__tempArgs);
+		if (isset($args[$matches[1]]))
+			return $args[$matches[1]];
 		else
-			return null;
+			return $matches[1];
 	}
 
 
 	/**
-	 * Normalizes routing array
-	 * @param   array
-	 * @return  array
+	 * Url routing callback
+	 * @param array $matches
+	 * @return string
 	 */
-	private function normalize($routing)
+	protected function cbUrlRouting($matches)
 	{
-		$def = array('controller' => '', 'action' => 'index', 'module' => array());
-		$routing = array_merge($def, $routing);
-		$routing['module'] = (array) $routing['module'];
-		$routing['controller'] = Tools::camelize($routing['controller']);
-		$routing['action'] = lcfirst(Tools::camelize($routing['action']));
-
-		if (!isset($routing['service']))
-			$routing['service'] = '';
+		$routing = array_merge($this->routing, $this->__tempArgs);
+		if (isset($matches[2]) && isset($routing['module'][$matches[2]]))
+			return $routing['module'][$matches[2]];
+		elseif (isset($routing[$matches[1]]))
+			return $routing[$matches[1]];
 		else
-			$routing['service'] = strtolower($routing['service']);
-
-		foreach ($routing['module'] as $i => $module)
-			$routing['module'][$i] = Tools::camelize($module);
-
-		return $routing;
-	}
-
-
-	/**
-	 * Sets routing/variable/param
-	 * @param   string  name
-	 * @param   mixed   value
-	 * @return  Router
-	 */
-	private function set($key, $val)
-	{
-		static $routing = array('controller', 'action', 'service');
-
-		if ($key == 'module')
-			$this->routing['module'][] = $val;
-		elseif (in_array($key, $routing))
-			$this->routing[$key] = $val;
-		else
-			$this->vars[$key] = $val;
-
-		return $this;
+			return $matches[1];
 	}
 
 

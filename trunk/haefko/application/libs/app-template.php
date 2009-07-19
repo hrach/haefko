@@ -34,7 +34,7 @@ class AppTemplate extends Template
 
 		$this->getHelper('html');
 		$this->getHelper('filter');
-		$this->setVar('base', Http::$baseUri);
+		$this->setVar('base', Http::$baseURL);
 	}
 
 

@@ -12,20 +12,32 @@
 
 div.pagination {
 	margin-bottom: 20px;
+	height: 28px;
+}
+
+div.pagination span.hellip {
+	float: left;
+	padding: 5px 0;
 }
 
 div.pagination span.button, div.pagination a {
+	float: left;
 	-moz-border-radius: 4px;
 	-webkit-border-radius: 4px;
 	border-radius: 4px;
-	padding: 2px 8px;
+	padding: 2px 4px;
 	margin: 2px;
+	text-align: center;
 }
 
 div.pagination a {
 	background: #3B699F;
 	color: white;
 	text-decoration: none;
+}
+
+div.pagination a.page-link {
+	width: 16px;
 }
 
 div.pagination span.button {
