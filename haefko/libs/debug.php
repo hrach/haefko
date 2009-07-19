@@ -162,13 +162,10 @@ class Debug
 	public static function shutdownHandler()
 	{
 		$error = error_get_last();
-		if (isset($error['type']) &&
-			$error['type'] & (E_ERROR | E_CORE_ERROR | E_COMPILE_ERROR | E_PARSE)) {
+		if (isset($error['type']) && $error['type'] & (E_ERROR | E_CORE_ERROR | E_COMPILE_ERROR | E_PARSE)) {
 			if ((class_exists('Config', false) && Config::read('core.debug') > 0) || self::$active) {
 				self::showException(new FatalErrorException($error));
 			} else {
-				dump($error);
-				exit;
 				self::log(strip_tags($error['message']) . " - $error[file] on line $error[line]");
 				ob_clean();
 				echo "<strong>Uncatchable application exception!</strong>\n<br /><span style='font-size:small'>"
