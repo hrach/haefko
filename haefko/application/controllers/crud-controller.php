@@ -144,7 +144,7 @@ class CrudController extends AppController
 		else
 			$link = $this->link . '/' . $arg;
 
-		return $this->url($link, null, array('action' => $action));
+		return $this->url($link, array('action' => $action));
 	}
 
 
@@ -219,10 +219,10 @@ class CrudController extends AppController
 	protected function initReferer()
 	{
 		$name = 'Crud.' . $this->getClass() . '.referer';
-		if (Http::getReferer() == Http::getFullRequest())
+		if (Http::$request->getReferer() == Http::$request->getFullRequest())
 			return;
 
-		Session::write($name, Http::getReferer());
+		Session::write($name, Http::$request->getReferer());
 	}
 
 
@@ -234,7 +234,7 @@ class CrudController extends AppController
 	{
 		$name = 'Crud.' . $this->getClass() . '.referer';
 		if (Session::exists($name)) {
-			Http::headerRedirect(Session::read($name));
+			Http::$response->redirect(Session::read($name));
 			Session::delete($name);
 			exit;
 		} else {

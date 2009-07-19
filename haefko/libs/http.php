@@ -19,75 +19,166 @@ class Http
 	public static $domain;
 
 	/** @var string */
-	public static $serverUri;
+	public static $serverURL;
 
 	/** @var string */
-	public static $baseUri;
+	public static $baseURL;
+
+	/** @var HFHttpRequest */
+	public static $request;
+
+	/** @var HFHttpResponse */
+	public static $response;
+
 
 	/**
-	 * Sanitizes superglobal variables ($_GET, $_POST, $_COOKIE a $_REQUEST)
-	 * @return  void
+	 * Initializes HTTP class
 	 */
-	public static function sanitizeData()
+	public static function init()
 	{
-		if (get_magic_quotes_gpc()) {
-			$process = array(&$_GET, &$_POST, &$_COOKIE, &$_REQUEST);
-			while (list($key, $val) = each($process)) {
-				foreach ($val as $k => $v) {
-					unset($process[$key][$k]);
-					if (is_array($v)) {
-						$process[$key][$k] = $v;
-						$process[] = & $process[$key][$k];
-					} else {
-						$process[$key][$k] = stripslashes($v);
-					}
-				}
-			}
-			unset($process);
-		}
+		self::sanitizeData();
+		self::$domain = $_SERVER['SERVER_NAME'];
+		self::$serverURL = 'http' . (@$_SERVER['HTTPS'] ? 's' : '') . '://' . self::$domain;
+
+		$base = trim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+		if (!empty($base))
+			self::$baseURL = "/$base";
+
+		self::$request = new HFHttpRequest();
+		self::$response = new HFHttpResponse();
 	}
 
 
 	/**
-	 * Is request by AJAX?
-	 * @return  bool
+	 * Sanitizes superglobal variables ($_GET, $_POST, $_COOKIE a $_REQUEST)
 	 */
-	public static function isAjax()
+	public static function sanitizeData()
 	{
-		if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')
-			return true;
+		if (!get_magic_quotes_gpc())
+			return;
 
-		return false;
+		$process = array(&$_GET, &$_POST, &$_COOKIE, &$_REQUEST);
+		while (list($key, $val) = each($process)) {
+			foreach ($val as $k => $v) {
+				unset($process[$key][$k]);
+				if (is_array($v)) {
+					$process[$key][$k] = $v;
+					$process[] = & $process[$key][$k];
+				} else {
+					$process[$key][$k] = stripslashes($v);
+				}
+			}
+		}
+		unset($process);
+	}
+
+
+}
+
+
+Http::init();
+
+
+class HFHttpRequest extends Object
+{
+
+	/** @var bool */
+	public $isAjax;
+
+	/** @var string */
+	public $method;
+
+	/** @var string */
+	public $request;
+
+
+	/**
+	 * Constructor
+	 * @return HFHttpRequest
+	 */
+	public function __construct()
+	{
+		$this->isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH'])
+			&& $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest';
+
+		$this->method = strtolower($_SERVER['REQUEST_METHOD']);
+		$this->request = self::getRequest();
 	}
 
 
 	/**
 	 * Returns user IP
-	 * @return  string
+	 * @return string
 	 */
-	public static function getIp()
+	public function getIp()
 	{
-		return $_SERVER['REMOTE_ADDR'];
+		if (isset($_SERVER['HTTP_X_FORWARDED_FOR']))
+			return $_SERVER['HTTP_X_FORWARDED_FOR'];
+		else
+			return $_SERVER['REMOTE_ADDR'];
 	}
 
 
 	/**
-	 * Returns request method
-	 * @return  string
+	 * Returns request data for form
+	 * @param string $method form method: post/get
+	 * @return array
 	 */
-	public static function getRequestMethod()
+	public function getForm($method = 'post')
 	{
-		return strtolower($_SERVER['REQUEST_METHOD']);
+		$method = strtolower($method);
+		if ($method == 'get')
+			return $_GET;
+
+		$data = array();
+		if (!empty($_FILES)) {
+			foreach ($_FILES as $form => $value) {
+				$controls = array_keys($value['name']);
+				foreach ($controls as $control) {
+					$fields = array_keys($value);
+					foreach ($fields as $field)
+						$data[$form][$control][$field] = $value[$field][$control];
+				}
+			}
+		}
+
+		return array_merge_recursive($data, $_POST);
 	}
 
 
 	/**
-	 * Returns request url
-	 * @return  string
+	 * Returns referer
+	 * @return string|null
 	 */
-	public static function getRequest()
+	public function getReferer()
+	{
+		if (!isset($_SERVER['HTTP_REFERER']))
+			return null;
+
+		return $_SERVER['HTTP_REFERER'];
+	}
+
+
+	/**
+	 * Returns full url request
+	 * @return string
+	 */
+	public function getFullRequest()
+	{
+		return Http::$serverURL . '/' . $this->request;
+	}
+
+
+	/**
+	 * Returns url request
+	 * @return string
+	 */
+	protected function getRequest()
 	{
 		$url = urldecode($_SERVER['REQUEST_URI']);
+		$qm = strpos($url, '?');
+		if ($qm !== false)
+			$url = substr($url, 0, $qm);
 
 		$script = dirname($_SERVER['SCRIPT_NAME']);
 		if (strpos($url, $script) === 0)
@@ -101,85 +192,20 @@ class Http
 	}
 
 
-	/**
-	 * Returns full request
-	 * @return  string
-	 */
-	public static function getFullRequest()
-	{
-		return self::$serverUri . '/' . self::getRequest();
-	}
+}
 
 
-	/**
-	 * Returns request data for form
-	 * @return  array
-	 */
-	public static function getFormRequest()
-	{
-		$data = array();
-		if (!empty($_FILES)) {
-			foreach ($_FILES as $form => $value) {
-				$controls = array_keys($value['name']);
-				foreach ($controls as $control) {
-					$fields = array_keys($value);
-					foreach ($fields as $field)
-						$data[$form][$control][$field] = $value[$field][$control]; 
-				}
-			}
-		}
-
-		$data = array_merge_recursive($data, $_POST);
-		return $data;
-	}
-
-
-	/**
-	 * Returns referer
-	 * @return  string|null
-	 */
-	public static function getReferer()
-	{
-		if (isset($_SERVER['HTTP_REFERER']))
-			return $_SERVER['HTTP_REFERER'];
-		else
-			return null;
-	}
-
-
-	/**
-	 * Sends redirect header
-	 * @param   string  absolute url
-	 * @param   int     redirect code
-	 * @return  void
-	 */
-	public static function headerRedirect($url, $code = 300)
-	{
-		self::checkHeaders();
-		header("Location: $url", true, $code);
-	}
-
-
-	/**
-	 * Sends mime-type header
-	 * @param   string  mime-type
-	 * @return  void
-	 */
-	public static function headerMimetype($mime)
-	{
-		self::checkHeaders();
-		header("Content-type: $mime");
-	}
+class HFHttpResponse extends Object
+{
 
 
 	/**
 	 * Sends error header
-	 * @param   int    error code
-	 * @return  void
+	 * @param int $code error code
+	 * @return HFHttpResponse
 	 */
-	public static function headerError($code = 404)
+	public function error($code = 404)
 	{
-		self::checkHeaders();
 		switch ($code) {
 		case 401:
 			header('HTTP/1.1 401 Unauthorized');
@@ -194,39 +220,34 @@ class Http
 			throw new Exception("Unsupported error code '$code'.");
 			break;
 		}
+
+		return $this;
 	}
 
 
 	/**
-	 * Initialize
-	 * @return void
+	 * Sends redirect header
+	 * @param string $url absolute url
+	 * @param int $code redirect code
+	 * @return HFHttpResponse
 	 */
-	public static function initialize()
+	public function redirect($url, $code = 300)
 	{
-		self::sanitizeData();
-
-		self::$domain = $_SERVER['SERVER_NAME'];
-		self::$serverUri = 'http' . (@$_SERVER['HTTPS'] ? 's' : '') . '://' . self::$domain;
-
-		$base = trim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
-		if (!empty($base))
-			self::$baseUri = "/$base";
+		header("Location: $url", true, $code);
+		return $this;
 	}
 
 
 	/**
-	 * Checks headers
-	 * @return  void
+	 * Sends mime-type header
+	 * @param string $mime mime-type
+	 * @return HFHttoResponse
 	 */
-	private static function checkHeaders()
+	public function mimetype($mime)
 	{
-		$file = $line = null;
-		if (headers_sent($file, $line))
-			throw new Exception("Headers has been already sent in '$file' on the line $line.");
+		header("Content-type: $mime");
+		return $this;
 	}
 
 
 }
-
-
-Http::initialize();

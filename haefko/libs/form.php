@@ -538,7 +538,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 */
 	private function loadData()
 	{
-		$data = Http::getFormRequest();
+		$data = Http::$request->getForm();
 		if (isset($data[$this->name]))
 			$data = $data[$this->name];
 		else

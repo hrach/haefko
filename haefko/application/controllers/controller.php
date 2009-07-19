@@ -12,6 +12,14 @@
  */
 
 
+
+/**
+ * @property-read Template $template
+ * @property-read Application $application
+ * @property-read Router $router
+ * @property-read Cache $cache
+ * @property-read Routing $routing
+ */
 abstract class Controller extends Object
 {
 
@@ -53,20 +61,16 @@ abstract class Controller extends Object
 
 	/**
 	 * Constructor
-	 * @return  void
+	 * @return Controller
 	 */
 	public function __construct()
 	{
 		$this->application = Application::get();
-
-		$this->routing = (object) array();
-		$this->routing->controller = Tools::dash($this->application->router->controller);
-		$this->routing->module = $this->application->router->module;
-		$this->routing->action = $this->application->router->action;
+		$this->routing = (object) $this->router->getRouting(false);
 		$this->routing->template = '';
-		$this->routing->service = $this->application->router->service;
-		$this->routing->ajax = Http::isAjax();
+		$this->routing->ajax = Http::$request->isAjax;
 		$this->routing->ext = 'phtml';
+
 
 		# TEMPLATE
 		$this->template = $this->getTemplateInstace();
@@ -103,11 +107,31 @@ abstract class Controller extends Object
 
 	/**
 	 * Returns Application instance
-	 * @return  Application
+	 * @return Application
 	 */
 	public function getApplication()
 	{
 		return $this->application;
+	}
+
+
+	/**
+	 * Returns application Router
+	 * @return Router
+	 */
+	public function getRouter()
+	{
+		return $this->application->getRouter();
+	}
+
+
+	/**
+	 * Returns applicatino Cache
+	 * @return Cache
+	 */
+	public function getCache()
+	{
+		return $this->application->getCache();
 	}
 
 
@@ -122,19 +146,8 @@ abstract class Controller extends Object
 
 
 	/**
-	 * Returns template instance
-	 * @return ITemplate
-	 */
-	public function getView()
-	{
-		trigger_error('View is deprecated', E_USER_WARNING);
-		return $this->template;
-	}
-
-
-	/**
 	 * Returns Routing instance
-	 * @return  Routing
+	 * @return Routing
 	 */
 	public function getRouting()
 	{
@@ -148,8 +161,7 @@ abstract class Controller extends Object
 	public function init() {}
 	public function beforeAction() {}
 	public function afterAction() {}
-	public function prepareView() {}
-	public function prepareLayout() {}
+	public function prepareTemplate() {}
 	/**#@-*/
 
 
@@ -169,34 +181,36 @@ abstract class Controller extends Object
 
 	/**
 	 * Redirects to new $url and terminate application when $exit = true
-	 * @param   string    internal relative url
-	 * @param   bool      terminate application?
-	 * @return  void
+	 * @param string $url internal relative url
+	 * @param bool $exit terminate application?
+	 * @return Controller
 	 */
 	public function redirect($url, $exit = true)
 	{
-		Http::headerRedirect($this->url($url, array(), array(), true), 303);
-		if ($exit)
-			exit;
+		$url = $this->url($url, array(), array(), true);
+		Http::$response->redirect($url, 303);
+		if ($exit) exit;
+		return $this;
 	}
 
 
 	/**
 	 * Creates application internal url
-	 * @param   string  url
-	 * @param   array   additional args
-	 * @param   bool    create absolute url?
-	 * @return  string
+	 * @param string $url
+	 * @param array $args rewrite args
+	 * @param array|false $params rewrite params
+	 * @param bool $absolute create absolute url?
+	 * @return string
 	 */
-	public function url($url, $params = array(), $args = array(), $absolute = false)
+	public function url($url, $args = array(), $params = false, $absolute = false)
 	{
-		$url = $this->application->router->url($url, (array) $params, (array) $args);
-		$url = '/' . ltrim($url, '/');
+		$url = $this->getRouter()->url($url, $args, $params);
+		$url = Http::$baseURL . '/' . ltrim($url, '/');
 
 		if ($absolute)
-			return Http::$serverUri . Http::$baseUri . $url;
-		else
-			return Http::$baseUri . $url;
+			$url = Http::$serverURL . $url;
+
+		return $url;
 	}
 
 
@@ -219,14 +233,11 @@ abstract class Controller extends Object
 			elseif (method_exists($this, $method . 'Action'))
 				$method .= 'Action';
 			else
-				throw new ApplicationException('missing-method', $method);
+				throw new ApplicationException('missing-method', $method . 'Action');
 
 			# CALL
-			$args = $this->application->router->getArgs();
-			unset($args['controller'], $args['module'], $args['action'], $args['service']);
-
 			call_user_func(array($this, 'beforeAction'));
-			$return = call_user_func_array(array($this, $method), $args);
+			$return = call_user_func_array(array($this, $method), $this->getRouter()->getArgs());
 			call_user_func(array($this, 'afterAction'));
 			if ($this->routing->ajax && $return !== null)
 				$this->proccessAjaxResponse($return);
@@ -242,12 +253,13 @@ abstract class Controller extends Object
 			$this->template->setFile($this->getErrorTemplateFile($template));
 		}
 
+		call_user_func(array($this, 'prepareTemplate'));
 		return $this->template->render();
 	}
 
 
 	/**
-	 * Sets view template to error template
+	 * Sets error template
 	 * @param Exception $exception
 	 */
 	public function setErrorTemplate($template)
@@ -333,7 +345,7 @@ abstract class Controller extends Object
 		if (file_exists($core . $file1))
 			return $core . $file1;
 
-		throw new ApplicationException('missing-view', $file);
+		throw new ApplicationException('missing-template', $file);
 	}
 
 

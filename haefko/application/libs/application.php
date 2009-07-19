@@ -201,17 +201,18 @@ class Application extends Object
 	public function run()
 	{
 		$this->loadAppControllerClass();
-		if ($this->router->routed === false || empty($this->router->controller))
+		$routing = $this->router->getRouting();
+		if ($this->router->routed === false || empty($routing['controller']))
 			throw new ApplicationException('routing');
 
 
-		$module = implode('_', $this->router->module);
-		$class = $this->router->controller . 'Controller';
+		$module = implode('_', $routing['module']);
+		$class = $routing['controller'] . 'Controller';
 		if (!empty($module))
 			$class = $module . '_' . $class;
 
 		$this->loadControllerClass($class);
-		$this->controller = new $class;
+		$this->controller = new $class();
 		echo $this->controller->render();
 	}
 
@@ -224,7 +225,7 @@ class Application extends Object
 	public function processException(Exception $exception)
 	{
 		if (isset($this->contorller) && $this->controller->routing->ajax) {
-			Http::headerError(500);
+			Http::$response->error(500);
 			if (Config::read('core.debug') == 0)
 				echo json_encode(array('response' => 'Internal server error.'));
 			else
@@ -246,19 +247,18 @@ class Application extends Object
 
 		if ($exception instanceof ApplicationException) {
 			if (Config::read('core.debug') > 0) {
-				$template = $exception->errorFile;
-				Http::headerError(404);
+				Http::$response->error(404);
+				$this->controller->setErrorTemplate($exception->errorFile);
 				$this->controller->template->variable = $exception->variable;
 			} else {
-				$template = '500';
-				Http::headerError(500);
 				Debug::log($exception->getMessage());
+				Http::$response->error(500);
+				$this->controller->setErrorTemplate('500');
 			}
 		} else {
-			$template = '404';
+			$this->controller->setErrorTemplate('404');
 		}
 
-		$this->controller->setErrorTemplate($template);
 		echo $this->controller->template->render();
 	}
 
@@ -337,7 +337,7 @@ class Application extends Object
 class ApplicationException extends Exception
 {
 
-	/** @var string - Error view template name */
+	/** @var string - Error template name */
 	public $errorFile;
 
 	/** @var mixed */
@@ -346,13 +346,13 @@ class ApplicationException extends Exception
 
 	/**
 	 * Constructor
-	 * @param   string  error type
-	 * @param   string  view variable
-	 * @return  void
+	 * @param string $variable error type
+	 * @param string $errorType template variable
+	 * @return ApplicationException
 	 */
 	public function __construct($errorType, $variable = null)
 	{
-		static $errors = array('routing', 'missing-controller', 'missing-method', 'missing-view', 'missing-helper', 'missing-file');
+		static $errors = array('routing', 'missing-controller', 'missing-method', 'missing-template', 'missing-helper', 'missing-file');
 		if (!in_array($errorType, $errors))
 			throw new Exception("Unsupported ApplicationException type '$error'.");
 
@@ -368,13 +368,13 @@ class ApplicationException extends Exception
 class ApplicationError extends Exception
 {
 
-	/** @var string - Error view template name */
+	/** @var string - Error template name */
 	public $errorFile;
 
 
 	/**
 	 * Constructor
-	 * @param string $view view template name
+	 * @param string $template template name
 	 * @param bool $debug is exception debuggable?
 	 * @param int $errorCode http error code
 	 */
@@ -383,10 +383,10 @@ class ApplicationError extends Exception
 		Application::$error = true;
 
 		if ($debug === true && Config::read('Core.debug') == 0)
-			$view = '404';
+			$template = '404';
 
 		if ($errorCode !== null)
-			Http::headerError($errorCode);
+			Http::$response->error($errorCode);
 
 		$this->errorFile = $template;
 		parent::__construct("Application error: $template.");
