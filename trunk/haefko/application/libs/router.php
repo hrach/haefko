@@ -128,14 +128,13 @@ class Router
 			$matches[1][] = '__args';
 		}
 
-
 		if (!preg_match("#^$route$#", $this->request, $m))
 			return false;
 
-		array_shift($m);
 		if (count($m) == 0)
 			return false;
 
+		array_shift($m);
 		foreach ($matches[1] as $i => $key) {
 			if (!isset($m[$i])) break;
 
