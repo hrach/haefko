@@ -188,10 +188,7 @@ class HtmlHelper extends Object
 	public function icon($url)
 	{
 		$url = $this->factoryUrl($url);
-		$el = Html::el('link')->rel('shortcut icon')
-		                      ->href($url);
-
-		return $el->render(0);
+		return "<link rel=\"shortcut icon\" href=\"$url\" />\n";
 	}
 
 
@@ -261,27 +258,48 @@ class HtmlHelper extends Object
 
 
 		$render = '<div class="pagination">';
-		if ($paginator->hasPrev())
-			$render .= $this->link(Controller::get()->url('', array($urlVarName => $paginator->page - 1)), '&laquo; ' . $prev, null, false);
-		else
-			$render .= '<span class="button">&laquo; ' . $prev . '</span>';
-
-		foreach ($pagination as $page) {
-			if (is_int($page))
-				$render .= '<a href="' . Controller::get()->url('', array($urlVarName => $page))
-						.  '" class="page-link' . ($page == $paginator->page ? ' current' : '')
-						.  '">' . $page . '</a>';
-			else
-				$render .= '<span class="hellip">&hellip;</span>';
+		if ($paginator->hasPrev()) {
+			$url = $this->url(null, null, array($urlVarName => $paginator->page - 1));
+			$render .= "<a href=\"$url\">&laquo; $prev</a>";
+		} else {
+			$render .= "<span class=\"button\">&laquo; $prev</span>";
 		}
 
-		if ($paginator->hasNext())
-			$render .= $this->link(Controller::get()->url('', array($urlVarName => $paginator->page + 1)), $next . ' &raquo;', null, false);
-		else
-			$render .= '<span class="button">' . $next . ' &raquo;</span>';
+		foreach ($pagination as $page) {
+			if (is_int($page)) {
+				$url = $this->url(null, null, array($urlVarName => $page));
+				$class = $page == $paginator->page ? ' current' : '';
+				$render .= "<a href=\"$url\" class=\"page-link$class\">$page</a>";
+			} else {
+				$render .= '<span class="hellip">&hellip;</span>';
+			}
+		}
+
+		if ($paginator->hasNext()) {
+			$url = $this->url('', null, array($urlVarName => $paginator->page + 1));
+			$render .= "<a href=\"$url\">$next &raquo;</a>";
+		} else {
+			$render .= "<span class=\"button\">$next &raquo;</span>";
+		}
 
 		$render .= '</div>';
 		return $render;
+	}
+
+
+	/**
+	 * Processes the framework url
+	 * @param string $url url
+	 * @param array $args rewrite args
+	 * @param array|false $params rewrite params
+	 * @return string
+	 */
+	protected function url($url, $args = array(), $params = false)
+	{
+		if (class_exists('Application', false))
+			return Controller::get()->url($url, $args, $params);
+		else
+			return frameworkUrl($url, $args, $params);
 	}
 
 
@@ -296,7 +314,7 @@ class HtmlHelper extends Object
 			$url = "http://$url";
 
 		if (strpos($url, '://') === false)
-			$url = call_user_func(array(Controller::get(), 'url'), $url);
+			$url = $this->url($url);
 
 		return $url;
 	}

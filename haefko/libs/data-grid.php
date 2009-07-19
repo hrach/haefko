@@ -248,8 +248,8 @@ class DataGrid extends Object
 	public function invokeActionsCallback(Template $template, DbResultNode $row)
 	{
 		$actions = array(
-			$template->getHelper('html')->link($this->url('update', $row['id']), '<span>Edit</span>', array('class' => 'edit'), false),
-			$template->getHelper('html')->link($this->url('delete', $row['id']), '<span>Delete</span>', array('class' => 'delete'), false),
+			$template->getHelper('html')->link($this->actionUrl('update', $row['id']), '<span>Edit</span>', array('class' => 'edit'), false),
+			$template->getHelper('html')->link($this->actionUrl('delete', $row['id']), '<span>Delete</span>', array('class' => 'delete'), false),
 		);
 
 		if (!empty($this->actionsCallback))
@@ -265,16 +265,14 @@ class DataGrid extends Object
 	 * @param mixed $param
 	 * @return string
 	 */
-	public function url($action, $param = null)
+	public function actionUrl($action, $param = null)
 	{
-		if ($param === null)
-			return Controller::get()->url($this->link, array(
-				'action' => $action
-			));
+		if (!empty($param))
+			$url = $this->link . '/' . $param;
 		else
-			return Controller::get()->url($this->link . '/' . $param, array(
-				'action' => $action
-			));
+			$url = $this->link;
+
+		return $this->url($url, array('action' => $action));
 	}
 
 
@@ -286,9 +284,23 @@ class DataGrid extends Object
 	 */
 	public function paramUrl($var, $value)
 	{
-		return Controller::get()->url(null, null, array(
-			$this->name . '-' . $var => $value
-		));
+		return $this->url(null, null, array($this->name . '-' . $var => $value));
+	}
+
+
+	/**
+	 * Processes the framework url
+	 * @param string $url url
+	 * @param array $args rewrite args
+	 * @param array|false $params rewrite params
+	 * @return string
+	 */
+	protected function url($url, $args = array(), $params = false)
+	{
+		if (class_exists('Application', false))
+			return Controller::get()->url($url, $args, $params);
+		else
+			return frameworkUrl($url, $args, $params);
 	}
 
 
