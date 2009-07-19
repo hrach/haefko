@@ -87,7 +87,7 @@ class Cache extends Object implements ArrayAccess
 
 	/**
 	 * Checks if is key cached
-	 * @param string $key key name
+	 * @param string $key key file name
 	 * @return bool
 	 */
 	public function isCached($key)
@@ -98,26 +98,15 @@ class Cache extends Object implements ArrayAccess
 
 		$this->meta[$key]['cached'] = false;
 		$file = $this->getFilename($key);
-		if (!file_exists($file))
+		if (!file_exists($file)) {
+			$this->delete($key);
 			return false;
+		}
 
 
 		$header = $this->readHeader($file);
-		if (isset($header['expire'])) {
-			if ($header['expire'] < time()) {
-				$this->delete($key);
-				return false;
-			}
-		}
-
-		if (isset($header['files']))
-		foreach ((array) $header['files'] as $file => $time) {
-			$fileNow = @filemtime($file);
-			if ($fileNow != $time) {
-				$this->delete($key);
-				return false;
-			}
-		}
+		if (!$this->isValid(array(), $header))
+			return false;
 
 		$this->meta[$key]['header'] = $header;
 		$this->meta[$key]['cached'] = true;
@@ -127,7 +116,7 @@ class Cache extends Object implements ArrayAccess
 
 	/**
 	 * Deletes $key cache
-	 * @param string $key key name
+	 * @param string $key key file name
 	 * @return bool
 	 */
 	public function delete($key)
@@ -142,8 +131,26 @@ class Cache extends Object implements ArrayAccess
 
 
 	/**
+	 * Cleans invalid cache
+	 * @param array $conds clean up conditions
+	 * @return Cache
+	 */
+	public function clean($conds = array())
+	{
+		$dir = new DirectoryIterator($this->storage);
+		foreach ($dir as $file) {
+			if ($file->isDir()) continue;
+			$header = $this->readHeader($file->getPathname());
+			if (!$this->isValid($conds, $header))
+				unlink($file->getPathname());
+		}
+
+		return $this;
+	}
+
+
+	/**
 	 * Array-access interface
-	 * @return  void
 	 */
 	public function offsetSet($key, $value)
 	{
@@ -153,7 +160,7 @@ class Cache extends Object implements ArrayAccess
 
 	/**
 	 * Array-access interface
-	 * @return  FormControl
+	 * @return mixed
 	 */
 	public function offsetGet($key)
 	{
@@ -163,7 +170,6 @@ class Cache extends Object implements ArrayAccess
 
 	/**
 	 * Array-access interface
-	 * @return  void
 	 */
 	public function offsetUnset($key)
 	{
@@ -173,7 +179,7 @@ class Cache extends Object implements ArrayAccess
 
 	/**
 	 * Array-access interface
-	 * @return  bool
+	 * @return bool
 	 */
 	public function offsetExists($key)
 	{
@@ -183,9 +189,8 @@ class Cache extends Object implements ArrayAccess
 
 	/**
 	 * Returns path with filename of cached file
-	 * @param   string    group name
-	 * @param   string    id
-	 * @return  string
+	 * @param string $key key file name
+	 * @return string
 	 */
 	public function getFilename($key)
 	{
@@ -207,7 +212,7 @@ class Cache extends Object implements ArrayAccess
 		$data = '<?php ## ' . str_pad((string) strlen($header), 6, '0', STR_PAD_LEFT)
 		      . $header . " ?>\n" . $data;
 
-		if ($fp = fopen($file, 'w+b')) {
+		if ($fp = @fopen($file, 'w+b')) {
 			if (flock($fp, LOCK_EX))
 				fwrite($fp, $data);
 
@@ -237,9 +242,8 @@ class Cache extends Object implements ArrayAccess
 
 	/**
 	 * Reads cached data
-	 * @param   string      group name
-	 * @param   string      id
-	 * @return  string
+	 * @param string $key file key name
+	 * @return string
 	 */
 	protected function readCache($key)
 	{
@@ -250,6 +254,30 @@ class Cache extends Object implements ArrayAccess
 			$content = unserialize(trim($content));
 
 		return $content;
+	}
+
+
+	/**
+	 * Checks if is the file valid
+	 * @param array $conds
+	 * @param array $header
+	 * @return bool
+	 */
+	protected function isValid($conds, $header)
+	{
+		if (isset($header['expire'])) {
+			if ($header['expire'] < time())
+				return false;
+		}
+
+		if (isset($header['files']))
+		foreach ((array) $header['files'] as $file => $time) {
+			$fileNow = @filemtime($file);
+			if ($fileNow != $time)
+				return false;
+		}
+
+		return true;
 	}
 
 
