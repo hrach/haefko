@@ -182,8 +182,8 @@ class HtmlHelper extends Object
 
 	/**
 	 * Returns HTML favicon tag
-	 * @param   string    url
-	 * @return  string
+	 * @param string $url
+	 * @return string
 	 */
 	public function icon($url)
 	{
@@ -194,8 +194,8 @@ class HtmlHelper extends Object
 
 	/**
 	 * Returns HTML encoding-header tag
-	 * @param   string    charset
-	 * @return  string
+	 * @param string $charset
+	 * @return string
 	 */
 	public function encoding($charset = 'UTF-8')
 	{
@@ -205,8 +205,8 @@ class HtmlHelper extends Object
 
 	/**
 	 * Returns tracking code for Google Analytics
-	 * @param   string     id
-	 * @return  string
+	 * @param string $id
+	 * @return string
 	 */
 	public function analytics($id)
 	{
@@ -221,14 +221,14 @@ class HtmlHelper extends Object
 
 	/**
 	 * Renders paginator
-	 * @param   Paginator
-	 * @param   string       url param name
-	 * @param   int          page aroung the current
-	 * @param   string       link text for previous page
-	 * @param   string       link text for next page
-	 * @return  string
+	 * @param Paginator $paginator
+	 * @param string $urlParamName
+	 * @param int $round page aroung the current
+	 * @param string $prev link text for previous page
+	 * @param string $next link text for next page
+	 * @return string
 	 */
-	public function paginator(Paginator $paginator, $urlVarName = 'page', $round = 2, $prev = 'Previous', $next = 'Next')
+	public function paginator(Paginator $paginator, $urlParamName = 'page', $round = 2, $prev = 'Previous', $next = 'Next')
 	{
 		$pages = array();
 		if ($paginator->pages > 0) {
@@ -259,7 +259,7 @@ class HtmlHelper extends Object
 
 		$render = '<div class="pagination">';
 		if ($paginator->hasPrev()) {
-			$url = $this->url(null, null, array($urlVarName => $paginator->page - 1));
+			$url = $this->url(null, null, array($urlParamName => $paginator->page - 1));
 			$render .= "<a href=\"$url\">&laquo; $prev</a>";
 		} else {
 			$render .= "<span class=\"button\">&laquo; $prev</span>";
@@ -267,7 +267,7 @@ class HtmlHelper extends Object
 
 		foreach ($pagination as $page) {
 			if (is_int($page)) {
-				$url = $this->url(null, null, array($urlVarName => $page));
+				$url = $this->url(null, null, array($urlParamName => $page));
 				$class = $page == $paginator->page ? ' current' : '';
 				$render .= "<a href=\"$url\" class=\"page-link$class\">$page</a>";
 			} else {
@@ -276,7 +276,7 @@ class HtmlHelper extends Object
 		}
 
 		if ($paginator->hasNext()) {
-			$url = $this->url('', null, array($urlVarName => $paginator->page + 1));
+			$url = $this->url('', null, array($urlParamName => $paginator->page + 1));
 			$render .= "<a href=\"$url\">$next &raquo;</a>";
 		} else {
 			$render .= "<span class=\"button\">$next &raquo;</span>";
@@ -305,8 +305,8 @@ class HtmlHelper extends Object
 
 	/**
 	 * Returns parsed and sanitized URL
-	 * @param   string  url
-	 * @return  string
+	 * @param string $url
+	 * @return string
 	 */
 	protected function factoryUrl($url)
 	{
