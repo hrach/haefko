@@ -71,10 +71,10 @@ class Permission extends Object
 	 * Checks whether role is in resource and action allowed
 	 * @param array|string $role roles
 	 * @param string $res resource name
-	 * @param string $action
+	 * @param string $action action name
 	 * @return bool
 	 */
-	public function isAllowed($role, $res, $action)
+	public function isAllowed($role, $res, $action = '*')
 	{
 		foreach ((array) $role as $val) {
 			if ($this->roles[$val]->isDefined($res, $action))
@@ -185,6 +185,15 @@ class PermissionRole extends Object
 	 */
 	public function isAllowed($res, $action)
 	{
+		if ($action == '*') {
+			foreach ($this->resources[$res] as $action) {
+				if (!$action)
+					return false;
+			}
+
+			return true;
+		}
+
 		return $this->resources[$res][$action] || $this->resources['*'][$action]
 		    || $this->resources[$res]['*'] || $this->resources['*']['*'];
 	}
@@ -232,6 +241,9 @@ class PermissionRole extends Object
 	 */
 	public function isDefined($res, $action)
 	{
+		if ($action == '*')
+			return isset($this->resources[$res]);
+
 		return (isset($this->resources[$res]) && (isset($this->resources[$res][$action]) || isset($this->resources[$res]['*'])))
 		    || (isset($this->resources['*']) && (isset($this->resources['*'][$action]) || isset($this->resources['*']['*'])));
 	}
