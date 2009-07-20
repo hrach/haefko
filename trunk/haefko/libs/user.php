@@ -93,7 +93,9 @@ class User extends Object
 
 
 	/**
-	 *
+	 * Sets Permission object
+	 * @param Permission $acl
+	 * @return User
 	 */
 	public function setPermission(Permission $acl)
 	{
