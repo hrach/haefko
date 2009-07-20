@@ -52,9 +52,13 @@ if ($user->isAuthenticated()) {
 	echo "logged as: " .$user->name;
 	if ($user->isAllowed('administration')) {
 		echo "<br /> user has access to admin.";
+		$user->test = 'I am admin.';
 	} else {
 		echo "<br /> user is just a member.";
 	}
+
+	if (isset($user->test))
+		echo ' ' . $user->test;
 } else {
 	echo "not logged";
 }
