@@ -23,6 +23,12 @@ require_once dirname(__FILE__) . '/object.php';
 class User extends Object
 {
 
+	/**#@+ Error code states */
+	const INVALID_CREDENTIALS = false;
+	const INVALID_USERNAME = 1;
+	const INVALID_PASSWORD = 2;
+	/**#@-*/
+
 	/** @var SessionNamespace */
 	protected $session;
 
@@ -199,14 +205,16 @@ class User extends Object
 
 	/**
 	 * Proccesses user indentity
-	 * @param false|Identity $identity user identity
+	 * @param mixed $identity user identity (User::INVALID_* or IIdentity)
 	 * @throws Exception
 	 * @return bool
 	 */
 	protected function processIdentity($identity)
 	{
-		if ($identity === false)
-			return false;
+		if ($identity === User::INVALID_CREDENTIALS
+		 || $identity === User::INVALID_USERNAME
+		 || $identity === User::INVALID_PASSWORD)
+			return $identity;
 		elseif (!($identity instanceof IIdentity))
 			throw new Exception('Result of UserHandler::authenticate() must implements IIdentity.');
 
@@ -233,7 +241,7 @@ interface IUserHandler
 	/**
 	 * Returns user indentity or false
 	 * @param array $credentials user credentials - array with keys username, password, extra
-	 * @return IIdentity|false
+	 * @return IIdentity|User::INVALID_*
 	 */
 	public function authenticate($credentials);
 
