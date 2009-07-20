@@ -187,11 +187,11 @@ class PermissionRole extends Object
 	{
 		if ($action == '*') {
 			foreach ($this->resources[$res] as $action) {
-				if (!$action)
-					return false;
+				if ($action)
+					return true;
 			}
 
-			return true;
+			return false;
 		}
 
 		return $this->resources[$res][$action] || $this->resources['*'][$action]

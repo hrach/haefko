@@ -97,10 +97,20 @@ class User extends Object
 	 * @param Permission $acl
 	 * @return User
 	 */
-	public function setPermission(Permission $acl)
+	public function setAcl(Permission $acl)
 	{
 		$this->acl = $acl;
 		return $this;
+	}
+
+
+	/**
+	 * Returns Permisison object
+	 * @return Permission
+	 */
+	public function getAcl()
+	{
+		return $this->acl;
 	}
 
 
