@@ -230,13 +230,13 @@ class Session
 			if (substr_count($domain, '.') == 1)
 				$domain = ".$domain";
 			else
-				$domain = preg_replace('#^([^.])*#i', null, $domain);
-		} elseif (substr_count($domain, '.') == 0) {
+				$domain = preg_replace('#^([^.])*#i', '', $domain);
+		} else {
 			$domain = '';
 		}
 
 		session_name(self::$name);
-		session_set_cookie_params(self::$lifeTime, self::$path, $domain, self::$secure);
+		session_set_cookie_params(self::$lifeTime, rtrim(self::$path, '/') . '/', $domain, self::$secure);
 	}
 
 
