@@ -33,7 +33,7 @@ $acl->allow('admin', 'administration');
 
 $user = new User();
 $user->setUserHandler('UserHandler');
-$user->setPermission($acl);
+$user->setAcl($acl);
 
 
 if (isset($_GET['login'])) {
