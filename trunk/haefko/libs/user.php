@@ -227,7 +227,21 @@ class User extends Object
 		elseif (isset($this->session->data->$key))
 			return $this->session->data->$key;
 		else
-			throw new Exception("Undefined user data variable '$key'.");
+			return null;
+	}
+
+
+	/**
+	 * Isseter
+	 * @param string $key property name
+	 * @return bool
+	 */
+	public function __isset($key)
+	{
+		if ($key == 'id' || $key == 'roles')
+			return true;
+		else
+			return isset($this->session->data);
 	}
 
 
