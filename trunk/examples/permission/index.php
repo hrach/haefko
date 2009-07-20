@@ -39,3 +39,9 @@ echo "<br>denied: " . ($acl->isAllowed('guest', 'comments', 'add') ? "allowed" :
 echo "<br>denied: " . ($acl->isAllowed('guest', 'posts', 'add') ? "allowed" : "denied");
 echo "<br>denied: " . ($acl->isAllowed('member', 'comments', 'delete') ? "allowed" : "denied");
 echo "<br>denied: " . ($acl->isAllowed('admin', 'comments', 'delete') ? "allowed" : "denied");
+
+echo "<br>";
+echo "<br>allowed: " . ($acl->isAllowed('member', 'comments') ? "allowed" : "denied");
+echo "<br>allowed: " . ($acl->isAllowed('guest', 'comments') ? "allowed" : "denied");
+echo "<br>allowed: " . ($acl->isAllowed('superadmin', 'comments') ? "allowed" : "denied");
+echo "<br>allowed: " . ($acl->isAllowed('admin', 'comments') ? "allowed" : "denied");

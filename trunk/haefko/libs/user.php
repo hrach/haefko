@@ -35,6 +35,9 @@ class User extends Object
 	/** @var IUserHandler */
 	protected $userHandler;
 
+	/** @var Permission */
+	protected $acl;
+
 
 	/**
 	 * Constructor
@@ -55,11 +58,14 @@ class User extends Object
 	/**
 	 * Returns true if user has rights for $action on $resource
 	 * @param string $res resource name
-	 * @param string $action aciton name
+	 * @param string $action action name
 	 * @return bool
 	 */
-	public function isAllowed($res, $action)
+	public function isAllowed($res, $action = '*')
 	{
+		if (!isset($this->acl))
+			throw new LogicException('Permission class is not set in User.');
+
 		return $this->acl->isAllowed($this->getRoles(), $res, $action);
 	}
 
@@ -82,6 +88,16 @@ class User extends Object
 	public function setUserHandler($handler)
 	{
 		$this->userHandler = $handler;
+		return $this;
+	}
+
+
+	/**
+	 *
+	 */
+	public function setPermission(Permission $acl)
+	{
+		$this->acl = $acl;
 		return $this;
 	}
 

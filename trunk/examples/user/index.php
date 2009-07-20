@@ -10,7 +10,7 @@ class UserHandler implements IUserHandler
 
 	public function authenticate($credentials)
 	{
-		return new Identity(6, 'member', array(
+		return new Identity(6, 'admin', array(
 			'name' => 'jan',
 		));
 	}
@@ -24,8 +24,16 @@ class UserHandler implements IUserHandler
 
 }
 
+$acl = new Permission();
+$acl->addResource('administration');
+$acl->addRole('member');
+$acl->addRole('admin');
+$acl->allow('admin', 'administration');
+
+
 $user = new User();
 $user->setUserHandler('UserHandler');
+$user->setPermission($acl);
 
 
 if (isset($_GET['login'])) {
@@ -40,10 +48,16 @@ if (isset($_GET['login'])) {
 }
 
 
-if ($user->isAuthenticated())
+if ($user->isAuthenticated()) {
 	echo "logged as: " .$user->name;
-else
+	if ($user->isAllowed('administration')) {
+		echo "<br /> user has access to admin.";
+	} else {
+		echo "<br /> user is just a member.";
+	}
+} else {
 	echo "not logged";
+}
 
 echo "<br /><hr>
 <a href='?login'>login</a>
