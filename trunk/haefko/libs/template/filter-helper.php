@@ -189,7 +189,7 @@ class FilterHelper extends Object
 	 * @param string $delitemter
 	 * @return string
 	 */
-	public function implode($var, $delitemter = ', ')
+	public function implode($var, $delimeter = ', ')
 	{
 		return implode($delimeter, $var);
 	}

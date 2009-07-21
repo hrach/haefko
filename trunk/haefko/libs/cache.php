@@ -98,11 +98,8 @@ class Cache extends Object implements ArrayAccess
 
 		$this->meta[$key]['cached'] = false;
 		$file = $this->getFilename($key);
-		if (!file_exists($file)) {
-			$this->delete($key);
+		if (!file_exists($file))
 			return false;
-		}
-
 
 		$header = $this->readHeader($file);
 		if (!$this->isValid(array(), $header))
@@ -207,6 +204,9 @@ class Cache extends Object implements ArrayAccess
 	 */
 	protected function write($key, $data, $header)
 	{
+		$this->meta[$key]['header'] = $header;
+		$this->meta[$key]['cached'] = true;
+
 		$file = $this->getFilename($key);
 		$header = serialize($header);
 		$data = '<?php ## ' . str_pad((string) strlen($header), 6, '0', STR_PAD_LEFT)

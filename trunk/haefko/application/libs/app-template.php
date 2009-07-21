@@ -57,10 +57,8 @@ class AppTemplate extends Template
 	 */
 	public function setExtendsFile($file = null)
 	{
-		if (empty($file)) {
-			$this->extendsFile = '';
-			return $this;
-		}
+		if (empty($file))
+			return parent::setExtendsFile($file);
 
 		$app = Application::get()->path;
 		$core = Application::get()->corePath . '/application';
