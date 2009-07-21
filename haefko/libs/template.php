@@ -350,17 +350,18 @@ class Template extends Object implements ITemplate
 	 * Register functions block
 	 * @param string $id
 	 * @param string $function function name
-	 * @param string $mode mode - append / prepen
+	 * @param string $mode mode - append / prepend
 	 * @return Template
 	 */
 	public function registerBlock($id, $function, $mode = '')
 	{
-		if (!isset($this->registeredBlocks[$id]))
+		if (!isset($this->registeredBlocks[$id])) {
 			$this->registeredBlocks[$id] = array(
 				'prepend' => array(),
 				'append' => array(),
 				'' => array()
 			);
+		}
 
 		$this->registeredBlocks[$id][$mode][] = $function;
 		return $this;
@@ -395,7 +396,7 @@ class Template extends Object implements ITemplate
 
 	/**
 	 * Renders template a return content
-	 * @return  string
+	 * @return string
 	 */
     public function render()
     {
