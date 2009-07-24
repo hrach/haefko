@@ -7,9 +7,9 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Application
- * @subpackage  View
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Templates
  */
 
 
@@ -47,7 +47,6 @@ class AppTemplate extends Template
 	{
 		return parent::subTemplate(Application::get()->path . "/templates/$file.phtml");
 	}
-
 	
 
 	/**
