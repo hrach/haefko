@@ -115,7 +115,7 @@ $.fn.validate = function(rules, conditions) {
 
 				showError(row['control'], row['message']);
 				if (ret == true)
-					$('#' + row['control']).focus();
+					$('#' + formName + row['control']).focus();
 
 				ret = false;
 			}
