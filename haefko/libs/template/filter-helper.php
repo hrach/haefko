@@ -32,9 +32,9 @@ class FilterHelper extends Object
 			if (empty($varName))
 				$varName = 'filter';
 
-			static $filters = array('escape', 'trim', 'lower', 'upper', 'nl2br',
-				'strip', 'stripTags', 'date', 'format', 'shuffle', 'explode',
-				'implode');
+			static $filters = array('bytes', 'escape', 'trim', 'lower', 'upper',
+				'nl2br', 'strip', 'stripTags', 'date', 'format', 'shuffle',
+				'explode', 'implode', 'truncate');
 
 			foreach ($filters as $f)
 				$template->tplFilters[$f] = "\${$varName}->$f";
@@ -192,6 +192,42 @@ class FilterHelper extends Object
 	public function implode($var, $delimeter = ', ')
 	{
 		return implode($delimeter, $var);
+	}
+
+
+	/**
+	 * Converts bytes to human readable file size
+	 * @param int $bytes
+	 * @param int $precision
+	 * @return string
+	 */
+	public function bytes($bytes, $precision = 2)
+	{
+		static $s = array('B', 'kB', 'MB', 'GB', 'TB', 'PB');
+		$e = floor(log($bytes)/log(1024));
+		return sprintf('%.' . $precision . 'f ' . $s[$e], ($bytes/pow(1024, floor($e))));
+	}
+
+
+	/**
+	 * Truncates to maximal length
+	 * @param string $string
+	 * @param int $len maximal length
+	 * @param string $append
+	 * @return string
+	 */
+	public function truncate($string, $len, $append = "\xE2\x80\xA6")
+	{
+		if (strlen($string) <= $len)
+			return $string;
+
+		$string = rtrim(rtrim(substr($string, 0, $len)), '.-');
+		if (preg_match('#[a-z0-9]$#i', $string))
+			$string .= $append;
+		else
+			$string .= ' ' . $append;
+
+		return $string;
 	}
 
 
