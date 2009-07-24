@@ -30,7 +30,7 @@ class Template extends Object implements ITemplate
 	/** @var array */
 	public static $defaultTplKeywords = array(
 		'{if %%}' => '<?php if (\1): ?>',
-		'{elseif %%}' => '<?php elseif (\1): ?>',
+		'{elseif %%}' => '<?php ; elseif (\1): ?>',
 		'{for %%}' => '<?php for (\1): ?>',
 		'{foreach %%}' => '<?php foreach (\1): ?>',
 		'{while %%}' => '<?php while (\1): ?>',
@@ -38,7 +38,7 @@ class Template extends Object implements ITemplate
 		'{/for}' => '<?php endfor; ?>',
 		'{/foreach}' => '<?php endforeach; ?>',
 		'{/while}' => '<?php endwhile; ?>',
-		'{else}' => '<?php else: ?>',
+		'{else}' => '<?php ; else: ?>',
 	);
 
 	/** @var array */

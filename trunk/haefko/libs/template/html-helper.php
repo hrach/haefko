@@ -131,7 +131,7 @@ class HtmlHelper extends Object
 
 		if ($timestamp) {
 			$file = dirname($_SERVER['SCRIPT_FILENAME']) . '/' . $file;
-			$time = filemtime($file);
+			$time = @filemtime($file);
 			if ($time !== false)
 				$url .= '?' . $time;
 		}
@@ -153,7 +153,7 @@ class HtmlHelper extends Object
 
 		if ($timestamp) {
 			$file = dirname($_SERVER['SCRIPT_FILENAME']) . '/' . $file;
-			$time = filemtime($file);
+			$time = @filemtime($file);
 			if ($time !== false)
 				$url .= '?' . $time;
 		}
@@ -268,7 +268,7 @@ class HtmlHelper extends Object
 		foreach ($pagination as $page) {
 			if (is_int($page)) {
 				$url = $this->url(null, null, array($urlParamName => $page));
-				$class = $page == $paginator->page ? ' current' : '';
+				$class = $page == $paginator->page ? ' active' : '';
 				$render .= "<a href=\"$url\" class=\"page-link$class\">$page</a>";
 			} else {
 				$render .= '<span class="hellip">&hellip;</span>';
