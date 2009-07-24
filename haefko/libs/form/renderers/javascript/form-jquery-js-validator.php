@@ -66,10 +66,10 @@ class FormJqueryJsValidator extends Object implements IFormJsValidator
 		if (empty($this->rules) && empty($this->conditions))
 			return '';
 
-		$name  = $this->name;
+		$name  = str_replace('-', '_', $this->name);
 		$code  = "var {$name}Rules = " . json_encode($this->rules) . ";\n";
 		$code .= "var {$name}Conditions = " . json_encode($this->conditions) . ";\n";
-		$code .= "$('#{$name}').validate({$name}Rules, {$name}Conditions);\n";
+		$code .= "$('#{$this->name}').validate({$name}Rules, {$name}Conditions);\n";
 
 		$this->rules = $this->conditions = array();
 		return "<script type=\"text/javascript\">\n/* <![CDATA[ */\n$(document).ready(function(){\n" . $code . "});\n/* ]]> */\n</script>";
