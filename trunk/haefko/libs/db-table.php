@@ -188,9 +188,9 @@ abstract class DbTable extends Object
 			case 'varchar':
 			default:
 				$form->addText($name, $label);
-				$form[$name]->addRule(Rule::LENGTH, array(0, $data['length']));
 				if (!$data['null'])
 					$form[$name]->addRule(Rule::FILLED);
+				$form[$name]->addRule(Rule::LENGTH, array(0, $data['length']));
 
 				break;
 			}
