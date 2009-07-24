@@ -82,6 +82,9 @@ class FormMultiCheckboxControl extends FormInputControl
 	 */
 	public function setValue($value)
 	{
+		if (is_string($value))
+			$value = explode(',', $value);
+
 		foreach ((array) $value as $key) {
 			if (!isset($this->options[$key]))
 				return false;
