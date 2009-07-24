@@ -277,6 +277,19 @@ class Cache extends Object implements ArrayAccess
 				return false;
 		}
 
+		if (isset($conds['priority']) && isset($header['priority'])) {
+			if ($conds['priority'] >= $header['priority'])
+				return false;
+		}
+
+		if (isset($conds['tags']) && isset($header['tags'])) {
+			$tags = (array) $header['tags'];
+			foreach ((array) $conds['tags'] as $tag) {
+				if (in_array($tag, $tags))
+					return false;
+			}
+		}
+
 		return true;
 	}
 

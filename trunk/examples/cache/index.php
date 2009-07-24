@@ -13,7 +13,9 @@ if (isset($cache['var'])) {
 	$var = date('H:i.s');
 	echo "saving. ". $var;
 	$cache->save('var', $var, array(
-		'files' => array(__FILE__)
+		'files' => array(__FILE__),
+		'tags' => 'tag-test',
+		'priority' => 6,
 	));
 }
 
