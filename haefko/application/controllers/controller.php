@@ -52,7 +52,7 @@ abstract class Controller extends Object
 	/** @var Application */
 	private $application;
 
-	/** @var ITemplate */
+	/** @var Template */
 	private $template;
 
 	/** @var stdClass */
@@ -90,8 +90,8 @@ abstract class Controller extends Object
 			}
 		}
 
-		$this->template->setExtendsFile($layout);
 		$this->routing->layout = $layout;
+		$this->template->setExtendsFile($this->getLayoutTemplateFile());
 	}
 
 
@@ -242,8 +242,8 @@ abstract class Controller extends Object
 			if ($this->routing->ajax && $return !== null)
 				$this->proccessAjaxResponse($return);
 
-			$this->template->setExtendsFile($this->routing->layout);
-			$this->template->setFile($this->getTemplateFile($this->routing));
+			$this->template->setExtendsFile($this->getLayoutTemplateFile());
+			$this->template->setFile($this->getTemplateFile());
 
 		} catch (ApplicationError $exception) {
 			$template = '404';
@@ -322,12 +322,29 @@ abstract class Controller extends Object
 
 
 	/**
+	 * Returns layout template relative path
+	 * @param array $modules
+	 * @param string $layout
+	 * @param string $ext
+	 */
+	protected function constructLayoutTemplatePath($modules, $layout, $ext)
+	{
+		$module = null;
+		if (!empty($modules))
+			$module = implode('-module/', $modules) . '-module/';
+
+		return "/templates/$module$layout.$ext";
+	}
+
+
+	/**
 	 * Returns template file path
 	 * @throws ApplicationException
 	 * @return string
 	 */
-	private function getTemplateFile($routing, $return = false)
+	private function getTemplateFile()
 	{
+		$routing = $this->routing;
 		$app = $this->application->path;
 		$core = $this->application->corePath . '/application';
 
@@ -342,6 +359,7 @@ abstract class Controller extends Object
 			$routing->template, $routing->service, $routing->ext);
 		if ($this->allowTemplatePathReduction && file_exists($app . $file1))
 			return $app . $file1;
+
 		if (file_exists($core . $file1))
 			return $core . $file1;
 
@@ -367,6 +385,34 @@ abstract class Controller extends Object
 			return $core . $file;
 
 		throw new RuntimeException("Missing error template '$file'.");
+	}
+
+
+	/**
+	 * Returns layout template file path
+	 * @return string
+	 */
+	private function getLayoutTemplateFile()
+	{
+		$routing = $this->routing;
+		$app = $this->application->path;
+		$core = $this->application->corePath . '/application';
+
+		$file = $this->constructLayoutTemplatePath($routing->module, $routing->layout, $routing->ext);
+		if (file_exists($app . $file))
+			return $app . $file;
+		elseif (file_exists($core . $file))
+			return $core . $file;
+
+		if ($this->allowTemplatePathReduction) {
+			$file1 = $this->constructLayoutTemplatePath(array(), $routing->layout, $routing->ext);
+			if (file_exists($app . $file1))
+				return $app . $file1;
+			elseif (file_exists($core . $file1))
+				return $core . $file1;
+		}
+
+		return $code . '/layout.phtml';
 	}
 
 
