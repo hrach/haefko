@@ -53,16 +53,16 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Constructor
-	 * @param   string  url
-	 * @param   string  form name
-	 * @param   string  method
-	 * @return  string  form name
+	 * @param string $url
+	 * @param string $name form name
+	 * @param string $method form method
+	 * @return Form
 	 */
 	public function __construct($url = '', $name = 'form', $method = 'post')
 	{
 		# application url proccesing
-		if (class_exists('Application', false))
-			$url = call_user_func_array(array(Controller::get(), 'url'), (array) (empty($url) ? '<:url:>' : $url));
+		if (class_exists('Application', false) && !empty($url))
+			$url = call_user_func(array(Controller::get(), 'url'), $url);
 
 
 		static $counter = 0;
@@ -78,9 +78,6 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 			'method' => $method,
 			'action' => $url
 		));
-
-
-		return $this->name;
 	}
 
 
@@ -89,8 +86,8 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds CSRF protection
-	 * @param   string  error message
-	 * @return  Form    $this
+	 * @param string $errorMessage
+	 * @return Form
 	 */
 	public function addProtection($errorMessage = 'Security token did not match - possible CSRF attack!')
 	{
@@ -118,9 +115,9 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds text input
-	 * @param   string  control name
-	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    $this
+	 * @param string $control control name
+	 * @param mixed $label label (null = from name, false = no label)
+	 * @return Form
 	 */
 	public function addText($control, $label = null)
 	{
@@ -131,9 +128,9 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds textarea input
-	 * @param   string  control name
-	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    $this
+	 * @param string $control control name
+	 * @param mixed $label label (null = from name, false = no label)
+	 * @return Form
 	 */
 	public function addTextarea($control, $label = null)
 	{
@@ -144,9 +141,9 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds password input
-	 * @param   string  control name
-	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    $this
+	 * @param string $control control name
+	 * @param mixed $label label (null = from name, false = no label)
+	 * @return Form
 	 */
 	public function addPassword($control, $label = null)
 	{
@@ -157,9 +154,9 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds datepicker input
-	 * @param   string  control name
-	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    $this
+	 * @param string $control control name
+	 * @param mixed $label label (null = from name, false = no label)
+	 * @return Form
 	 */
 	public function addDatepicker($control, $label = null)
 	{
@@ -170,9 +167,9 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds file input
-	 * @param   string  control name
-	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    $this
+	 * @param string $control control name
+	 * @param mixed $label label (null = from name, false = no label)
+	 * @return Form
 	 */
 	public function addFile($control, $label = null)
 	{
@@ -184,10 +181,10 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds select input
-	 * @param   string  control name
+	 * @param string $control control name
 	 * @param   array   options
-	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    $this
+	 * @param mixed $label label (null = from name, false = no label)
+	 * @return Form
 	 */
 	public function addSelect($control, $options, $label = null)
 	{
@@ -198,9 +195,9 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds checkbox input
-	 * @param   string  control name
-	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    $this
+	 * @param string $control control name
+	 * @param mixed $label label (null = from name, false = no label)
+	 * @return Form
 	 */
 	public function addCheckbox($control, $label = null)
 	{
@@ -211,10 +208,10 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds radio inputs
-	 * @param   string  control name
+	 * @param string $control control name
 	 * @param   array   options
-	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    $this
+	 * @param mixed $label label (null = from name, false = no label)
+	 * @return Form
 	 */
 	public function addRadio($control, $options, $label = null)
 	{
@@ -225,8 +222,8 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds hidden input
-	 * @param   string  control name
-	 * @return  Form    $this
+	 * @param string $control control name
+	 * @return Form
 	 */
 	public function addHidden($control)
 	{
@@ -240,10 +237,10 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds multiple select input
-	 * @param   string  control name
+	 * @param string $control control name
 	 * @param   array   options
-	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    $this
+	 * @param mixed $label label (null = from name, false = no label)
+	 * @return Form
 	 */
 	public function addMultiSelect($control, $options, $label = null)
 	{
@@ -254,10 +251,10 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds multi checkbox inputs
-	 * @param   string  control name
+	 * @param string $control control name
 	 * @param   array   options
-	 * @param   mixed   label (null = from name, false = no label)
-	 * @return  Form    $this
+	 * @param mixed $label label (null = from name, false = no label)
+	 * @return Form
 	 */
 	public function addMultiCheckbox($control, $options, $label = null)
 	{
@@ -271,9 +268,9 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds submit button
-	 * @param   string  control name
-	 * @param   string  control label
-	 * @return  Form    $this
+	 * @param string $control control name
+	 * @param string $control control  label
+	 * @return Form
 	 */
 	public function addSubmit($control = 'submit', $label = null)
 	{
@@ -284,9 +281,9 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds image submit button
-	 * @param   string  control name
+	 * @param string $control control name
 	 * @param   string  image src
-	 * @return  Form    $this
+	 * @return Form
 	 */
 	public function addImageSubmit($control = 'submit', $src = null)
 	{
@@ -297,9 +294,9 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Adds reset button
-	 * @param   string  control name
-	 * @param   string  control label
-	 * @return  Form    $this
+	 * @param string $control control name
+	 * @param string $control control  label
+	 * @return Form
 	 */
 	public function addReset($control = 'reset', $label = null)
 	{
