@@ -15,6 +15,7 @@
 ?>
 <?php
 
+header('HTTP/1.1 500 Internal Server Error');
 header('Content-type: text/html');
 function getHighlightedCode($filename, $line, $lines = 15, $id = false, $hide = false)
 {

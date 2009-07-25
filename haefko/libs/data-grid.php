@@ -255,7 +255,7 @@ class DataGrid extends Object
 		if (!empty($this->actionsCallback))
 			$actions = call_user_func($this->actionsCallback, $actions, $this, $template, $row);
 
-		return implode('', $actions);
+		return implode(' ', $actions);
 	}
 
 

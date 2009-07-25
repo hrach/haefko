@@ -32,7 +32,7 @@ table.datagrid tbody tr:hover td {
 }
 
 table.datagrid thead th {
-	background: #CAEF95 url('imgs/dg-th.png');
+	background: #d5d1b2 url('imgs/dg-th.png');
 	border: 1px solid #b8b39d;
 	padding: 6px 10px;
 }
