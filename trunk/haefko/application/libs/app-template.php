@@ -16,22 +16,26 @@
 require_once dirname(__FILE__) . '/../../libs/template.php';
 
 
-/**
- * Extends Template class by templates extending and inheriting
- */
 class AppTemplate extends Template
 {
+
+	/** Application */
+	protected $application;
 
 
 	/**
 	 * Constrctor
-	 * @return  void
+	 * @param string $file template file
+	 * @param Cache $cache
+	 * @return AppTemplate
 	 */
 	public function __construct($file = null, Cache $cache = null)
 	{
 		parent::__construct($file, $cache);
 		$this->tplFunctions['link'] = '$controller->url';
+		$this->tplTriggers['extends'] = array($this, 'cbExtendsTrigger');
 
+		$this->application = Application::get();
 		$this->getHelper('html');
 		$this->getHelper('filter');
 		$this->setVar('base', Http::$baseURL);
@@ -45,29 +49,23 @@ class AppTemplate extends Template
 	 */
 	public function subTemplate($file)
 	{
-		return parent::subTemplate(Application::get()->path . "/templates/$file.phtml");
+		$file = $this->application->path . "/templates/$file."
+		      . $this->application->controller->routing->ext;
+		return parent::subTemplate($file);
 	}
-	
+
 
 	/**
-	 * Sets extending template filename
-	 * @param string $file
-	 * @return Template
+	 * Callback for extending template
+	 * @param string $expression
+	 * @return string
 	 */
-	public function setExtendsFile($file = null)
+	protected function cbExtendsTrigger($expression)
 	{
-		if (empty($file))
-			return parent::setExtendsFile($file);
-
-		$app = Application::get()->path;
-		$core = Application::get()->corePath . '/application';
-		$file = "/templates/$file.phtml";
-		if (!file_exists($app . $file)) {
-			if (file_exists($core . $file))
-				return parent::setExtendsFile($core . $file);
-		}
-
-		return parent::setExtendsFile($app . $file);
+		$expression = $this->application->path . '/templates/'
+			. substr($expression, 1, -1) . '.'
+			. $this->application->controller->routing->ext;
+		return parent::cbExtendsTrigger("'$expression'");
 	}
 
 

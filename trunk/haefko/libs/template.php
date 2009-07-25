@@ -43,9 +43,9 @@ class Template extends Object implements ITemplate
 
 	/** @var array */
 	public static $defaultTplTriggers = array(
-		'php' => array('Template', 'cbPhpFunction'),
-		'extends' => array('Template', 'cbExtendsFunction'),
-		'assign' => array('Template', 'cbAssignFunction'),
+		'php' => array('Template', 'cbPhpTrigger'),
+		'extends' => array('Template', 'cbExtendsTrigger'),
+		'assign' => array('Template', 'cbAssignTrigger'),
 	);
 
 	/** @var array */
@@ -549,10 +549,10 @@ class Template extends Object implements ITemplate
 	 * @param string $expression
 	 * @return string
 	 */
-	protected function cbExtendsFunction($expression)
+	protected function cbExtendsTrigger($expression)
 	{
 		$this->__hasExtends = true;
-		return '<?php $template->setExtendsFile(\'' . trim($expression, '"\'') . '\') ?>';
+		return "<?php \$template->setExtendsFile($expression) ?>";
 	}
 
 
@@ -561,7 +561,7 @@ class Template extends Object implements ITemplate
 	 * @param string $expression
 	 * @return string
 	 */
-	protected function cbPhpFunction($expression)
+	protected function cbPhpTrigger($expression)
 	{
 		return "<?php $expression ?>";
 	}
@@ -572,7 +572,7 @@ class Template extends Object implements ITemplate
 	 * @param string $expression
 	 * @return string
 	 */
-	protected function cbAssignFunction($expression)
+	protected function cbAssignTrigger($expression)
 	{
 		$space = strpos($expression, ' ');
 		$var = ltrim(substr($expression, 0, $space), '$');
