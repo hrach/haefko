@@ -33,16 +33,9 @@ $.fn.validate = function(rules, conditions) {
 			case 'url': return /^.+\.[a-z]{2,6}(\\\/.*)?$/i.test(val);
 			case 'email': return /^[^@\s]+\@[^@\s]+\.[a-z]{2,10}$/i.test(val);
 			case 'callback':
-				if (arg['url'] != null) {
-					data = {"value": val, "arg": arg['arg']};
-					$.post(arg['url'], data, function(response) {
-						if (!response || (!response['valid'] != undefined && response['valid'] == false)) {
-							if (response['message'] != undefined)
-								showError(row['control'], response['message']);
-							else
-								showError(row['control'], row['message']);
-						}
-					}, "json");
+				if (arg['js-callback'] != null) {
+					var fn = window[arg['js-callback']];
+					return fn(val, arg['arg']);
 				} else {
 					return true;
 				}
@@ -103,8 +96,12 @@ $.fn.validate = function(rules, conditions) {
 
 			removeError(row['control']);
 			valid = isValid(row['rule'], getValue(row['control'], row['empty']), row['arg'], row);
-			if (valid == null)
+			if (valid == null) {
 				continue;
+			} else if (valid instanceof Array) {
+				row['message'] = valid['message'];
+				valid = valid['valid'];
+			}
 
 			valid = row['negative'] ? !valid : valid;
 			if (!valid) {
