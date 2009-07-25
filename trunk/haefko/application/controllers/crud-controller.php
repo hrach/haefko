@@ -31,7 +31,9 @@ class CrudController extends AppController
 	protected $editColumns = array();
 
 	/** @var array - Columns labels */
-	protected $labels = array();
+	protected $labels = array(
+		'submit' => 'Save',
+	);
 
 	/** @var string - Referer */
 	protected $referer;

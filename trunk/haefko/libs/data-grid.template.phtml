@@ -46,33 +46,33 @@
 <tfoot>
 	<tr>
 	<td colspan="<?= count($grid->columns) + ($grid->showActions ? 1 : 0) ?>">
-		<div class="pagination">
+		<div class="datagrid-pagination">
 		<?php
 			$paginator = $grid->query->paginator;
 
 			if (!$paginator->isFirst()) {
-				echo '<a href="' . $grid->paramUrl('page', 1) . '"><span class="first">First</span></a>';
-				echo '<a href="' . $grid->paramUrl('page', $paginator->page - 1) . '"><span class="prev">Previous</span></a>';
+				echo '<a href="' . $grid->paramUrl('page', 1) . '"><span class="first">First</span></a> ';
+				echo '<a href="' . $grid->paramUrl('page', $paginator->page - 1) . '"><span class="prev">Previous</span></a> ';
 			} else {
-				echo '<span class="first-off">First</span>';
-				echo '<span class="prev-off">Previous</span>';
+				echo '<span class="first-off">First</span> ';
+				echo '<span class="prev-off">Previous</span> ';
 			}
 
-			echo '<form>';
+			echo '<form style="display: inline">';
 			if ($grid->getVar('order') != null)
 				echo '<input type="hidden" name="' . $grid->name . '-order" value="' . $grid->getVar('order') . '" />';
 
 			$page = $grid->getVar('page');
 			$page = empty($page) ? 1 : $page;
 			echo 'Page <input type="text" name="' . $grid->name . '-page" value="' . $page . '" class="text" /> of ' . $paginator->pages;
-			echo '</form>';
+			echo '</form> ';
 
 			if (!$paginator->isLast()) {
-				echo '<a href="' . $grid->paramUrl('page', $paginator->page + 1) . '"><span class="next">Next</span></a>';
-				echo '<a href="' . $grid->paramUrl('page', $paginator->pages) . '"><span class="last">Last</span></a>';
+				echo '<a href="' . $grid->paramUrl('page', $paginator->page + 1) . '"><span class="next">Next</span></a> ';
+				echo '<a href="' . $grid->paramUrl('page', $paginator->pages) . '"><span class="last">Last</span></a> ';
 			} else {
-				echo '<span class="next-off">Next</span>';
-				echo '<span class="last-off">Last</span>';
+				echo '<span class="next-off">Next</span> ';
+				echo '<span class="last-off">Last</span> ';
 			}
 		?>
 		</div>
