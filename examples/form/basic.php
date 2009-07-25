@@ -20,6 +20,7 @@ $form->addText('name', 'Jméno')
 	 ->addSubmit('Register');
 
 $form['name']->addRule(Rule::FILLED);
+$form['name']->addRule(Rule::LENGTH, '>5', 'Zadejte délku větší jak 5.');
 $form['age']->addCondition(Rule::FILLED)
 			->addRule(Rule::INTEGER)
 			->addRule(Rule::RANGE, a(15,99));
