@@ -134,6 +134,16 @@ class Rule extends Object
 		case Rule::FLOAT: return preg_match('#^\d+(\.\d+)?$#', $value);
 		case Rule::LENGTH:
 			$value = strlen($value);
+			if (is_int($arg))
+				return $value == $arg;
+
+			if ($arg[0] == '>') {
+				if ($arg[1] == '=') return $value >= substr($arg, 2);
+				else return $value > substr($arg, 1);
+			} else {
+				if ($arg[1] == '=') return $value <= substr($arg, 2);
+				else return $value < substr($arg, 1);
+			}
 		case Rule::RANGE:
 			$value = (int) $value;
 			if (is_array($arg) && count($arg) == 2)

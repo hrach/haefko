@@ -11,7 +11,7 @@
 
 
 $.fn.validate = function(rules, conditions) {
-	function isValid(rule, val, arg, row) {
+	function isValid(rule, val, arg) {
 		if (arg != null && arg['control'] != undefined)
 			arg = getValue(arg['control']);
 
@@ -22,6 +22,16 @@ $.fn.validate = function(rules, conditions) {
 			case 'float': return /^\d+(\.\d+)?$/.test(val);
 			case 'length':
 				val = val.length;
+				if (typeof(arg) == 'number' && parseInt(arg) == arg)
+					return val == arg;
+
+				if (arg[0] == '>') {
+					if (arg[1] == '=') return val >= arg.substr(2);
+					else return val > arg.substr(1);
+				} else {
+					if (arg[1] == '=') return val <= arg.substr(2);
+					else return val < arg.substr(1);
+				}
 			case 'range':
 				if (val == "")
 					return false;
@@ -95,7 +105,7 @@ $.fn.validate = function(rules, conditions) {
 				continue;
 
 			removeError(row['control']);
-			valid = isValid(row['rule'], getValue(row['control'], row['empty']), row['arg'], row);
+			valid = isValid(row['rule'], getValue(row['control'], row['empty']), row['arg']);
 			if (valid == null) {
 				continue;
 			} else if (valid instanceof Array) {
