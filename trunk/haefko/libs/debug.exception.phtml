@@ -72,7 +72,7 @@ else
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="robots" content="noindex,noarchive" />
 <meta name="generator" content="Háefko - your php5 framework" />
-<title><?= $title ?></title>
+<title><?php echo $title ?></title>
 <style type="text/css" media="screen">
 	#debug-panel {
 		background: white;
@@ -152,8 +152,8 @@ function toggle(id)
 <body>
 <div id="debug-panel">
 	<div class="header">
-		<h1><?= $title ?></h1>
-		<p><?= htmlspecialchars($exception->getMessage()); ?></p>
+		<h1><?php echo $title ?></h1>
+		<p><?php echo htmlspecialchars($exception->getMessage()); ?></p>
 	</div>
 
 	<div class="block">
@@ -202,11 +202,11 @@ function toggle(id)
 	</div>
 
 	<div class="block" style="font-size: 12px">
-		server: <strong><?= $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'] ?></strong><br />
-		generated at: <strong><?= date('Y-m-d H.i') ?></strong><br />
-		powered by <?= Application::getFrameworkInfo(false) ?><br />
+		server: <strong><?php echo $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'] ?></strong><br />
+		generated at: <strong><?php echo date('Y-m-d H.i') ?></strong><br />
+		powered by <?php echo Application::getFrameworkInfo(false) ?><br />
 	</div>
 </div>
-<?= $rendered ?>
+<?php echo $rendered ?>
 </body>
 </html>

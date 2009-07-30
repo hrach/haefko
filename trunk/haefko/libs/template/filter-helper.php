@@ -203,9 +203,9 @@ class FilterHelper extends Object
 	 */
 	public function bytes($bytes, $precision = 2)
 	{
-		static $s = array('B', 'kB', 'MB', 'GB', 'TB', 'PB');
-		$e = floor(log($bytes)/log(1024));
-		return sprintf('%.' . $precision . 'f ' . $s[$e], ($bytes/pow(1024, floor($e))));
+		static $s = array('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB');
+		$e = floor(log($bytes) / log(1024));
+		return sprintf('%.' . $precision . 'f ' . $s[$e], ($bytes / pow(1024, floor($e))));
 	}
 
 
