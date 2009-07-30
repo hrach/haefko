@@ -7,19 +7,19 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Forms
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Forms
  */
 
 
- 
 class FormTextareaControl extends FormControl
 {
 
 
 	/**
 	 * Returns Html object of form control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getHtmlControl()
 	{
@@ -30,7 +30,7 @@ class FormTextareaControl extends FormControl
 
 	/**
 	 * Returns html control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getControl()
 	{
@@ -47,10 +47,9 @@ class FormHiddenControl extends FormInputControl
 
 	/**
 	 * Constructor
-	 * @param   Form     form
-	 * @param   string   control name
-	 * @param   mixed    label (null = from name, false = no label)
-	 * @return  void
+	 * @param Form $form
+	 * @param string $name control name
+	 * @return FormHiddenControl
 	 */
 	public function __construct(Form $form, $name)
 	{
@@ -60,7 +59,7 @@ class FormHiddenControl extends FormInputControl
 
 	/**
 	 * Returns Html object of form control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getHtmlControl()
 	{
@@ -75,20 +74,20 @@ class FormHiddenControl extends FormInputControl
 class FormTextControl extends FormInputControl
 {
 
-
 	/** @var array */
 	protected $filters = array('trim');
 
 
 	/**
 	 * Returns Html object of form control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getHtmlControl()
 	{
 		$control = parent::getHtmlControl();
 		return $control->type('text')->class('text');
 	}
+
 
 }
 
@@ -99,8 +98,8 @@ class FormDatepickerControl extends FormInputControl
 
 	/**
 	 * Set the control value
-	 * @param   mixed   new value
-	 * @return  bool
+	 * @param mixed $value new value
+	 * @return bool
 	 */
 	public function setValue($value)
 	{
@@ -113,26 +112,26 @@ class FormDatepickerControl extends FormInputControl
 
 	/**
 	 * Returns value for html tag
-	 * @return  string
+	 * @return string
 	 */
 	public function getHtmlValue()
 	{
 		$value = parent::getHtmlValue();
 		$value = preg_replace('#([0-9]{4})-([0-9]{2})-([0-9]{2})#', '$3.$2.$1', $value);
-
 		return $value;		
 	}
 
 
 	/**
 	 * Returns Html object of form control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getHtmlControl()
 	{
 		$control = parent::getHtmlControl();
 		return $control->class('calendar');
 	}
+
 
 }
 
@@ -143,7 +142,7 @@ class FormPasswordControl extends FormInputControl
 
 	/**
 	 * Returns Html object of form control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getHtmlControl()
 	{
@@ -154,7 +153,7 @@ class FormPasswordControl extends FormInputControl
 
 	/**
 	 * Returns value for html tag
-	 * @return  string
+	 * @return string
 	 */
 	protected function getHtmlValue()
 	{

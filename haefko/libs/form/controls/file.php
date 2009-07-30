@@ -7,8 +7,9 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Forms
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Forms
  */
 
 
@@ -18,7 +19,7 @@ class FormFileControl extends FormInputControl
 
 	/**
 	 * Returns Html object of form control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getHtmlControl()
 	{
@@ -54,9 +55,9 @@ class FormUploadedFile
 
 	/**
 	 * Contructor
-	 * @param   FormControl
-	 * @param   array
-	 * @return  void
+	 * @param FormControl $control
+	 * @param array $data sent post data
+	 * @return FormUploadedFile
 	 */
 	public function __construct(FormControl $control, $data)
 	{
@@ -70,7 +71,7 @@ class FormUploadedFile
 
 	/**
 	 * Retursn true if is the file successfully uploaded
-	 * @return  bool
+	 * @return bool
 	 */
 	public function ok()
 	{
@@ -80,41 +81,23 @@ class FormUploadedFile
 
 	/**
 	 * Moves uploaded file
-	 * @param   string  path for move
-	 * @param   bool    is path absolute?
-	 * @return  bool
+	 * @param string $to path for move
+	 * @param bool $absolute is path absolute?
+	 * @return bool
 	 */
 	public function move($to = null, $absolute = false)
 	{
-		if (!$this->ok())
-			return false;
-
-		if (empty($to))
-			$to = $this->name;
-
+		if (!$this->ok()) return false;
+		if (empty($to)) $to = $this->name;
 		if ($absolute)
 			$to = Tools::rTrim(self::$uploads, '/') . '/' . $to;
 
 		$moved = move_uploaded_file($this->temp, $to);
-
 		if (!$moved)
 			return false;
 
 		$this->name = $to;
 		return true;
-	}
-
-
-	/**
-	 * Retursn file size
-	 * @return  string
-	 */
-	public function getSize()
-	{
-		static $s = array('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB');
-
-		$e = floor(log($this->size) / log(1024));
-		return sprintf('%.2f ' . $s[$e], ($this->size / pow(1024, floor($e))));
 	}
 
 

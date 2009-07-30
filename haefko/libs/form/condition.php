@@ -7,14 +7,14 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Forms
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Forms
  */
 
 
 class Condition extends Rule
 {
-
 
 	/** @var array */
 	public $rules = array();
@@ -22,7 +22,7 @@ class Condition extends Rule
 
 	/**
 	 * Returns true when is the rule valid
-	 * @return  bool
+	 * @return bool
 	 */
 	public function isValid()
 	{
@@ -36,10 +36,10 @@ class Condition extends Rule
 
 	/**
 	 * Add rule for actual control (control of condition)
-	 * @param   string       validation rule name or callback
-	 * @param   mixed        validation argument
-	 * @param   string       error message
-	 * @return  Condition    return $this
+	 * @param string $rule validation rule name or callback
+	 * @param mixed $arg validation argument
+	 * @param string $message error message
+	 * @return Condition
 	 */
 	public function addRule($rule, $arg = null, $message = null)
 	{
@@ -49,11 +49,11 @@ class Condition extends Rule
 
 	/**
 	 * Add rule for $control
-	 * @param   FormControl  control
-	 * @param   string       validation rule name or callback
-	 * @param   mixed        validation argument
-	 * @param   string       error message
-	 * @return  Condition    return $this
+	 * @param FormControl $control
+	 * @param string $rule validation rule name or callback
+	 * @param mixed $arg validation argument
+	 * @param string $message error message
+	 * @return Condition
 	 */
 	public function addRuleOn(FormControl $control, $rule, $arg = null, $message = null)
 	{

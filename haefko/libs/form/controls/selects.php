@@ -7,14 +7,14 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Forms
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Forms
  */
 
 
 class FormSelectControl extends FormControl
 {
-
 
 	/** @var array */
 	protected $options = array();
@@ -25,10 +25,11 @@ class FormSelectControl extends FormControl
 
 	/**
 	 * Constructor
-	 * @param   Form     form
-	 * @param   string   control name
-	 * @param   mixed    label (null = from name, false = no label)
-	 * @return  void
+	 * @param Form $form
+	 * @param string $name control name
+	 * @param array $options
+	 * @param mixed $label label (null = from name, false = no label)
+	 * @return FormSelectControl
 	 */
 	public function __construct($form, $name, $options, $label = null)
 	{
@@ -41,15 +42,15 @@ class FormSelectControl extends FormControl
 				$this->values[] = $key;
 			}
 		}
-		
+
 		parent::__construct($form, $name, $label);
 	}
 
 
 	/**
 	 * Set the control value
-	 * @param   mixed   new value
-	 * @return  bool
+	 * @param mixed $value new value
+	 * @return bool
 	 */
 	public function setValue($value)
 	{
@@ -57,12 +58,13 @@ class FormSelectControl extends FormControl
 			return false;
 
 		parent::setValue($value);
+		return true;
 	}
 
 
 	/**
 	 * Returns Html object of form control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getHtmlControl()
 	{
@@ -72,7 +74,7 @@ class FormSelectControl extends FormControl
 
 	/**
 	 * Returns html control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getControl()
 	{
@@ -82,8 +84,8 @@ class FormSelectControl extends FormControl
 
 	/**
 	 * Returns treu if is the value allowed
-	 * @param   string   value
-	 * @return  bool
+	 * @param string $value
+	 * @return bool
 	 */
 	protected function isAllowedValue($value)
 	{
@@ -96,19 +98,17 @@ class FormSelectControl extends FormControl
 
 	/**
 	 * Returns html options tags
-	 * @return  string
+	 * @return string
 	 */
 	protected function getOptions()
 	{
 		$options = Html::el();
-
-		if ($this->emptyValue != '') {
+		if ($this->emptyValue != '')
 			$options->addHtml($this->getOption('', $this->emptyValue));
-		}
+
 
 		foreach ($this->options as $key => $val) {
 			if (is_array($val)) {
-
 				$optgroup = Html::el('optgroup');
 				$optgroup->label($name);
 				foreach ($value as $subKey => $subVal)
@@ -116,7 +116,6 @@ class FormSelectControl extends FormControl
 
 				$options->addHtml($optgroup);
 			} else {
-
 				$options->addHtml($this->getOption($key, $val));
 			}
 		}
@@ -127,9 +126,9 @@ class FormSelectControl extends FormControl
 
 	/**
 	 * Returns option control
-	 * @param   string    control name
-	 * @param   string    control value
-	 * @return  Html
+	 * @param string $name control name
+	 * @param string $value control value
+	 * @return Html
 	 */
 	protected function getOption($name, $value)
 	{
@@ -138,6 +137,7 @@ class FormSelectControl extends FormControl
 			'selected' => $this->getHtmlValue() == $name
 		));
 	}
+
 
 }
 
@@ -149,8 +149,8 @@ class FormMultipleSelectControl extends FormSelectControl
 
 	/**
 	 * Set the control value
-	 * @param   mixed   new value
-	 * @return  bool
+	 * @param mixed $value new value
+	 * @return bool
 	 */
 	public function setValue($value)
 	{
@@ -160,12 +160,13 @@ class FormMultipleSelectControl extends FormSelectControl
 		}
 
 		$this->value = $value;
+		return true;
 	}
 
 
 	/**
 	 * Returns Html object of form control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getHtmlControl()
 	{
@@ -177,9 +178,9 @@ class FormMultipleSelectControl extends FormSelectControl
 
 	/**
 	 * Returns option control
-	 * @param   string    control name
-	 * @param   string    control value
-	 * @return  Html
+	 * @param string $name control name
+	 * @param string $value control value
+	 * @return Html
 	 */
 	protected function getOption($name, $value)
 	{
