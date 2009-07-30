@@ -7,14 +7,14 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Forms
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Forms
  */
 
 
 class Rule extends Object
 {
-
 
 	/**#@+
 	 * Validation rules
@@ -70,11 +70,11 @@ class Rule extends Object
 
 	/**
 	 * Contructor
-	 * @param   FormControl  control
-	 * @param   string       validating rule
-	 * @param   mixed        argument
-	 * @param   string       error message
-	 * @return  Rule
+	 * @param FormControl $control
+	 * @param string $rule validating rule
+	 * @param mixed $arg argument
+	 * @param string $message error message
+	 * @return Rule
 	 */
 	public function __construct($control, $rule, $arg = null, $message = null)
 	{
@@ -97,7 +97,7 @@ class Rule extends Object
 
 	/**
 	 * Returns true when is the rule valid
-	 * @return  bool
+	 * @return bool
 	 */
 	public function isValid()
 	{
@@ -115,11 +115,10 @@ class Rule extends Object
 
 	/**
 	 * Method validate $value by $rule with $arg
-	 * @static
-	 * @param   string  validation rule name
-	 * @param   mixed   value for validation
-	 * @param   mixed   argument for validation
-	 * @$valid =  bool
+	 * @param string $rule validation rule
+	 * @param mixed $value value for validation
+	 * @param mixed $arg argument for validation
+	 * @return bool
 	 */
 	public function validate($rule, $value, $arg = null)
 	{
@@ -173,7 +172,7 @@ class Rule extends Object
 
 	/**
 	 * Prepares error message
-	 * @return  string
+	 * @return string
 	 */
 	public function getMessage()
 	{

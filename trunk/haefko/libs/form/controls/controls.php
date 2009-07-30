@@ -7,8 +7,9 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Forms
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Forms
  */
 
 
@@ -20,16 +21,8 @@ require_once dirname(__FILE__) . '/file.php';
 require_once dirname(__FILE__) . '/buttons.php';
 
 
-/**
- * Implements the basic functionality of form control
- *
- * @author      Jan Skrasek
- * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
- * @package     Haefko_Forms
- */
 abstract class FormControl extends Object
 {
-
 
 	/** @var string */
 	protected $name;
@@ -80,10 +73,10 @@ abstract class FormControl extends Object
 
 	/**
 	 * Constructor
-	 * @param   Form     form
-	 * @param   string   control name
-	 * @param   mixed    label (null = from name, false = no label)
-	 * @return  void
+	 * @param Form $form
+	 * @param string $name control name
+	 * @param mixed $label label (null = from name, false = no label)
+	 * @return FormControl
 	 */
 	public function __construct(Form $form, $name, $label = null)
 	{
@@ -99,7 +92,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Returns Html object of form control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getHtmlControl()
 	{
@@ -112,8 +105,8 @@ abstract class FormControl extends Object
 
 	/**
 	 * Returns Html object of control label
-	 * @param   Html|string|false   $label
-	 * @return  Html|false
+	 * @param Html|string|false $label
+	 * @return Html|false
 	 */
 	protected function getHtmlLabel($label)
 	{
@@ -132,7 +125,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Returns Html object container of control error
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getHtmlError()
 	{
@@ -145,7 +138,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Returns Html object of control error
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getHtmlErrorLabel()
 	{
@@ -157,8 +150,8 @@ abstract class FormControl extends Object
 
 	/**
 	 * Set the control value
-	 * @param   mixed   new value
-	 * @return  bool
+	 * @param mixed $value new value
+	 * @return bool
 	 */
 	public function setValue($value)
 	{
@@ -168,7 +161,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Return value
-	 * @return  mixed
+	 * @return mixed
 	 */
 	public function getValue()
 	{
@@ -177,11 +170,11 @@ abstract class FormControl extends Object
 
 
 	/**
-	 * Adds rule for actual control ($this)
-	 * @param   string       validation rule name or callback
-	 * @param   mixed        validation argument
-	 * @param   string       error message
-	 * @return  Condition    return $this
+	 * Adds rule for the actual control
+	 * @param string $rule validation rule
+	 * @param mixed $arg validation argument
+	 * @param string $message error message
+	 * @return Condition
 	 */
 	public function addRule($rule, $arg = null, $message = null)
 	{
@@ -195,9 +188,9 @@ abstract class FormControl extends Object
 
 	/**
 	 * Adds condition to input element
-	 * @param   string|callback  rule name or callback
-	 * @param   mixed            additional validation argument
-	 * @return  FormCondition
+	 * @param string $rule validation rule
+	 * @param mixed $arg validation argument
+	 * @return Condition
 	 */
 	public function addCondition($rule, $arg = null)
 	{
@@ -207,7 +200,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Checks if control value is valid
-	 * @return  bool
+	 * @return bool
 	 */
 	public function isValid()
 	{
@@ -231,8 +224,8 @@ abstract class FormControl extends Object
 
 	/**
 	 * Returns true when control was rendered
-	 * @param   bool  set redendered as true
-	 * @return  bool
+	 * @param bool $set set redendered as true
+	 * @return bool
 	 */
 	public function isRendered($set = false)
 	{
@@ -245,7 +238,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Returns Html object of error label
-	 * @return  Html
+	 * @return Html
 	 */
 	public function getErrorLabel()
 	{
@@ -258,7 +251,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Renders label tag
-	 * @return  Html
+	 * @return Html
 	 */
 	public function label()
 	{
@@ -268,7 +261,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Renders html control tag
-	 * @return  Html
+	 * @return Html
 	 */
 	public function control()
 	{
@@ -278,7 +271,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Returns html control error block
-	 * @return  Html
+	 * @return Html
 	 */
 	public function error()
 	{
@@ -293,8 +286,8 @@ abstract class FormControl extends Object
 
 	/**
 	 * Sets error
-	 * @param   string    error text
-	 * @return  FormControl
+	 * @param string $text error text
+	 * @return FormControl
 	 */
 	public function setError($text)
 	{
@@ -305,7 +298,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Checks whether control has errors
-	 * @returns  bool
+	 * @returns bool
 	 */
 	public function hasError()
 	{
@@ -315,7 +308,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Returns html label
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getLabel()
 	{
@@ -325,7 +318,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Returns html control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getControl()
 	{
@@ -336,7 +329,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Returns form tag
-	 * @return  Html
+	 * @return Html
 	 */
 	public function getForm()
 	{
@@ -346,8 +339,8 @@ abstract class FormControl extends Object
 
 	/**
 	 * Returns form name
-	 * @param   bool     return full name with form
-	 * @return  string
+	 * @param bool $fullName return full name with form?
+	 * @return string
 	 */
 	public function getName($fullName = false)
 	{
@@ -360,7 +353,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Returns if control is required
-	 * @return  bool
+	 * @return bool
 	 */
 	public function getHtmlRequired()
 	{
@@ -370,7 +363,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Returns empty value
-	 * @return  mixed
+	 * @return mixed
 	 */
 	public function getEmptyValue()
 	{
@@ -380,7 +373,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Returns rules
-	 * @return  array
+	 * @return array
 	 */
 	public function getRules()
 	{
@@ -390,7 +383,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Returns conditions
-	 * @reutrn  array
+	 * @return array
 	 */
 	public function getConditions()
 	{
@@ -400,8 +393,8 @@ abstract class FormControl extends Object
 
 	/**
 	 * Sets empty value
-	 * @param   mixed  empty value
-	 * @return  FormControl  $this
+	 * @param mixed $value empty value
+	 * @return FormControl
 	 */
 	public function setEmptyValue($value)
 	{
@@ -424,7 +417,7 @@ abstract class FormControl extends Object
 
 	/**
 	 * Returns value for html tag
-	 * @return  string
+	 * @return string
 	 */
 	protected function getHtmlValue()
 	{
@@ -435,10 +428,9 @@ abstract class FormControl extends Object
 	}
 
 
-
 	/**
 	 * Filters value by filters and null them if value is equall to emptyValue
-	 * @return  void
+	 * @return mixed
 	 */
 	protected function filter($value)
 	{
@@ -461,7 +453,7 @@ abstract class FormInputControl extends FormControl
 
 	/**
 	 * Returns Html object of form control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getHtmlControl()
 	{
@@ -471,7 +463,7 @@ abstract class FormInputControl extends FormControl
 
 	/**
 	 * Returns html control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getControl()
 	{

@@ -7,8 +7,9 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Forms
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Forms
  */
 
 
@@ -18,10 +19,10 @@ abstract class FormButtonControl extends FormControl
 
 	/**
 	 * Constructor
-	 * @param   Form     form
-	 * @param   string   control name
-	 * @param   mixed    label (null = from name, false = no label)
-	 * @return  void
+	 * @param Form $form
+	 * @param string $name control name
+	 * @param mixed $label label (null = from name, false = no label)
+	 * @return FormButtonControl
 	 */
 	public function __construct(Form $form, $name, $label)
 	{
@@ -32,7 +33,7 @@ abstract class FormButtonControl extends FormControl
 
 	/**
 	 * Returns html control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getControl()
 	{
@@ -49,7 +50,7 @@ class FormSubmitControl extends FormButtonControl
 
 	/**
 	 * Returns Html object of form control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getHtmlControl()
 	{
@@ -66,7 +67,7 @@ class FormResetControl extends FormButtonControl
 
 	/**
 	 * Returns Html object of form control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getHtmlControl()
 	{

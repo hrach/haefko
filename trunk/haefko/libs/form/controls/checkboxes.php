@@ -7,8 +7,9 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Forms
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Forms
  */
 
 
@@ -18,8 +19,8 @@ class FormCheckboxControl extends FormInputControl
 
 	/**
 	 * Set the control value
-	 * @param   mixed   new value
-	 * @return  bool
+	 * @param mixed $value new value
+	 * @return bool
 	 */
 	public function setValue($value)
 	{
@@ -29,7 +30,7 @@ class FormCheckboxControl extends FormInputControl
 
 	/**
 	 * Returns Html object of form control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getHtmlControl()
 	{
@@ -39,7 +40,7 @@ class FormCheckboxControl extends FormInputControl
 
 	/**
 	 * Returns html control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getControl()
 	{
@@ -53,7 +54,6 @@ class FormCheckboxControl extends FormInputControl
 class FormMultiCheckboxControl extends FormInputControl
 {
 
-
 	/** @var string - Control separator */
 	public $listSeparator = '<br />';
 
@@ -63,10 +63,11 @@ class FormMultiCheckboxControl extends FormInputControl
 
 	/**
 	 * Constructor
-	 * @param   Form     form
-	 * @param   string   control name
-	 * @param   mixed    label (null = from name, false = no label)
-	 * @return  void
+	 * @param Form $form
+	 * @param string $name control name
+	 * @param array $options
+	 * @param mixed $label label (null = from name, false = no label)
+	 * @return FormMultiCheckboxControl
 	 */
 	public function __construct($form, $name, $options, $label)
 	{
@@ -77,8 +78,8 @@ class FormMultiCheckboxControl extends FormInputControl
 
 	/**
 	 * Set the control value
-	 * @param   mixed   new value
-	 * @return  bool
+	 * @param mixed $value new value
+	 * @return bool
 	 */
 	public function setValue($value)
 	{
@@ -96,7 +97,7 @@ class FormMultiCheckboxControl extends FormInputControl
 
 	/**
 	 * Returns Html object of form control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getHtmlControl()
 	{
@@ -108,29 +109,34 @@ class FormMultiCheckboxControl extends FormInputControl
 
 	/**
 	 * Returns html control
-	 * @return  Html
+	 * @param mixed $key key name of requested checkbox
+	 * @return Html
 	 */
-	public function getControl()
+	public function getControl($key = null)
 	{
 		$label = Html::el('label');
 		$control = parent::getControl();
-		$container = Html::el('div')->id($control->id)->class('multi-inputs');
+		if ($key === null)
+			$container = Html::el('div')->id($radio->id)->class('multi-inputs');
+		elseif (!isset($this->options[$key]))
+			return null;
 
-		$i = 0;
+
 		$id = $control->id;
-		foreach ($this->options as $key => $val) {
-			$i++;
+		foreach ($this->options as $name => $val) {
+			if ($key !== null && $key != $name)
+				continue;
 
-			$control->id = $id . '-' . $key;
-			$control->value = $key;
-			$control->checked = in_array($key, (array) $this->getHtmlValue());
+			$control->id = $id . '-' . $name;
+			$control->value = $name;
+			$control->checked = in_array($name, (array) $this->getHtmlValue());
 
-			$label->for = $id . '-' . $key;
+			if ($key !== null)
+				return $control;
+
+			$label->for = $id . '-' . $name;
 			$label->setText($val);
-
-			$container->addHtml($control->render()
-			                  . $label->render()
-			                  . ($this->listSeparator instanceof Html ? $this->listSeparator->render() : $this->listSeparator));
+			$container->addHtml($control->render() . $label->render() . $this->listSeparator);
 		}
 
 		return $container;

@@ -7,14 +7,14 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Forms
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Forms
  */
 
 
 class FormRadioControl extends FormInputControl
 {
-
 
 	/** @var string - Control separator */
 	public $listSeparator = '<br />';
@@ -28,10 +28,11 @@ class FormRadioControl extends FormInputControl
 
 	/**
 	 * Constructor
-	 * @param   Form     form
-	 * @param   string   control name
-	 * @param   mixed    label (null = from name, false = no label)
-	 * @return  void
+	 * @param Form $form
+	 * @param string $name control name
+	 * @param array $options
+	 * @param mixed $label label (null = from name, false = no label)
+	 * @return FormRadioControl
 	 */
 	public function __construct($form, $name, $options, $label = null)
 	{
@@ -43,7 +44,7 @@ class FormRadioControl extends FormInputControl
 
 	/**
 	 * Returns Html object of form control
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getHtmlControl()
 	{
@@ -53,29 +54,33 @@ class FormRadioControl extends FormInputControl
 
 	/**
 	 * Returns html control
-	 * @return  Html
+	 * @param mixed $key key name of requested radio
+	 * @return Html
 	 */
-	protected function getControl()
+	public function getControl($key = null)
 	{
 		$label = Html::el('label');
 		$radio = parent::getControl();
-		$container = Html::el('div')->id($radio->id)->class('multi-inputs');
+		if ($key === null)
+			$container = Html::el('div')->id($radio->id)->class('multi-inputs');
+		elseif (!isset($this->options[$key]))
+			return null;
 
-		$i = 0;
 		$id = $radio->id;
-		foreach ($this->options as $key => $val) {
-			$i++;
+		foreach ($this->options as $name => $val) {
+			if ($key !== null && $key != $name)
+				continue;
 
-			$radio->id = $id . $i;
-			$radio->value = $key;
-			$radio->checked = (string) $key === $this->getHtmlValue();
+			$radio->id = $id . $name;
+			$radio->value = $name;
+			$radio->checked = (string) $name === $this->getHtmlValue();
 
-			$label->for = $id . $i;
+			if ($key !== null)
+				return $radio;
+
+			$label->for = $id . $name;
 			$label->setText($val);
-
-			$container->addHtml($radio->render()
-			                  . $label->render()
-			                  . ($this->listSeparator instanceof Html ? $this->listSeparator->render() : $this->listSeparator));
+			$container->addHtml($radio->render() . $label->render() . $this->listSeparator);
 		}
 
 		return $container;
@@ -84,7 +89,7 @@ class FormRadioControl extends FormInputControl
 
 	/**
 	 * Returns html label
-	 * @return  Html
+	 * @return Html
 	 */
 	protected function getLabel()
 	{
