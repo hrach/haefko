@@ -102,7 +102,7 @@ class AutoLoader extends Loader
 	{
 		$this->findClasses();
 		$this->rebuild = true;
-		$this->cache->save('autoloader', $this->classes);
+		$this->cache->set('autoloader', $this->classes);
 		return $this;
 	}
 
@@ -114,7 +114,7 @@ class AutoLoader extends Loader
 	public function register()
 	{
 		parent::register(array($this, 'load'));
-		$this->classes = $this->cache->read('autoloader');
+		$this->classes = $this->cache->get('autoloader');
 		if ($this->classes === null)
 			$this->rebuild();
 

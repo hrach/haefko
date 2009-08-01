@@ -12,7 +12,7 @@ if (isset($cache['var'])) {
 } else {
 	$var = date('H:i.s');
 	echo "saving. ". $var;
-	$cache->save('var', $var, array(
+	$cache->set('var', $var, array(
 		'files' => array(__FILE__),
 		'tags' => 'tag-test',
 		'priority' => 6,

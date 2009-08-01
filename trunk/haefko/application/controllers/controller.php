@@ -12,6 +12,8 @@
  */
 
 
+require_once dirname(__FILE__) . '/../../libs/control.php';
+
 
 /**
  * @property-read Template $template
@@ -20,7 +22,7 @@
  * @property-read Cache $cache
  * @property-read Routing $routing
  */
-abstract class Controller extends Object
+abstract class Controller extends Control
 {
 
 
@@ -65,12 +67,12 @@ abstract class Controller extends Object
 	 */
 	public function __construct()
 	{
+		parent::__construct();
 		$this->application = Application::get();
 		$this->routing = (object) $this->router->getRouting(false);
 		$this->routing->template = '';
 		$this->routing->ajax = Http::$request->isAjax;
 		$this->routing->ext = 'phtml';
-
 
 		# TEMPLATE
 		$this->template = $this->getTemplateInstace();
@@ -101,7 +103,9 @@ abstract class Controller extends Object
 	 */
 	protected function getTemplateInstace()
 	{
-		return new AppTemplate(null, $this->application->cache);
+		$template = new AppTemplate(null, $this->application->cache);
+		$template->flashes = $this->getFlashes();
+		return $template;
 	}
 
 
@@ -215,7 +219,7 @@ abstract class Controller extends Object
 
 
 	/**
-	 * Runns actino call
+	 * Runs action call
 	 * @return void
 	 */
 	public function render()
