@@ -18,7 +18,6 @@ require_once dirname(__FILE__) . '/object.php';
 /**
  * @author      Jan Skrasek, Zdenek Topic
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek, Zdenek Topic
- * @package     Haefko_Libs
  */
 class Permission extends Object
 {
@@ -28,7 +27,7 @@ class Permission extends Object
 
 	/** @var array */
 	private $resources = array(
-		'*' => array()
+		'*' => array(),
 	);
 
 
@@ -50,7 +49,7 @@ class Permission extends Object
 	 */
 	public function addRole($name, $parents = array())
 	{
-		$this->roles[$name] = new PermissionRole($name, (array) $parents);
+		$this->roles[$name] = new PermissionRole($this, $name, (array) $parents);
 		return $this;
 	}
 
@@ -74,10 +73,13 @@ class Permission extends Object
 	 * @param string $action action name
 	 * @return bool
 	 */
-	public function isAllowed($role, $res, $action = '*')
+	public function isAllowed($role, $res, $action = null)
 	{
+		if (empty($action)) $action = '*';
+		$resName = (string) $res;
+
 		foreach ((array) $role as $val) {
-			if ($this->roles[$val]->isDefined($res, $action))
+			if ($this->roles[$val]->isDefined($resName, $action))
 				return $this->roles[$val]->isAllowed($res, $action);
 			elseif ($this->roles[$val]->hasParents())
 				return $this->isAllowed($this->roles[$val]->getParents(), $res, $action);
@@ -92,11 +94,12 @@ class Permission extends Object
 	 * @param array|string $roles
 	 * @param array|string $resources
 	 * @param array|string $actions allowed actions
+	 * @param PermissionAssertion $pAssertion
 	 * @return Permission
 	 */
-	public function allow($roles, $resources = '*', $actions = '*')
+	public function allow($roles, $resources = null, $actions = null, PermissionAssertion $pAssertion = null)
 	{
-		return $this->setAccess(true, $roles, $resources, $actions);
+		return $this->setAccess(true, $roles, $resources, $actions, $pAssertion);
 	}
 
 
@@ -105,11 +108,12 @@ class Permission extends Object
 	 * @param array|string $roles
 	 * @param array|string $resources
 	 * @param array|string $actions denied actions
+	 * @param PermissionAssertion $pAssertion
 	 * @return Permission
 	 */
-	public function deny($roles, $resources = '*', $actions = '*')
+	public function deny($roles, $resources = null, $actions = null, PermissionAssertion $pAssertion = null)
 	{
-		return $this->setAccess(false, $roles, $resources, $actions);
+		return $this->setAccess(false, $roles, $resources, $actions, $pAssertion);
 	}
 
 
@@ -119,12 +123,13 @@ class Permission extends Object
 	 * @param array|string $roles
 	 * @param array|string $resources
 	 * @param array|string $actions
+	 * @param PermissionAssertion $pAssertion
 	 * @return Permission
 	 */
-	protected function setAccess($access, $roles, $resources, $actions)
+	protected function setAccess($access, $roles, $resources, $actions, $pAssertion)
 	{
-		if ($resources == '*')
-			$resources = array_keys($this->resources);
+		if (empty($actions)) $actions = '*';
+		if ($resources == '*' || empty($resources)) $resources = array_keys($this->resources);
 
 		foreach ((array) $roles as $role) {
 			if (!isset($this->roles[$role]))
@@ -135,7 +140,7 @@ class Permission extends Object
 					throw new Exception("Undefined resource '$resource'.");
 
 				foreach ((array) $actions as $action)
-					$this->roles[$role]->setAccess($access, $resource, $action);
+					$this->roles[$role]->setAccess($access, $resource, $action, $pAssertion);
 			}
 		}
 
@@ -149,10 +154,12 @@ class Permission extends Object
 /**
  * @author      Jan Skrasek, Zdenek Topic
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek, Zdenek Topic
- * @package     Haefko_Libs
  */
 class PermissionRole extends Object
 {
+
+	/** @var Permission */
+	private $permission;
 
 	/** @var string - Role name*/
 	private $name;
@@ -166,14 +173,16 @@ class PermissionRole extends Object
 
 	/**
 	 * Constructor
+	 * @param Permission $permission
 	 * @param string $name role name
 	 * @param array $parents
 	 * @return PermissionRole
 	 */
-	public function __construct($name, $parents)
+	public function __construct(Permission $permission, $name, $parents)
 	{
 		$this->name = $name;
 		$this->parents = (array) $parents;
+		$this->permission = $permission;
 	}
 
 
@@ -185,17 +194,45 @@ class PermissionRole extends Object
 	 */
 	public function isAllowed($res, $action)
 	{
+		$resName = (string) $res;
 		if ($action == '*') {
-			foreach ($this->resources[$res] as $action) {
-				if ($action)
-					return true;
+			foreach (array_keys($this->resources[$resName]) as $act) {
+				$result = $this->isAllowedWithAssertion($res, $act);
+				if ($result) return true;
 			}
-
-			return false;
+		} else {
+			if (isset($this->resources[$resName][$action]))
+				return $this->isAllowedWithAssertion($res, $action);
+			elseif (isset($this->resources[$resName]['*']))
+				return $this->isAllowedWithAssertion($res, '*');
+			elseif (isset($this->resources['*'][$action]))
+				return $this->resources['*'][$action][0];
+			elseif (isset($this->resources['*']['*']))
+				return $this->resources['*']['*'][0];
 		}
 
-		return $this->resources[$res][$action] || $this->resources['*'][$action]
-		    || $this->resources[$res]['*'] || $this->resources['*']['*'];
+		return false;
+	}
+
+
+	/**
+	 * Checks if is access allowed with dynamic permission
+	 * @param string|Resource $res
+	 * @param string $action
+	 * @return bool
+	 */
+	protected function isAllowedWithAssertion($res, $action)
+	{
+		$resName = (string) $res;
+		$result = $this->resources[$resName][$action][0];
+
+		if (!$result)
+			return false;
+		if (empty($this->resources[$resName][$action][1]))
+			return $result;
+
+		$pAssertion = $this->resources[$resName][$action][1];
+		return $pAssertion->setResource($res)->assert($this->permission, $resName, $action);
 	}
 
 
@@ -204,11 +241,13 @@ class PermissionRole extends Object
 	 * @param bool $access
 	 * @param string $res resource name
 	 * @param string $action action name
+	 * @param PermissionAssertion $pAssertion
 	 * @return PermissionRole
 	 */
-	public function setAccess($access, $res, $action)
+	public function setAccess($access, $res, $action, $pAssertion)
 	{
-		$this->resources[$res][$action] = $access;
+		$this->resources[$res][$action][0] = $access;
+		$this->resources[$res][$action][1] = $pAssertion;
 		return $this;
 	}
 
@@ -243,10 +282,74 @@ class PermissionRole extends Object
 	{
 		if ($action == '*')
 			return isset($this->resources[$res]);
-
-		return (isset($this->resources[$res]) && (isset($this->resources[$res][$action]) || isset($this->resources[$res]['*'])))
-		    || (isset($this->resources['*']) && (isset($this->resources['*'][$action]) || isset($this->resources['*']['*'])));
+		else
+			return (isset($this->resources[$res][$action]) || isset($this->resources[$res]['*']))
+			    || (isset($this->resources['*'][$action]) || isset($this->resources['*']['*']));
 	}
+
+
+}
+
+
+abstract class Resource extends Object
+{
+
+	/** @var string - Resource name */
+	protected $name;
+
+
+	/**
+	 * Constructor
+	 * @throws Exception
+	 * @return Resource
+	 */
+	public function __construct()
+	{
+		if (empty($this->name))
+			throw new Exception('Rousource name must be defined.');
+	}
+
+
+	/**
+	 * toString interface
+	 * @return string
+	 */
+	public function __toString()
+	{
+		return $this->name;
+	}
+
+
+}
+
+
+abstract class PermissionAssertion extends Object
+{
+
+	/** @var Resource */
+	protected $resource;
+
+
+	/**
+	 * Sets resource
+	 * @param Resource $resource
+	 * @return PermissionAssertion
+	 */
+	public function setResource(Resource $resource)
+	{
+		$this->resource = $resource;
+		return $this;
+	}
+
+
+	/**
+	 * Dynamic assertion
+	 * @param Permission $acl
+	 * @param string $resource
+	 * @param string $action
+	 * @return bool
+	 */
+	abstract public function assert(Permission $acl, $resource, $action);
 
 
 }

@@ -49,6 +49,8 @@ class HaefkoLoader extends Loader
 		'iidentity'     => 'libs/iidentity.php',
 		'identity'      => 'libs/identity.php',
 		'permission'    => 'libs/permission.php',
+		'resource'     => 'libs/permission.php',
+		'permissionassertion'    => 'libs/permission.php',
 		'user'          => 'libs/user.php',
 		'iuserhandler'  => 'libs/user.php',
 		# database
