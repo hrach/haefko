@@ -71,7 +71,7 @@ class SessionNamespace extends Object
 	 * @param mixed $default default value (when variable is not set)
 	 * @return mixed
 	 */
-	public function read($name, $default = null)
+	public function get($name, $default = null)
 	{
 		if (isset($_SESSION['__D'][$this->namespace][$name]))
 			return $_SESSION['__D'][$this->namespace][$name];
@@ -87,7 +87,7 @@ class SessionNamespace extends Object
 	 * @param int|string $expiration expiration expression, null = no expiration
 	 * @return SessionNamespace
 	 */
-	public function write($name, $value, $expiration = null)
+	public function set($name, $value, $expiration = null)
 	{
 		if (is_string($expiration))
 			$expiration = strtotime($expiration);
@@ -147,7 +147,7 @@ class SessionNamespace extends Object
 	 */
 	public function __set($key, $val)
 	{
-		$this->write($key, $val);
+		$this->set($key, $val);
 	}
 
 
@@ -158,7 +158,7 @@ class SessionNamespace extends Object
 	 */
 	public function __get($key)
 	{
-		return $this->read($key);
+		return $this->get($key);
 	}
 
 

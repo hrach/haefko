@@ -477,7 +477,7 @@ class Template extends Object implements ITemplate
 		if ($this->__hasExtends === true && $this->__hasBlocks === false)
 			$file = $this->__cbBlock(array('', '', 'content', $file));
 
-		$this->cache->save($cacheFile, $file, array(
+		$this->cache->set($cacheFile, $file, array(
 			'files' => array($this->file)
 		));
 	}

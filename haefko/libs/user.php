@@ -45,7 +45,9 @@ class User extends Object
 	 */
 	public function __construct($acl = null)
 	{
-		$this->setAcl($acl);
+		if ($acl instanceof Permission)
+			$this->setAcl($acl);
+
 		$this->session = Session::getNamespace('auth.user');
 		if (!$this->session->exists('authenticated')) {
 			$this->session->authenticated = false;
@@ -164,7 +166,7 @@ class User extends Object
 
 
 	/**
-	 * Signs out user
+	 * Sings out logged user
 	 * @return User
 	 */
 	public function signOut()
@@ -224,7 +226,7 @@ class User extends Object
 	public function __get($key)
 	{
 		if ($key == 'id' || $key == 'roles')
-			return $this->session->read($key);
+			return $this->session->$key;
 		elseif (isset($this->session->data->$key))
 			return $this->session->data->$key;
 		else

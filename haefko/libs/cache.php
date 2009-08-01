@@ -48,7 +48,7 @@ class Cache extends Object implements ArrayAccess
 	 * @param array $options
 	 * @return void
 	 */
-	public function save($key, $data, $options = array())
+	public function set($key, $data, $options = array())
 	{
 		if (!$this->enabled) return false;
 		if (!is_string($data)) {
@@ -72,7 +72,7 @@ class Cache extends Object implements ArrayAccess
 	 * @param string $key key name
 	 * @return mixed|null
 	 */
-	public function read($key)
+	public function get($key)
 	{
 		if (!$this->enabled)
 			return null;
@@ -153,7 +153,7 @@ class Cache extends Object implements ArrayAccess
 	 */
 	public function offsetSet($key, $value)
 	{
-		$this->save($key, $value);
+		$this->set($key, $value);
 	}
 
 
@@ -163,7 +163,7 @@ class Cache extends Object implements ArrayAccess
 	 */
 	public function offsetGet($key)
 	{
-		return $this->read($key);
+		return $this->get($key);
 	}
 
 
