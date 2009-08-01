@@ -74,7 +74,9 @@ class Cache extends Object implements ArrayAccess
 	 */
 	public function read($key)
 	{
-		if (!$this->enabled) return null;
+		if (!$this->enabled)
+			return null;
+
 		if (!isset($this->meta[$key]))
 			$this->isCached($key);
 
@@ -102,7 +104,7 @@ class Cache extends Object implements ArrayAccess
 			return false;
 
 		$header = $this->readHeader($file);
-		if (!$this->isValid(array(), $header))
+		if (!$this->isValid(array(), $header, $file))
 			return false;
 
 		$this->meta[$key]['header'] = $header;
@@ -138,7 +140,7 @@ class Cache extends Object implements ArrayAccess
 		foreach ($dir as $file) {
 			if ($file->isDir()) continue;
 			$header = $this->readHeader($file->getPathname());
-			if (!$this->isValid($conds, $header))
+			if (!$this->isValid($conds, $header, $file, true))
 				unlink($file->getPathname());
 		}
 
@@ -250,7 +252,7 @@ class Cache extends Object implements ArrayAccess
 		$file = $this->getFilename($key);
 		$content = file_get_contents($file);
 		$content = substr($content, strpos($content, "\n"));
-		if ($this->meta[$key]['header']['serialized'])
+		if (isset($this->meta[$key]['header']['serialized']) && $this->meta[$key]['header']['serialized'])
 			$content = unserialize(trim($content));
 
 		return $content;
@@ -261,13 +263,21 @@ class Cache extends Object implements ArrayAccess
 	 * Checks if is the file valid
 	 * @param array $conds
 	 * @param array $header
+	 * @param string|null $file file path
 	 * @return bool
 	 */
-	protected function isValid($conds, $header)
+	protected function isValid($conds, $header, $file, $cleaning = false)
 	{
-		if (isset($header['expire'])) {
-			if ($header['expire'] < time())
-				return false;
+		if (isset($header['expires'])) {
+			if (isset($header['sliding']) && $header['sliding']) {
+				if (@filemtime($file) + $header['expires'] < time())
+					return false;
+				elseif (!$cleaning)
+					touch($file);
+			} else {
+				if ($header['expires'] < time())
+					return false;
+			}
 		}
 
 		if (isset($header['files']))
