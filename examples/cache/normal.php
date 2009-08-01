@@ -18,6 +18,3 @@ if (isset($cache['var'])) {
 		'priority' => 6,
 	));
 }
-
-
-echo debug::renderToolbar();
