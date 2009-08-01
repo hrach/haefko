@@ -43,8 +43,9 @@ class User extends Object
 	 * Constructor
 	 * @return User
 	 */
-	public function __construct()
+	public function __construct($acl = null)
 	{
+		$this->setAcl($acl);
 		$this->session = Session::getNamespace('auth.user');
 		if (!$this->session->exists('authenticated')) {
 			$this->session->authenticated = false;

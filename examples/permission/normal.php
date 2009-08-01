@@ -1,6 +1,6 @@
 <?php
 
-require '../../haefko/loader.php';
+require 'haefko/loader.php';
 debug::init(true);
 
 
