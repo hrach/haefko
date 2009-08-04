@@ -101,10 +101,10 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 		$key = $this->name;
 
 		if ($session->exists($key)) {
-			$hash = $session->read($key);
+			$hash = $session->get($key);
 		} else {
 			$hash = md5(Session::getName());
-			$session->write($key, $hash);
+			$session->set($key, $hash);
 		}
 
 		$this->controls[self::$SECURITY_CONTROL]->setValue($hash);

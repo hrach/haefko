@@ -188,7 +188,7 @@ function toggle(id)
 			if (isset($t['file'])) {
 				getHighlightedCode($t['file'], $t['line'], 7, $n, true);
 			} else {
-				echo "<p>&nbsp;<strong>PHPInline:</strong> ";
+				echo "<p><strong>PHPInline:</strong> ";
 				if (!empty($t['class']))
 					echo $t['class'] . '::';
 				echo $t['function'] . '()</p>';

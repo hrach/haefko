@@ -13,10 +13,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
-	<title>{$title|escape}</title>
+	<title>{block #title}{if isset($title)}{$title}{else}Haefko default layout{/if}{/block}</title>
 	{block #header}{/block}
 </head>
 <body>
+	{if Config::read('core.debug') > 0}
+	<h2>This is default Haefko framework layout.</h2>
+	<p>Please switch to your own layout.</p>
+	<hr />
+	{/if}
 	{block #content}{/block}
 </body>
 </html>

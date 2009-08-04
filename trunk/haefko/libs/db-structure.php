@@ -80,7 +80,7 @@ class DbStructure
 		else
 			$this->cache = new Cache();
 
-		$this->structure = $this->cache->read('db_structure');
+		$this->structure = $this->cache->get('db_structure');
 		if (!isset($this->structure['__tables'])) {
 			$this->structure['__tables'] = db::getDriver()->getTables();
 			$this->updated = true;
@@ -94,8 +94,8 @@ class DbStructure
 	public function __destruct()
 	{
 		if ($this->updated)
-			$this->cache->save('db_structure', $this->structure, array(
-				'expire' => time() + 60*60*30
+			$this->cache->set('db_structure', $this->structure, array(
+				'expirea' => time() + 60*30
 			));
 	}
 

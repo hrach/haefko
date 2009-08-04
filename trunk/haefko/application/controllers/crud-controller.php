@@ -38,9 +38,6 @@ class CrudController extends AppController
 	/** @var string - Referer */
 	protected $referer;
 
-	/** @var bool */
-	protected $allowTemplatePathReduction = true;
-
 
 	/**
 	 * Inits CRUD controller - creates instance of dbTable
