@@ -82,13 +82,16 @@ class Application extends Object
 
 
 	/**
-	 * Application constructor
-	 * @param   string         application path
-	 * @param   string|false   configuration file|don't load default
-	 * @return  void
+	 * Constructor
+	 * @param string $path application path
+	 * @param string|false $config configuration file|don't load default
+	 * @return Application
 	 */
 	public function __construct($path = '/app', $config = '/config.yml')
 	{
+		if (!empty(self::$self))
+			throw new Exception('You can not create more then 1 instance of Application class.');
+
 		self::$self = & $this;
 		header('X-Powered-By: Haefko/0.9');
 		$this->path = rtrim(dirname($_SERVER['SCRIPT_FILENAME']) . $path, '/');
@@ -96,7 +99,6 @@ class Application extends Object
 
 		if ($config !== false)
 			Config::multiWrite(Config::parseFile($this->path . $config));
-
 
 		if (Config::read('cache.storage.relative', true))
 			$cachePath = $this->path . Config::read('cache.storage.path', '/temp/');
@@ -111,43 +113,29 @@ class Application extends Object
 
 	/**
 	 * Inits application configuraction
-	 * @return  void
 	 */
 	public function initConfig()
 	{
 		$this->cache->enabled = (bool) Config::read('cache.enabled', true);
 		Debug::$logFile = Config::read('debug.log', $this->path . '/temp/errors.log');
-
 		switch (Config::read('core.debug', 0)) {
-		case 0:
-			error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
-			break;
-		case 1:
-			error_reporting(E_ALL ^ E_NOTICE);
-			break;
-		case 2:
-			error_reporting(E_ALL);
-			break;
-		default:
-			error_reporting(E_ALL);
-			break;
+			case 0: error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING); break;
+			case 1: error_reporting(E_ALL ^ E_NOTICE); break;
+			case 2: error_reporting(E_ALL); break;
+			default: error_reporting(E_ALL); break;
 		}
-
-		
 	}
 
 
 	/**
 	 * Loads applications file - from appliacation path or framework core path
-	 * @param   string  filename
-	 * @throws  ApplicationException
-	 * @return  void
+	 * @param string $file filename
+	 * @throws ApplicationException
 	 */
 	public function loadFile($file)
 	{
 		$file1 = $this->path . "/$file";
 		$file2 = $this->corePath . "/application/$file";
-
 		if (file_exists($file1))
 			return require_once $file1;
 		elseif (file_exists($file2))
@@ -159,10 +147,8 @@ class Application extends Object
 
 	/**
 	 * Loads application class
-	 * @param   string  class type
-	 * @param   string  class name
-	 * @throws  Exception|ApplicationException
-	 * @return  void
+	 * @param string $class class name
+	 * @throws Exception|ApplicationException
 	 */
 	public function loadControllerClass($class)
 	{
@@ -175,8 +161,8 @@ class Application extends Object
 
 	/**
 	 * Activates autoload for "/app/extends" and others
-	 * @param   array      directories for autoload
-	 * @return  Autoload
+	 * @param array $dirs directories for autoload
+	 * @return AutoLoader
 	 */
 	public function autoload($dirs = array())
 	{
@@ -195,8 +181,7 @@ class Application extends Object
 
 	/**
 	 * Runs the application
-	 * @throws  ApplicationException
-	 * @return  void
+	 * @throws ApplicationException
 	 */
 	public function run()
 	{
@@ -218,9 +203,8 @@ class Application extends Object
 
 
 	/**
-	 * Catchs all exceptions and renders error page/message
-	 * @param   Exception
-	 * @return  void
+	 * Proccess application exceptions and renders error page/message
+	 * @param Exception
 	 */
 	public function processException(Exception $exception)
 	{
@@ -244,6 +228,7 @@ class Application extends Object
 		$this->loadAppControllerClass();
 		$this->controller = new AppController();
 		$this->controller->init();
+		$this->controller->loadLayoutTemplate();
 
 		if ($exception instanceof ApplicationException) {
 			if (Config::read('core.debug') > 0) {
@@ -315,7 +300,6 @@ class Application extends Object
 
 	/**
 	 * Loads or creates AppController
-	 * @return  void
 	 */
 	private function loadAppControllerClass()
 	{

@@ -38,7 +38,7 @@ abstract class Controller extends Control
 
 
 	/** @var bool - Allow include templates which are not situated in module */
-	protected $allowTemplatePathReduction = false;
+	protected $templatePathReduction = true;
 
 	/** @var array */
 	protected $services = array(
@@ -77,7 +77,7 @@ abstract class Controller extends Control
 		# TEMPLATE
 		$this->template = $this->getTemplateInstace();
 		if (!($this->template instanceof ITemplate))
-			throw new LogicException('You must return template class which implements ITemplate interface.');
+			throw new LogicException('You have to return template class which implements ITemplate interface.');
 
 		# SERVICES & LAYOUT
 		$layout = 'layout';
@@ -93,13 +93,12 @@ abstract class Controller extends Control
 		}
 
 		$this->routing->layout = $layout;
-		$this->template->setExtendsFile($this->getLayoutTemplateFile());
 	}
 
 
 	/**
 	 * Returns template class instance
-	 * @return ITemplate
+	 * @return AppTemplate
 	 */
 	protected function getTemplateInstace()
 	{
@@ -246,7 +245,6 @@ abstract class Controller extends Control
 			if ($this->routing->ajax && $return !== null)
 				$this->proccessAjaxResponse($return);
 
-			$this->template->setExtendsFile($this->getLayoutTemplateFile());
 			$this->template->setFile($this->getTemplateFile());
 
 		} catch (ApplicationError $exception) {
@@ -257,6 +255,7 @@ abstract class Controller extends Control
 			$this->template->setFile($this->getErrorTemplateFile($template));
 		}
 
+		$this->loadLayoutTemplate();
 		call_user_func(array($this, 'prepareTemplate'));
 		return $this->template->render();
 	}
@@ -265,10 +264,22 @@ abstract class Controller extends Control
 	/**
 	 * Sets error template
 	 * @param Exception $exception
+	 * @return Controller
 	 */
 	public function setErrorTemplate($template)
 	{
 		$this->template->setFile($this->getErrorTemplateFile($template));
+		return $this;
+	}
+
+
+	/**
+	 * Loads layout template
+	 * @return Controller
+	 */
+	public function loadLayoutTemplate()
+	{
+		$this->template->setExtendsFile($this->getLayoutTemplateFile());
 		return $this;
 	}
 
@@ -361,7 +372,7 @@ abstract class Controller extends Control
 
 		$file1 = $this->constructTemplatePath(array(), $routing->controller,
 			$routing->template, $routing->service, $routing->ext);
-		if ($this->allowTemplatePathReduction && file_exists($app . $file1))
+		if ($this->templatePathReduction && file_exists($app . $file1))
 			return $app . $file1;
 
 		if (file_exists($core . $file1))
@@ -408,7 +419,7 @@ abstract class Controller extends Control
 		elseif (file_exists($core . $file))
 			return $core . $file;
 
-		if ($this->allowTemplatePathReduction) {
+		if ($this->templatePathReduction) {
 			$file1 = $this->constructLayoutTemplatePath(array(), $routing->layout, $routing->ext);
 			if (file_exists($app . $file1))
 				return $app . $file1;
@@ -416,7 +427,7 @@ abstract class Controller extends Control
 				return $core . $file1;
 		}
 
-		return $code . '/layout.phtml';
+		return $core . '/templates/layout.phtml';
 	}
 
 
