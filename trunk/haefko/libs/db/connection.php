@@ -255,15 +255,14 @@ class DbConnection extends Object
 			case Db::SET:
 				return $this->driver->escape(Db::TEXT, implode(',', $value));
 
-			case 'a': # compatibility
-			case Db::A_LIST:
+			case Db::A_ASSOC:
 				foreach ($this->escapeArray($value) as $key => $val) $r[] = "$key = $val";
 				return implode(', ', $r);
 
-			case Db::A_VALUES:
+			case Db::A_LIST:
 				return '(' . (empty($value) ? 'NULL' : implode(', ', $this->escapeArray($value))) . ')';
 
-			case Db::A_KVALUES:
+			case Db::A_VALUES:
 				$array = $this->escapeArray($value);
 				return '(' . implode(', ', array_keys($array)) . ') VALUES (' . implode(', ', $array) . ')';
 

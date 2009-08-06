@@ -35,8 +35,8 @@ class Db
 	const DATETIME = 'dt';
 	const SET = 'set';
 	const A_LIST = 'l';
+	const A_ASSOC = 'a';
 	const A_VALUES = 'v';
-	const A_KVALUES = 'kv';
 	/**#@-*/
 
 	/** @var array */
