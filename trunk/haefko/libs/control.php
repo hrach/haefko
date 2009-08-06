@@ -7,7 +7,7 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.9 - $Id: controller.php 173 2009-07-25 19:24:02Z skrasek.jan $
+ * @version     0.9 - $Id$
  * @package     Haefko
  */
 

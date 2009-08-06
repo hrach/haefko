@@ -151,7 +151,8 @@ abstract class FormRenderer extends Object implements IFormRenderer
 	{
 		$partW = $this->preparePart($this->getWrapper('part'), $heading);
 		$partW->setAttrs($attrs);
-
+		if ($controls === null)
+			$controls = array();
 
 		foreach ($this->form as $name => /** @var FormControl */$control) {
 			if (empty($controls) && $control->isRendered())

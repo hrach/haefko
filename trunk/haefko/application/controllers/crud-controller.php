@@ -15,6 +15,9 @@
 class CrudController extends AppController
 {
 
+	/** @var string - Name of control with referer url */
+	public static $CRUD_REFERER = 'crud_referer';
+
 	/** @var string - Table name */
 	protected $table;
 	
@@ -75,15 +78,15 @@ class CrudController extends AppController
 	 */
 	public function createAction()
 	{
-		$this->initReferer();
 		$table = $this->getTable();
-		$form = $this->template->form = $this->getForm($table);
-
+		$form = $this->getForm($table);
 		if ($form->isSubmit()) {
-			$table->import($this->processData($form->data))
+			$data = $form->data;
+			unset($form->data[self::$CRUD_REFERER]);
+			$table->import($this->processData($form->data, false))
 			      ->save();
 
-			$this->refererRedirect($this->crudUrl('index'));
+			$this->refererRedirect($data);
 		}
 	}
 
@@ -94,10 +97,9 @@ class CrudController extends AppController
 	 */
 	public function updateAction($entry)
 	{
-		$this->initReferer();
 		$table = $this->getTable($entry);
-		$form = $this->template->form = $this->getForm($table);
-		
+		$form = $this->getForm($table);
+
 		$row = $table->get();
 		if (empty($entry) || empty($row))
 			$this->error();
@@ -105,10 +107,12 @@ class CrudController extends AppController
 
 		$form->setDefaults($row);
 		if ($form->isSubmit()) {
-			$table->import($this->processData($form->data))
+			$data = $form->data;
+			unset($form->data[self::$CRUD_REFERER]);
+			$table->import($this->processData($form->data, true))
 			      ->save();
 
-			$this->refererRedirect($this->crudUrl('index'));
+			$this->refererRedirect($data);
 		}
 	}
 
@@ -118,12 +122,14 @@ class CrudController extends AppController
 	 */
 	public function deleteAction($entry)
 	{
-		$this->initReferer();
-		if (!empty($_POST['yes'])) {
-			$this->getTable($entry)->remove();
-			$this->refererRedirect($this->crudUrl('index'));
-		} elseif (!empty($_POST['no'])) {
-			$this->refererRedirect($this->crudUrl('index'));
+		$form = $this->getDeleteForm($entry);
+		if ($form->isSubmit()) {
+			$data = $form->data;
+			unset($form->data[self::$CRUD_REFERER]);
+			if ($form->isSubmit('yes'))
+				$this->getTable($form->data['entry'])->remove();
+
+			$this->refererRedirect($data);
 		}
 
 		$this->template->entry = $entry;
@@ -163,9 +169,48 @@ class CrudController extends AppController
 	 * @param DbTable $table
 	 * @return Form
 	 */
-	protected function getForm($table)
+	protected function getForm(DbTable $table)
 	{
-		$form = $table->getForm($this->editColumns, $this->labels);
+		$form = $this->template->crudEditForm = $table->getForm($this->editColumns,
+			$this->labels, null, 'crudEditForm');
+
+		# referer
+		if (Http::$request->getReferer() == Http::$request->getFullRequest())
+			$referer = $this->crudUrl('index');
+		else
+			$referer = Http::$request->getReferer();
+		$form->addHidden(self::$CRUD_REFERER)->setDefaults(array(
+			self::$CRUD_REFERER => $referer,
+		));
+
+		return $form;
+	}
+
+
+	/**
+	 * Returns delete form
+	 * @param mixed $entry
+	 */
+	protected function getDeleteForm($entry)
+	{
+		$form = $this->template->crudDeleteForm = new Form(null, 'crudDeleteForm');
+		$form->addHidden('entry')
+		     ->addProtection()
+		     ->addSubmit('yes', 'Yes, remove')
+		     ->addSubmit('no', 'No')
+		     ->setRenderer('div');
+
+		# referer
+		if (Http::$request->getReferer() == Http::$request->getFullRequest())
+			$referer = $this->crudUrl('index');
+		else
+			$referer = Http::$request->getReferer();
+
+		$form->addHidden(self::$CRUD_REFERER)->setDefaults(array(
+			self::$CRUD_REFERER => $referer,
+			'entry' => $entry,
+		));
+
 		return $form;
 	}
 
@@ -213,31 +258,17 @@ class CrudController extends AppController
 
 
 	/**
-	 * Inits referer
+	 * Redirects by referer
+	 * @param array $refererData
 	 */
-	protected function initReferer()
+	protected function refererRedirect($refererData)
 	{
-		$name = 'Crud.' . $this->getClass() . '.referer';
-		if (Http::$request->getReferer() == Http::$request->getFullRequest())
-			return;
-
-		Session::write($name, Http::$request->getReferer());
-	}
-
-
-	/**
-	 * Redirects by referer or default url
-	 * @param string $default default url
-	 */
-	protected function refererRedirect($default)
-	{
-		$name = 'Crud.' . $this->getClass() . '.referer';
-		if (Session::exists($name)) {
-			Http::$response->redirect(Session::read($name));
-			Session::delete($name);
+		if (!empty($refererData[self::$CRUD_REFERER])) {
+			Http::$response->redirect($refererData[self::$CRUD_REFERER]);
 			exit;
 		} else {
-			$this->redirect($default);
+			Http::$response->redirect(Http::$serverURL . $this->crudUrl('index'));
+			exit;
 		}
 	}
 
