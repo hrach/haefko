@@ -7,8 +7,9 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Database
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Database
  */
 
 
@@ -18,8 +19,8 @@ class DbResultNode implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Constructor
-	 * @param   array   data
-	 * @return  void
+	 * @param array $data
+	 * @return DbResultNode
 	 */
 	public function __construct($data)
 	{
@@ -30,7 +31,7 @@ class DbResultNode implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Magic method
-	 * @return  void
+	 * @throws Exception
 	 */
 	public function __get($name)
 	{
@@ -40,7 +41,6 @@ class DbResultNode implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Array-access interface
-	 * @return  void
 	 */
 	public function offsetSet($key, $value)
 	{
@@ -50,7 +50,7 @@ class DbResultNode implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Array-access interface
-	 * @return  FormItem
+	 * @return mixed
 	 */
 	public function offsetGet($key)
 	{
@@ -63,7 +63,6 @@ class DbResultNode implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Array-access interface
-	 * @return  void
 	 */
 	public function offsetUnset($key)
 	{
@@ -73,7 +72,7 @@ class DbResultNode implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Array-access interface
-	 * @return  void
+	 * @return bool
 	 */
 	public function offsetExists($key)
 	{
@@ -83,7 +82,7 @@ class DbResultNode implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * IteratorAggregate interface
-	 * @return  ArrayIterator
+	 * @return ArrayIterator
 	 */
 	public function getIterator()
 	{

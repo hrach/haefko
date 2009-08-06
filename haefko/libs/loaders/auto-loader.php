@@ -7,8 +7,9 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Loaders
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Loaders
  */
 
 
@@ -20,8 +21,7 @@ require_once dirname(__FILE__) . '/../cache.php';
 class AutoLoader extends Loader
 {
 
-
-	/** @var array Allowed extension */
+	/** @var array - Allowed extension */
 	public $exts = array('php');
 
 	/** @var bool */
@@ -44,10 +44,9 @@ class AutoLoader extends Loader
 
 
 	/**
-	 * Contructor
-	 * Registers autoload
-	 * @param   string|Cache    cache path or Cache class instance
-	 * @return  void
+	 * Contructor - registers autoload
+	 * @param  string|Cache $storage cache path or Cache class instance
+	 * @return AutoLoader
 	 */
 	public function __construct($storage = './')
 	{
@@ -60,9 +59,9 @@ class AutoLoader extends Loader
 
 	/**
 	 * Adds directory for scan
-	 * @param   string     path
-	 * @throws  Exception
-	 * @return  Autoload
+	 * @param string $dir path
+	 * @throws Exception
+	 * @return AutoLoader
 	 */
 	public function addDir($dir)
 	{
@@ -76,8 +75,8 @@ class AutoLoader extends Loader
 
 	/**
 	 * Autoload handler - loads file with $class, or rebuild cache
-	 * @param   string  class name
-	 * @return  void
+	 * @param string $class class name
+	 * @return AutoLoader
 	 */
 	public function load($class)
 	{
@@ -90,13 +89,15 @@ class AutoLoader extends Loader
 			if (isset($this->classes[$class]) && file_exists($_SERVER['DOCUMENT_ROOT'] . $this->classes[$class]))
 				require_once $_SERVER['DOCUMENT_ROOT'] . $this->classes[$class];
 		}
+
+		return $this;
 	}
 
 
 	/**
 	 * Rebuilds cache list
-	 * @throws  Exception
-	 * @return  Autoload
+	 * @throws Exception
+	 * @return AutoLoader
 	 */
 	public function rebuild()
 	{
@@ -109,7 +110,7 @@ class AutoLoader extends Loader
 
 	/**
 	 * Loads list of cached classes or creates it
-	 * @return  Autoload
+	 * @return AutoLoader
 	 */
 	public function register()
 	{
@@ -124,7 +125,7 @@ class AutoLoader extends Loader
 
 	/**
 	 * Returns list of classes
-	 * @return  array
+	 * @return array
 	 */
 	public function getClasses()
 	{
@@ -134,7 +135,7 @@ class AutoLoader extends Loader
 
 	/**
 	 * Finds all files and theirs classes
-	 * @return  void
+	 * @return AutoLoader
 	 */
 	private function findClasses()
 	{
@@ -157,18 +158,19 @@ class AutoLoader extends Loader
 				}
 			}
 		}
+
+		return $this;
 	}
 
 
 	/**
 	 * Recursive DirectoryIterator handler
-	 * @param   RecursiveDirectoryIterator
-	 * @return  void
+	 * @param RecursiveDirectoryIterator $rdi
+	 * @return AutoLoader
 	 */
 	private function getFiles(& $rdi)
 	{
 		$exts = '#\.(' . implode('|', $this->exts) . ')$#i';
-
 		for ($rdi->rewind(); $rdi->valid(); $rdi->next()) {
 			if ($rdi->isDot())
 				continue;
@@ -178,6 +180,8 @@ class AutoLoader extends Loader
 			elseif ($rdi->isDir() && !preg_match('#^\.(svn|cvs)$#i', $rdi->getFilename()) && $rdi->hasChildren())
 				$this->getFiles($rdi->getChildren());
 		}
+
+		return $this;
 	}
 
 

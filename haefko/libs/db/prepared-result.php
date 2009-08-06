@@ -7,8 +7,9 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Database
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Database
  */
 
 
@@ -18,7 +19,6 @@ require_once dirname(__FILE__) . '/result.php';
 class DbPreparedResult extends DbResult
 {
 
-
 	/** @var Paginator */
 	public $paginator;
 
@@ -26,7 +26,7 @@ class DbPreparedResult extends DbResult
 	/**
 	 * Sets sql order
 	 * @param mixed $order
-	 * @return  DbResult  $this
+	 * @return DbResult
 	 */
 	public function setOrder($order)
 	{	
@@ -39,12 +39,10 @@ class DbPreparedResult extends DbResult
 
 	/**
 	 * Sets pagination
-	 * Limit defautl is 10
-	 * Sometimes sql query needs manualy counts total rows num
-	 * @param   int       page
-	 * @param   int       limit
-	 * @param   int       count pages
-	 * @return  DbResult  $this
+	 * @param int $pate page
+	 * @param int $limit limit (default = 10)
+	 * @param int $count count pages
+	 * @return DbPreparedResult
 	 */
 	public function setPagination($page, $limit = 10, $count = null)
 	{
@@ -60,22 +58,20 @@ class DbPreparedResult extends DbResult
 
 		require_once dirname(__FILE__) . '/../paginator.php';
 		$this->paginator = new Paginator($page, $count, $limit);
-
 		return $this;
 	}
 
 
 	/**
 	 * Sets association
-	 * @param   string    main table
-	 * @param   array     other tables in relation hasMany
-	 * @return  DbResult  $this
+	 * @param string $main main table name
+	 * @param array $hasMany other tables in relation hasMany
+	 * @return DbPreparedResult
 	 */
 	public function associate($main, $hasMany = array())
 	{
 		$this->association[0] = $main;
 		$this->association[1] = (array) $hasMany;
-
 		return $this;
 	}
 

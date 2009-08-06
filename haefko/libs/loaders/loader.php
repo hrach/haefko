@@ -7,8 +7,9 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Loaders
+ * @version     0.0 - $Id$
+ * @package     Haefko
+ * @subpackage  Loaders
  */
 
 
@@ -18,15 +19,14 @@ require_once dirname(__FILE__) . '/../object.php';
 abstract class Loader extends Object
 {
 
-
 	/** @var array */
 	private $callbacks = array();
 
 
 	/**
 	 * Register callback for loader hanledr
-	 * @param   mixed  $callback
-	 * @return  void
+	 * @param mixed $callback
+	 * @return Loader
 	 */
 	public function register($callback)
 	{
@@ -42,8 +42,7 @@ abstract class Loader extends Object
 
 	/**
 	 * Autoload handler
-	 * @param   string    class name
-	 * @return  void
+	 * @param  string $class class name
 	 */
 	public function autoloadHandler($class)
 	{
