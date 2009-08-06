@@ -110,12 +110,14 @@ abstract class DbTable extends Object
 	 * Returns table form
 	 * @param array $editCols
 	 * @param array $labels
+	 * @param string $formUrl
+	 * @param string @formName
 	 * @throws Exception
 	 * @return Form
 	 */
-	public function getForm($editCols = array(), $labels = array())
+	public function getForm($editCols = array(), $labels = array(), $formUrl = null, $formName = null)
 	{
-		$form = new Form();
+		$form = new Form($formUrl, $formName);
 		$cols = self::$structure->getCols($this->table);
 
 		foreach ($cols as $name => $data) {
@@ -259,11 +261,11 @@ abstract class DbTable extends Object
 		}
 
 		if (empty($this->primaryKeyValue)) {
-			$this->primaryKeyValue = Db::query('INSERT INTO %c %kv', $this->table, $fields);
+			$this->primaryKeyValue = Db::query('INSERT INTO %c %v', $this->table, $fields);
 
 		} else {
 			$mod = self::$structure->getModificator($this->table, $this->primaryKey);
-			Db::query("UPDATE %c SET %l WHERE %c = $mod", $this->table, $fields, $this->primaryKey, $this->primaryKeyValue);
+			Db::query("UPDATE %c SET %a WHERE %c = $mod", $this->table, $fields, $this->primaryKey, $this->primaryKeyValue);
 		
 		}
 

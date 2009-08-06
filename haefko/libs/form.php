@@ -310,9 +310,8 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Renders form html start tag
-	 * @todo    Javascript validation
-	 * @param   array   attributes
-	 * @return  string
+	 * @param array $attrs attributes
+	 * @return string
 	 */
 	public function startTag($attrs = array())
 	{
@@ -322,7 +321,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Renders form end tag with hidden inputs
-	 * @return  string
+	 * @return string
 	 */
 	public function endTag()
 	{
@@ -341,8 +340,8 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 * Returns true/false if the form has been submitted
 	 * Arguments: no submit button name = check only if form has been submitted
 	 *            buton name/names = check if form has been submitted by button/buttons
-	 * @param   string  button name
-	 * @return  bool
+	 * @param string $name button name
+	 * @return bool
 	 */
 	public function isSubmit()
 	{
@@ -358,8 +357,8 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 
 	/**
-	 * Returns true/false if the form is valid
-	 * @return  bool
+	 * Returns true if the form is valid
+	 * @return bool
 	 */
 	public function isValid()
 	{
@@ -375,7 +374,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Checks whether form has errors
-	 * @return  bool
+	 * @return bool
 	 */
 	public function hasErrors()
 	{
@@ -390,26 +389,29 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Sets default values for controls (only if the form is not submitted)
-	 * @param   array   values - format is array with $controlName => $value
-	 * @return  void
+	 * @param array $defaults default values - format is array with $controlName => $value
+	 * @param bool $checkSubmitted shoul this method chech if form is submitted?
+	 * @return Form
 	 */
 	public function setDefaults($defaults, $checkSubmitted = true)
 	{
 		if ($checkSubmitted && $this->isSubmit())
-			return;
+			return $this;
 
 		foreach ((array) $defaults as $id => $value) {
 			if (isset($this->controls[$id]))
 				$this->controls[$id]->setValue($value);
 		}
+
+		return $this;
 	}
 
 
 	/**
 	 * Sets / creates renderer instance
-	 * @param   IFormRenderer|string    renderer name
-	 * @throws  Exception
-	 * @return  Form
+	 * @param IFormRenderer|string $renderer renderer name
+	 * @throws Exception
+	 * @return Form
 	 */
 	public function setRenderer($renderer)
 	{
@@ -432,7 +434,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Returns form
-	 * @return  Html
+	 * @return Html
 	 */
 	public function getForm()
 	{
@@ -442,7 +444,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Returns Renderer
-	 * @return  IFormRenderer
+	 * @return IFormRenderer
 	 */
 	public function getRenderer()
 	{
@@ -455,18 +457,16 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Array-access interface
-	 * @return  void
 	 */
 	public function offsetSet($id, $value)
 	{
 		$this->controls[$id] = $value;
-
 	}
 
 
 	/**
 	 * Array-access interface
-	 * @return  FormControl
+	 * @return FormControl
 	 */
 	public function offsetGet($id)
 	{
@@ -479,7 +479,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Array-access interface
-	 * @return  void
+	 * @throws Exception
 	 */
 	public function offsetUnset($id)
 	{
@@ -492,7 +492,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Array-access interface
-	 * @return  bool
+	 * @return bool
 	 */
 	public function offsetExists($id)
 	{
@@ -502,7 +502,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * ArrayIterator interface
-	 * @return  ArrayIterator
+	 * @return ArrayIterator
 	 */
 	public function getIterator()
 	{
@@ -512,7 +512,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * toString interface
-	 * @return  string
+	 * @return string
 	 */
 	public function __toString()
 	{
@@ -531,7 +531,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 	/**
 	 * Loads submited data into the form
-	 * @return  void
+	 * @return Form
 	 */
 	private function loadData()
 	{
@@ -539,7 +539,7 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 		if (isset($data[$this->name]))
 			$data = $data[$this->name];
 		else
-			return;
+			return $this;
 
 		foreach ($this->controls as $id => $control) {
 			if (!isset($data[$id])) {
@@ -562,8 +562,11 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 
 		if ($this->protected) {
 			unset($this->data[self::$SECURITY_CONTROL]);
-			Session::delete('CSRF.protection.' . $this->name);
+			$session = Session::getNamespace('Form.csrf-protection');
+			$session->delete($this->name);
 		}
+
+		return $this;
 	}
 
 
