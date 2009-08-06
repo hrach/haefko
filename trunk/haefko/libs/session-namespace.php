@@ -131,10 +131,15 @@ class SessionNamespace extends Object
 	 */
 	public function setExpiration($time)
 	{
-		if (is_string($time))
-			$time = strtotime($time);
+		if ($time === 0) {
+			unset($_SESSION['__M'][$this->namespace]['__E']);
+		} else {
+			if (is_string($time))
+				$time = strtotime($time);
 
-		$_SESSION['__M'][$this->namespace]['__E'] = $time;
+			$_SESSION['__M'][$this->namespace]['__E'] = $time;
+		}
+
 		return $this;
 	}
 
