@@ -65,6 +65,9 @@ class Application extends Object
 	}
 
 
+	/** @var string - Error controller name */
+	public $errorControler = 'AppController';
+
 	/** @var string */
 	private $path;
 
@@ -225,8 +228,9 @@ class Application extends Object
 		}
 
 		self::$error = true;
+		$class = $this->errorController;
 		$this->loadAppControllerClass();
-		$this->controller = new AppController();
+		$this->controller = new $class();
 		$this->controller->init();
 		$this->controller->loadLayoutTemplate();
 
@@ -304,7 +308,7 @@ class Application extends Object
 	private function loadAppControllerClass()
 	{
 		if (class_exists('AppController', false))
-			return true;
+			return;
 
 		try {
 			$this->loadControllerClass('AppController');
@@ -315,7 +319,6 @@ class Application extends Object
 
 
 }
-
 
 
 class ApplicationException extends Exception
