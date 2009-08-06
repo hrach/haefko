@@ -7,15 +7,15 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Database
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Database
  */
 
 
 class PgsqlDbDriver extends Object implements IDbDriver
 {
 
-	
 	/** @var Resource */
 	protected $connection;
 

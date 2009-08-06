@@ -7,8 +7,9 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Loaders
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Loaders
  */
 
 
@@ -17,7 +18,6 @@ require_once dirname(__FILE__) . '/loader.php';
 
 class HaefkoLoader extends Loader
 {
-
 
 	/** @var array - Available framework classes */
 	protected $classes = array(
@@ -65,8 +65,8 @@ class HaefkoLoader extends Loader
 
 	/**
 	 * Loads file for required class
-	 * @param   string    class name
-	 * @return  void
+	 * @param string $class class name
+	 * @return HaefkoLoader
 	 */
 	public function load($class)
 	{
@@ -81,11 +81,12 @@ class HaefkoLoader extends Loader
 
 	/**
 	 * Registers haefko loader
-	 * @return  void
+	 * @return AutoLoader
 	 */
 	public function register()
 	{
 		parent::register(array($this, 'load'));
+		return $this;
 	}
 
 

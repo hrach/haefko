@@ -7,8 +7,9 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Database
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Database
  */
 
 
@@ -18,7 +19,6 @@ require_once dirname(__FILE__) . '/result-node.php';
 
 class DbResult extends Object implements Countable, IteratorAggregate
 {
-
 
 	/** @var string */
 	protected $query;
@@ -31,8 +31,6 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 	/** @var array */
 	protected $association = array();
-
-
 
 	/** @var int - Points to the last fetched row */
 	private $rowPointer = -1;
@@ -53,9 +51,9 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 	/**
 	 * Constructor
-	 * @param   string     sql query
-	 * @param   DbDriver   driver instance
-	 * @return  void
+	 * @param string $query sql query
+	 * @param IDbDriver $driver driver instance
+	 * @return DbResult
 	 */
 	public function __construct($query, IDbDriver $driver)
 	{
@@ -66,7 +64,7 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 	/**
 	 * Executes sql query
-	 * @return DbResult    $this
+	 * @return DbResult
 	 */
 	public function execute()
 	{
@@ -78,7 +76,7 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 	/**
 	 * Returns first field value
-	 * @return  mixed
+	 * @return mixed
 	 */
 	public function fetchField()
 	{
@@ -96,8 +94,8 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 	/**
 	 * Returns array of pairs
-	 * If is select only one column then is return scalar array
-	 * @return  array
+	 * If is select only one column then is returned scalar array
+	 * @return array
 	 */
 	public function fetchPairs()
 	{
@@ -117,7 +115,7 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 	/** 
 	 * Returns one fetched row
-	 * @return  array
+	 * @return array
 	 */
 	public function fetch()
 	{
@@ -134,12 +132,11 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 	/**
 	 * Returns all fetched rows
-	 * @return  array
+	 * @return array
 	 */
 	public function fetchAll()
 	{
 		$this->checkExecution();
-
 		while (($row = $this->fetchRow()) != null);
 		return $this->rows;
 	}
@@ -147,7 +144,7 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 	/**
 	 * Retruns num of affected rows
-	 * @return  int
+	 * @return int
 	 */
 	public function affectedRows()
 	{
@@ -158,7 +155,7 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 	/**
 	 * Returns columns names
-	 * @param  array
+	 * @param array
 	 */
 	public function getColumnNames()
 	{
@@ -172,7 +169,7 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 	/**
 	 * IteratorAggregate interface
-	 * @return  ArrayIterator
+	 * @return ArrayIterator
 	 */
 	public function getIterator()
 	{
@@ -183,7 +180,7 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 	/**
 	 * Countable interface
-	 * @return  int
+	 * @return int
 	 */
 	public function count()
 	{
@@ -192,23 +189,17 @@ class DbResult extends Object implements Countable, IteratorAggregate
 	}
 
 
-	/** ==================== protected ==================== **/
-
-
 	/**
 	 * Checks if was sql query executed 
-	 * @return  void
 	 */
 	protected function checkExecution()
 	{
-		if (!$this->executed)
-			$this->execute();
+		if (!$this->executed) $this->execute();
 	}
 
 
 	/**
 	 * Runs sql query, measure time
-	 * @return  void
 	 */
 	protected function runSqlQuery()
 	{
@@ -222,7 +213,6 @@ class DbResult extends Object implements Countable, IteratorAggregate
 	/**
 	 * Loads columns informations ans counts num of tables
 	 * If there is > 1 table - sets multi table mode
-	 * @return  void
 	 */
 	protected function loadResultColumns()
 	{
@@ -238,13 +228,10 @@ class DbResult extends Object implements Countable, IteratorAggregate
 	}
 
 
-	/** ==================== private ==================== **/
-
-
 	/*
-	 * Combines tables with their columns
-	 * @param   array   table row
-	 * @return  array
+	 * Combines tables with theirs columns
+	 * @param array $row table row
+	 * @return array
 	 */
 	private function combineColumns($row)
 	{
@@ -269,7 +256,7 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 	/**
 	 * Returns one reuslt row (stored or new fetched)
-	 * @return  bool
+	 * @return bool
 	 */
 	private function getRow($assoc)
 	{
@@ -285,12 +272,11 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 	/**
 	 * Returns one row of db result
-	 * @return  DbResultNode
+	 * @return DbResultNode
 	 */
 	protected function fetchRow()
 	{
 		$this->checkExecution();
-
 		$row = $this->getRow(!$this->tables);
 		if (is_null($row))
 			return null;

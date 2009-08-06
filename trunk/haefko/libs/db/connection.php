@@ -7,19 +7,19 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.8.5 - $Id$
- * @package     Haefko_Database
+ * @version     0.9 - $Id$
+ * @package     Haefko
+ * @subpackage  Database
  */
 
 
-require_once dirname(__FILE__) . '/driver.php';
+require_once dirname(__FILE__) . '/idriver.php';
 require_once dirname(__FILE__) . '/result.php';
 require_once dirname(__FILE__) . '/prepared-result.php';
 
 
 class DbConnection extends Object
 {
-
 
 	/** @var bool */
 	private $connected = false;
@@ -30,14 +30,11 @@ class DbConnection extends Object
 	/** @var array */
 	private $config = array();
 
-	/** @var array */
-	private $sqls = array();
-
 
 	/**
 	 * Constructor
-	 * @param   array   connection configuration
-	 * @return  void
+	 * @param array $config connection configuration
+	 * @return DbConnection
 	 */
 	public function __construct($config)
 	{
@@ -60,8 +57,8 @@ class DbConnection extends Object
 
 	/**
 	 * Returns result object with parsed sql query
-	 * @param   string    sql query
-	 * @return  DbPreparedResult
+	 * @param string $sql sql query
+	 * @return DbPreparedResult
 	 */
 	public function prepare($sql)
 	{
@@ -71,10 +68,9 @@ class DbConnection extends Object
 
 
 	/**
-	 * Returns result object with executed parsed sql query
-	 * or last inserted id
-	 * @param   string        sql query
-	 * @return  DbResult|int
+	 * Returns result object with executed parsed sql query or last inserted id
+	 * @param string $sql sql query
+	 * @return DbResult|int
 	 */
 	public function query($sql)
 	{
@@ -99,9 +95,9 @@ class DbConnection extends Object
 
 	/**
 	 * Wrapper for called result
-	 * @see     DbResult::fetchField()
-	 * @param   string    sql query
-	 * @return  mixed
+	 * @see DbResult::fetchField()
+	 * @param string $args sql query
+	 * @return mixed
 	 */
 	public function fetchField($args)
 	{
@@ -113,9 +109,9 @@ class DbConnection extends Object
 
 	/**
 	 * Wrapper for called result
-	 * @see     DbResult::fetch()
-	 * @param   string    sql query
-	 * @return  mixed
+	 * @see DbResult::fetch()
+	 * @param string $args sql query
+	 * @return mixed
 	 */
 	public function fetch($args)
 	{
@@ -127,9 +123,9 @@ class DbConnection extends Object
 
 	/**
 	 * Wrapper for called result
-	 * @see     DbResult::fetchAll()
-	 * @param   string    sql query
-	 * @return  mixed
+	 * @see DbResult::fetchAll()
+	 * @param string $args sql query
+	 * @return mixed
 	 */
 	public function fetchAll($args)
 	{
@@ -141,9 +137,9 @@ class DbConnection extends Object
 
 	/**
 	 * Wrapper for called result
-	 * @see     DbResult::fetchPairs()
-	 * @param   string    sql query
-	 * @return  array
+	 * @see DbResult::fetchPairs()
+	 * @param string $args sql query
+	 * @return array
 	 */
 	public function fetchPairs($args)
 	{
@@ -155,7 +151,7 @@ class DbConnection extends Object
 
 	/**
 	 * Return number of affected rows
-	 * @return  int
+	 * @return int
 	 */
 	public function affectedRows()
 	{
@@ -165,8 +161,8 @@ class DbConnection extends Object
 
 	/**
 	 * Transforms sql and variables to regular sql query
-	 * @param   array     sql fragments and variables
-	 * @return  string
+	 * @param array $args sql fragments and variables
+	 * @return string
 	 */
 	public function factorySql($args)
 	{
@@ -206,8 +202,7 @@ class DbConnection extends Object
 						if ($match[1][0] == '!')
 							$match[2][0] = Db::NULL;
 
-						$temp .= $this->escape(array_shift($args), $match[2][0])
-						      .  ' ';
+						$temp .= $this->escape(array_shift($args), $match[2][0]) . ' ';
 					}
 				}
 
@@ -229,9 +224,9 @@ class DbConnection extends Object
 
 	/**
 	 * Escapes $value as type $type
-	 * @param   string    type of variable
-	 * @param   mixed     value
-	 * @return  mixed
+	 * @param mixed $value value
+	 * @param string $type type of variable
+	 * @return mixed
 	 */
 	public function escape($value, $type = null)
 	{
@@ -241,17 +236,10 @@ class DbConnection extends Object
 			$type = $this->getType($value);
 
 		switch ($type) {
-			case Db::RAW:
-				return $value;
-
-			case Db::NULL:
-				return 'NULL';
-
-			case Db::INTEGER:
-				return (int) $value;
-
-			case Db::FLOAT:
-				return (float) $value;
+			case Db::RAW: return $value;
+			case Db::NULL: return 'NULL';
+			case Db::INTEGER: return (int) $value;
+			case Db::FLOAT: return (float) $value;
 
 			case Db::COLUMN:
 			case Db::TEXT:
@@ -286,10 +274,9 @@ class DbConnection extends Object
 
 
 	/**
-	 * Escapes array
-	 * Uses modificators in the key(column%i)
-	 * @param   array
-	 * @return  array
+	 * Escapes array - uses modificators in the key (column%i)
+	 * @param array $array
+	 * @return array
 	 */
 	public function escapeArray($array)
 	{
@@ -309,9 +296,9 @@ class DbConnection extends Object
 
 
 	/**
-	 * Retruns modificator by varibale type
-	 * @param   mixed     variable
-	 * @return  string
+	 * Returns modificator by varibale type
+	 * @param mixed $var variable
+	 * @return string
 	 */
 	public function getType($var)
 	{
@@ -328,7 +315,7 @@ class DbConnection extends Object
 
 	/**
 	 * Returns db driver
-	 * @return  DbDriver
+	 * @return DbDriver
 	 */
 	public function getDriver()
 	{
@@ -339,8 +326,7 @@ class DbConnection extends Object
 
 	/**
 	 * Checks connection and creates it
-	 * @throws  Exception
-	 * @return  void
+	 * @throws Exception
 	 */
 	private function needConnection()
 	{
