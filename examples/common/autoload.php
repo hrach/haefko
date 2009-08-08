@@ -1,10 +1,10 @@
 <?php
 
-require '../../haefko/libs/autoload.php';
+require 'haefko/loader.php';
 
-$autoload = new Autoload('./');
+$autoload = new Autoloader('./temp/');
 $autoload->addDir(dirname(__FILE__) . '/../../haefko/libs');
-$autoload->load();
+$autoload->register();
 
 echo "<pre>";
 print_r($autoload->getClasses());

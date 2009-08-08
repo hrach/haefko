@@ -6,6 +6,7 @@ debug::init(true);
 
 
 $template = new Template('template.tpl');
+$template->setExtendsFile(dirname(__FILE__) . '/layout.tpl');
 $template->variable = 'obsah a <tag> s .';
 $template->bool = true;
 $template->byte = 101293400;
