@@ -45,16 +45,17 @@ class Html extends Object
 		'type' => null,
 		'name' => null,
 		'id' => null,
-		'class' => array()
+		'class' => array(),
 	);
 
 
 	/**
 	 * Html object factory
-	 * @param   string   tag name
-	 * @param   string   content
-	 * @param   array    attributes
-	 * @return  Html
+	 * @param string $tag tag name
+	 * @param string $text content
+	 * @param array $attrs attributes
+	 * @param bool $hasPair ha pair tag?
+	 * @return Html
 	 */
 	public static function el($tag = null, $text = null, $attrs = array(), $hasPair = null)
 	{
@@ -74,7 +75,7 @@ class Html extends Object
 	/**
 	 * Constructor
 	 */
-	private function __construct()
+	final private function __construct()
 	{}
 
 
@@ -109,7 +110,6 @@ class Html extends Object
 
 	/**
 	 * Overloaded attribut's setter
-	 * @return  void
 	 */
 	public function __set($name, $value)
 	{
@@ -119,8 +119,8 @@ class Html extends Object
 
 	/**
 	 * Overloaded attribut's getter
-	 * @throws  Exception
-	 * @return  mixed
+	 * @throws Exception
+	 * @return mixed
 	 */
 	public function __get($name)
 	{
@@ -133,8 +133,7 @@ class Html extends Object
 
 	/**
 	 * Overloaded attribut's unsetter
-	 * @throws  Exception
-	 * @return  void
+	 * @throws Exception
 	 */
 	public function __unset($name)
 	{
@@ -146,9 +145,20 @@ class Html extends Object
 
 
 	/**
+	 * Overloader attribut's isseter
+	 * @return bool
+	 */
+	public function __isset($name)
+	{
+		return isset($this->attrs[$name]);
+	}
+
+
+	/**
 	 * Sets tag name
-	 * @param   string    tag name
-	 * @return  Html
+	 * @param string $name tag name
+	 * @param bool $hasPair has pair tag?
+	 * @return Html
 	 */
 	public function setTag($name, $hasPair = null)
 	{
@@ -164,8 +174,8 @@ class Html extends Object
 
 	/**
 	 * Sets attributes
-	 * @param   array
-	 * @return  Html
+	 * @param array $attrs
+	 * @return Html
 	 */
 	public function setAttrs($attrs)
 	{
@@ -178,8 +188,8 @@ class Html extends Object
 
 	/**
 	 * Sets the html content
-	 * @param   mixed     html content
-	 * @return  Html
+	 * @param mixed $value html content
+	 * @return Html
 	 */
 	public function setHtml($value = null)
 	{
@@ -190,10 +200,10 @@ class Html extends Object
 
 	/**
 	 * Adds the html content
-	 * @param   mixed     html content
-	 * @return  Html
+	 * @param mixed $value html content
+	 * @return Html
 	 */
-	public function addHtml($value = null)
+	public function addHtml($value)
 	{
 		if (!empty($value) || $value == 0)
 			$this->content[] = $value;
@@ -204,8 +214,8 @@ class Html extends Object
 
 	/**
 	 * Sets the text content
-	 * @param   string  text content
-	 * @return  Html
+	 * @param string $value text content
+	 * @return Html
 	 */
 	public function setText($value = null)
 	{
@@ -216,10 +226,10 @@ class Html extends Object
 
 	/**
 	 * Adds the text content
-	 * @param   string  text content
-	 * @return  Html
+	 * @param string $value text content
+	 * @return Html
 	 */
-	public function addText($value = null)
+	public function addText($value)
 	{
 		if (!empty($value) || $value == 0)
 			$this->content[] = htmlspecialchars($value);
@@ -230,8 +240,8 @@ class Html extends Object
 
 	/**
 	 * Prepends content before tag
-	 * @param   mixed     content
-	 * @return  string
+	 * @param mixed $value content
+	 * @return Html
 	 */
 	public function prepend($value = null)
 	{
@@ -242,8 +252,8 @@ class Html extends Object
 
 	/**
 	 * Appends content before tag
-	 * @param   mixed     content
-	 * @return  string
+	 * @param mixed $value content
+	 * @return Html
 	 */
 	public function append($value = null)
 	{
@@ -254,8 +264,8 @@ class Html extends Object
 
 	/**
 	 * Renders element's start tag + content + end tag
-	 * @param   int      indent of block
-	 * @return  string
+	 * @param int $indent indent of block
+	 * @return string
 	 */
 	public function render($indent = null)
 	{
@@ -272,7 +282,7 @@ class Html extends Object
 
 	/**
 	 * Renders start tag
-	 * @return  string
+	 * @return string
 	 */
 	public function startTag()
 	{
@@ -286,7 +296,7 @@ class Html extends Object
 
 	/**
 	 * Render end tag
-	 * @return  string
+	 * @return string
 	 */
 	public function endTag()
 	{
@@ -299,7 +309,7 @@ class Html extends Object
 
 	/**
 	 * Renders tag content
-	 * @param  int     indent
+	 * @param int $indent indent
 	 * @return string
 	 */
 	protected function renderContent($indent = 0)
@@ -318,7 +328,7 @@ class Html extends Object
 
 	/**
 	 * Renders tag attributes
-	 * @return  string
+	 * @return string
 	 */
 	protected function renderAttributes()
 	{
@@ -341,7 +351,7 @@ class Html extends Object
 
 	/**
 	 * Renders prepend
-	 * @return  string
+	 * @return string
 	 */
 	protected function renderPrepend()
 	{
@@ -357,7 +367,7 @@ class Html extends Object
 
 	/**
 	 * Renders append
-	 * @return  string
+	 * @return string
 	 */
 	protected function renderAppend()
 	{
@@ -373,7 +383,7 @@ class Html extends Object
 
 	/**
 	 * To string interface
-	 * @return  string
+	 * @return string
 	 */
 	public function __toString()
 	{
