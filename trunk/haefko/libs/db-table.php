@@ -102,7 +102,11 @@ abstract class DbTable extends Object
 	{
 		$cols = $this->toSqlCols($cols);
 		$mod = self::$structure->getModificator($this->table, $col);
-		return Db::fetch("SELECT $cols FROM %c WHERE %c = $mod LIMIT 1", $this->table, $col, $this->fields[$col]);
+		$res = Db::fetch("SELECT $cols FROM %c WHERE %c = $mod LIMIT 1", $this->table, $col, $this->fields[$col]);
+		if (isset($res[$this->primaryKey]))
+			$this->primaryKeyValue = $res[$this->primaryKey];
+
+		return $res;
 	}
 
 
@@ -187,12 +191,24 @@ abstract class DbTable extends Object
 
 				break;
 
+			case 'char':
+				$form->addText($name, $label);
+				if (!$data['null']) {
+					$form[$name]->addRule(Rule::FILLED);
+					$form[$name]->addRule(Rule::LENGTH, $data['length']);
+				} else {
+					$form[$name]->addCondition(Rule::FILLED)
+					            ->addRule(Rule::LENGTH, $data['length']);
+				}
+
+				break;
+
 			case 'varchar':
 			default:
 				$form->addText($name, $label);
 				if (!$data['null'])
 					$form[$name]->addRule(Rule::FILLED);
-				$form[$name]->addRule(Rule::LENGTH, array(0, $data['length']));
+				$form[$name]->addRule(Rule::LENGTH, '<=' . $data['length']);
 
 				break;
 			}
@@ -262,11 +278,9 @@ abstract class DbTable extends Object
 
 		if (empty($this->primaryKeyValue)) {
 			$this->primaryKeyValue = Db::query('INSERT INTO %c %v', $this->table, $fields);
-
 		} else {
 			$mod = self::$structure->getModificator($this->table, $this->primaryKey);
 			Db::query("UPDATE %c SET %a WHERE %c = $mod", $this->table, $fields, $this->primaryKey, $this->primaryKeyValue);
-		
 		}
 
 		$this->fields = array();
@@ -276,10 +290,14 @@ abstract class DbTable extends Object
 
 	/**
 	 * Removes db entry
+	 * @throws Exception
 	 * @return bool
 	 */
 	public function remove()
 	{
+		if (empty($this->primaryKeyValue) && $this->primaryKeyValue !== 0)
+			throw new Exception('Primary key have to be set for removing entry.');
+
 		$mod = self::$structure->getModificator($this->table, $this->primaryKey);
 		Db::query("DELETE FROM %c WHERE %c = $mod LIMIT 1", $this->table, $this->primaryKey, $this->primaryKeyValue);
 		return Db::affectedRows() == 1;
