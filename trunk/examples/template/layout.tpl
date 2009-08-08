@@ -7,9 +7,8 @@
 <body style="background:orange">
 
     <div id="wrapper">
-        {block #content}
 		Standardní obsah<br />
-		{/block}
+        {block #content}{/block}
     </div>
 </body>
 </html>
