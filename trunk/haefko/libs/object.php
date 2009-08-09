@@ -15,6 +15,25 @@
 abstract class Object
 {
 
+	/** @var array */
+	private static $extendMethods = array();
+
+
+	/**
+	 * Extends class by $method
+	 * @param string $method
+	 * @param string $function callback
+	 */
+	public static function extendMethod($method, $function)
+	{
+		if (strpos($method, '::') !== false)
+			list($class, $method) = explode('::', $method);
+		else
+			$class = get_called_class();
+
+		self::$extendMethods[strtolower($class)][strtolower($method)] = $function;
+	}
+
 
 	/**
 	 * Returns class name
@@ -87,12 +106,13 @@ abstract class Object
 		if (empty($method))
 			throw new Exception("Method name can not be empty.");
 
+		$method = strtolower($method);
 		$classes = $this->getAncestors($this);
 		foreach ($classes as $class) {
-			$class = get_class($class);
-			if (function_exists("prototype_{$class}_$method")) {
+			$class = strtolower(get_class($class));
+			if (isset(self::$extendMethods[$class][$method])) {
 				array_unshift($args, $this);
-				return call_user_func_array("prototype_{$class}_$method", $args);
+				return call_user_func_array(self::$extendMethods[$class][$method], $args);
 			}
 		}
 
