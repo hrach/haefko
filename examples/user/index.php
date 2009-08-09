@@ -8,7 +8,7 @@ debug::init(true);
 class UserHandler implements IUserHandler
 {
 
-	public function authenticate($credentials)
+	public function authenticate($username, $password)
 	{
 		return new Identity(6, 'admin', array(
 			'name' => 'jan',
