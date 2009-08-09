@@ -20,6 +20,7 @@ require_once dirname(__FILE__) . '/template/filter-helper.php';
 
 
 /**
+ * Template class provides powerful templating system
  * @property string $file
  * @property string $temp
  * @property string $vars
@@ -476,10 +477,14 @@ class Template extends Object implements ITemplate
 		# we have extends file and no blocks
 		if ($this->__hasExtends === true && $this->__hasBlocks === false) {
 			$pos = strrpos($file, '//--EXLUDE--//'); # length 14 + 2
-			$fileS = substr($file, 0, $pos + 16);
-			$fileE = substr($file, $pos + 16);
-			$fileE = $this->__cbBlock(array('', '', 'content', $fileE));
-			$file = $fileS . $fileE;
+			if ($pos !== false) {
+				$fileS = substr($file, 0, $pos + 16);
+				$fileE = substr($file, $pos + 16);
+				$fileE = $this->__cbBlock(array('', '', 'content', $fileE));
+				$file = $fileS . $fileE;
+			} else {
+				$file = $this->__cbBlock(array('', '', 'content', $file));
+			}
 		}
 
 		$this->cache->set($cacheFile, $file, array(
