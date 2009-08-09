@@ -22,6 +22,7 @@ require_once dirname(__FILE__) . '/router.php';
 
 
 /**
+ * Drives web application
  * @property-read Router $router
  * @property-read Controller $controller
  * @property-read Cache $cache
@@ -66,7 +67,7 @@ class Application extends Object
 
 
 	/** @var string - Error controller name */
-	public $errorControler = 'AppController';
+	public $errorController = 'AppController';
 
 	/** @var string */
 	private $path;
