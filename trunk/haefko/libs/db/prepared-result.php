@@ -68,7 +68,7 @@ class DbPreparedResult extends DbResult
 	 * @param array $hasMany other tables in relation hasMany
 	 * @return DbPreparedResult
 	 */
-	public function associate($main, $hasMany = array())
+	public function setAssociation($main, $hasMany = array())
 	{
 		$this->association[0] = $main;
 		$this->association[1] = (array) $hasMany;

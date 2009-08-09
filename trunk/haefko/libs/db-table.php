@@ -71,7 +71,7 @@ abstract class DbTable extends Object
 		}
 
 		if (!self::$structure->tableExists($this->table))
-			throw new Exception("Db table \"{$this->table}\" doesn't exists.");
+			throw new Exception("Db table \"{$this->table}\" does not exists.");
 
 
 		$this->primaryKey = self::$structure->getPrimaryKey($this->table);
@@ -100,6 +100,9 @@ abstract class DbTable extends Object
 	 */
 	public function getBy($col, $cols = '*')
 	{
+		if (!isset($this->fields[$col]))
+			throw new Exception("You have to set a value for selecting by column '$col' in method getBy().");
+
 		$cols = $this->toSqlCols($cols);
 		$mod = self::$structure->getModificator($this->table, $col);
 		$res = Db::fetch("SELECT $cols FROM %c WHERE %c = $mod LIMIT 1", $this->table, $col, $this->fields[$col]);
@@ -132,7 +135,6 @@ abstract class DbTable extends Object
 				continue;
 
 			$label = isset($labels[$name]) ? $labels[$name] : null;
-
 
 			switch ($data['type']) {
 			case 'text':
@@ -232,9 +234,6 @@ abstract class DbTable extends Object
 			$this->primaryKeyValue = $value;
 
 		} else {
-			if (strpos($column, '.') === false)
-				$column = $this->table . ".$column";
-
 			if (!empty($mod))
 				$this->fieldsModificators[$column] = $mod;
 
@@ -316,7 +315,7 @@ abstract class DbTable extends Object
 		if (!Tools::startWith($method, 'set'))
 			throw new BadMethodCallException("Undefined method DbTable::$method().");
 
-		$column = Tools::lTrim($method, 'set');
+		$column = substr($method, 3);
 		$column = str_replace('_', '.', $column);
 		$column = Tools::underscore($column);
 		return $this->set($column, array_shift($args), array_shift($args));
@@ -337,7 +336,7 @@ abstract class DbTable extends Object
 		if (count($parts) > 1)
 			return self::$structure->getModificator($parts[0], $parts[1]);
 		else
-			return self::$structure->getModificator(self::$table, $parts[0]);
+			return self::$structure->getModificator($this->table, $parts[0]);
 	}
 
 
