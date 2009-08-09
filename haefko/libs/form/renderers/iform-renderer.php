@@ -19,16 +19,16 @@ interface IFormRenderer
 
 	/**
 	 * Sets Form
-	 * @param   Form $form
-	 * @return  Form
+	 * @param Form $form
+	 * @return Form
 	 */
 	public function setForm(Form $form);
 
 
 	/**
 	 * Renders form (or part of form)
-	 * @param   string $part
-	 * @return  string
+	 * @param string $part
+	 * @return string
 	 */
 	public function render($part = null);
 
