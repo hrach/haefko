@@ -23,6 +23,11 @@ require_once dirname(__FILE__) . '/form/condition.php';
 require_once dirname(__FILE__) . '/form/controls/controls.php';
 
 
+/**
+ * Form class
+ * Creates, observes, renders html forms
+ * @property-read IFormRenderer $renderer
+ */
 class Form extends Object implements ArrayAccess, IteratorAggregate
 {
 
@@ -58,12 +63,14 @@ class Form extends Object implements ArrayAccess, IteratorAggregate
 	 * @param string $method form method
 	 * @return Form
 	 */
-	public function __construct($url = '', $name = 'form', $method = 'post')
+	public function __construct($url = null, $name = null, $method = 'post')
 	{
 		# application url proccesing
 		if (class_exists('Application', false) && !empty($url))
 			$url = call_user_func(array(Controller::get(), 'url'), $url);
 
+		if (empty($name))
+			$name = 'form';
 
 		static $counter = 0;
 		if ($name == 'form' && $counter++ == 0)
