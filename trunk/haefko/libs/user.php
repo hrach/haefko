@@ -18,7 +18,6 @@ require_once dirname(__FILE__) . '/object.php';
 /**
  * @author      Jan Skrasek, Zdenek Topic
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek, Zdenek Topic
- * @package     Haefko_Libs
  */
 class User extends Object
 {
@@ -27,6 +26,7 @@ class User extends Object
 	const INVALID_CREDENTIALS = false;
 	const INVALID_USERNAME = 1;
 	const INVALID_PASSWORD = 2;
+	const UNAUTHORIZED_USER = 3;
 	/**#@-*/
 
 	/** @var SessionNamespace */
@@ -41,11 +41,16 @@ class User extends Object
 
 	/**
 	 * Constructor
+	 * @param string|IUserHandler $userHandler
+	 * @param Permission $acl
 	 * @return User
 	 */
-	public function __construct($acl = null)
+	public function __construct($userHandler = null, Permission $acl = null)
 	{
-		if ($acl instanceof Permission)
+		if (!empty($userHandler))
+			$this->setUserHandler($userHandler);
+
+		if (!empty($acl))
 			$this->setAcl($acl);
 
 		$this->session = Session::getNamespace('auth.user');
@@ -62,6 +67,7 @@ class User extends Object
 	 * Returns true if user has rights for $action on $resource
 	 * @param string $res resource name
 	 * @param string $action action name
+	 * @throws LogicException
 	 * @return bool
 	 */
 	public function isAllowed($res, $action = '*')
@@ -126,13 +132,14 @@ class User extends Object
 	 */
 	public function authenticate($username, $password, $extra = array())
 	{
-		$handler = new $this->userHandler;
-		$result = $handler->authenticate(array(
-			'username' => $username,
-			'password' => $password,
-			'extra' => $extra
-		));
+		if (!is_object($this->userHandler))
+			$handler = new $this->userHandler;
 
+		if (!($handler instanceof IUserHandler))
+			throw new LogicException('User handler have to implements interface IUserHandler.');
+
+		$args = func_get_args();
+		$result = call_user_func_array(array($handler, 'authenticate'), $args);
 		return $this->processIdentity($result);
 	}
 
@@ -258,7 +265,9 @@ class User extends Object
 	{
 		if ($identity === User::INVALID_CREDENTIALS
 		 || $identity === User::INVALID_USERNAME
-		 || $identity === User::INVALID_PASSWORD)
+		 || $identity === User::INVALID_PASSWORD
+		 || $indetity === User::UNAUTHORIZED_USER
+		)
 			return $identity;
 		elseif (!($identity instanceof IIdentity))
 			throw new Exception('Result of UserHandler::authenticate() must implements IIdentity.');
@@ -277,18 +286,18 @@ class User extends Object
 /**
  * @author      Jan Skrasek, Zdenek Topic
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek, Zdenek Topic
- * @package     Haefko_Libs
  */
 interface IUserHandler
 {
 
 
 	/**
-	 * Returns user indentity or false
-	 * @param array $credentials user credentials - array with keys username, password, extra
-	 * @return IIdentity|User::INVALID_*
+	 * Returns user indentity or User::* constants
+	 * @param string $username
+	 * @param string $password
+	 * @return IIdentity|User::***
 	 */
-	public function authenticate($credentials);
+	public function authenticate($username, $password);
 
 
 	/**
