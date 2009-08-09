@@ -62,7 +62,7 @@ abstract class Object
 
 	/**
 	 * Magic method
-	 * @throws Exception
+	 * @throws OutOfBoundsException
 	 * @return mixed
 	 */
 	public function __get($key)
@@ -72,13 +72,13 @@ abstract class Object
 		elseif (method_exists($this, "get$key"))
 			return $this->{"get$key"}();
 		else
-			throw new Exception("Undefined variable " . $this->getClass() . "::$$key.");
+			throw new OutOfBoundsException("Undefined variable " . $this->getClass() . "::$$key.");
 	}
 
 
 	/**
 	 * Magic method
-	 * @throws Exception
+	 * @throws OutOfBoundsException
 	 * @return mixed
 	 */
 	public function __set($key, $value)
@@ -87,9 +87,9 @@ abstract class Object
 			return $this->{"set$key"}($value);
 		} else {
 			if (method_exists($this, "get$key"))
-				throw new Exception("Variable " . $this->getClass() . "::$$key is read-only.");
+				throw new OutOfBoundsException("Variable " . $this->getClass() . "::$$key is read-only.");
 			else
-				throw new Exception("Undefined variable " . $this->getClass() . "::$$key.");
+				throw new OutOfBoundsException("Undefined variable " . $this->getClass() . "::$$key.");
 		}
 	}
 
@@ -98,7 +98,7 @@ abstract class Object
 	 * Interface __call()
 	 * @param mixed $method method name
 	 * @param mixed $args
-	 * @throws Exception
+	 * @throws BadMethodCallException
 	 * @return mixed
 	 */
 	public function __call($method, $args)
@@ -116,7 +116,7 @@ abstract class Object
 			}
 		}
 
-		throw new Exception('Undefined method ' . get_class($this) . "::$method().");
+		throw new BadMethodCallException('Undefined method ' . get_class($this) . "::$method().");
 	}
 
 
