@@ -32,8 +32,8 @@ class FilterHelper extends Object
 			if (empty($varName))
 				$varName = 'filter';
 
-			static $filters = array('bytes', 'escape', 'trim', 'lower', 'upper',
-				'nl2br', 'strip', 'stripTags', 'date', 'format', 'shuffle',
+			static $filters = array('bytes', 'escape', 'lower', 'upper',
+				'strip', 'stripTags', 'date', 'format', 'shuffle',
 				'explode', 'implode', 'truncate');
 
 			foreach ($filters as $f)
@@ -67,18 +67,6 @@ class FilterHelper extends Object
 
 
 	/**
-	 * Trim filter
-	 * @param string $var
-	 * @param string $chars
-	 * @return string
-	 */
-	public function trim($var, $chars = null)
-	{
-		return trim($vars, $chars);
-	}
-
-
-	/**
 	 * Lower (strtolower) filter
 	 * @param string $var
 	 * @return string
@@ -97,17 +85,6 @@ class FilterHelper extends Object
 	public function upper($var)
 	{
 		return strtoupper($var);
-	}
-
-
-	/**
-	 * NL to BR filter
-	 * @param string $var
-	 * @return string
-	 */
-	public function nl2br($var)
-	{
-		return nl2br($var);
 	}
 
 
