@@ -500,8 +500,8 @@ class Template extends Object implements ITemplate
 	 */
 	protected function __cbVariables($matches)
 	{
-		return '<?php echo ' . $this->parseFilters($matches[1] . @$matches[2],
-			@$matches[3], @$matches[2]) . ' ?>';
+		$escape = preg_match('#^\$(\w+)#', @$matches[2], $m) && isset($this->helpers[$m[1]]);
+		return '<?php echo ' . $this->parseFilters($matches[1] . @$matches[2], @$matches[3], $escape) . ' ?>';
 	}
 
 
@@ -548,7 +548,7 @@ class Template extends Object implements ITemplate
 	{
 		$expression = $this->tplFunctions[$matches[1]] . '(' . @$matches[2] . ')';
 		if (!empty($matches[3]))
-			$expression = $this->parseFilters($matches[3], $expression);
+			$expression = $this->parseFilters($expression, $matches[3], false);
 
 		return "<?php echo $expression ?>";
 	}
@@ -593,11 +593,12 @@ class Template extends Object implements ITemplate
 
 	/**
 	 * Parses filter expression
-	 * @param string $variable
-	 * @param string $expression
+	 * @param string $variable variable which shoul be filtered
+	 * @param string $expression unparsed filters expression
+	 * @param bool $allowAutoescape
 	 * @return string
 	 */
-	private function parseFilters($variable, $expression, $varName = null)
+	private function parseFilters($variable, $expression, $allowAutoescape = true)
 	{
 		$filters = array();
 		if (empty($expression))
@@ -614,23 +615,15 @@ class Template extends Object implements ITemplate
 			}
 		}
 
-		if ($varName !== null) {
-			if (preg_match('#^\$(\w+)#', $varName, $matches)) {
-				if (isset($this->helpers[$matches[1]]))
-					$varName = $matches[1];
-				else
-					$varName = null;
-			} else {
-				$varName = null;
-			}
-		}
-
-		if ($varName === null) {
+		if ($allowAutoescape) {
 			if (isset($filters['raw']))
 				unset($filters['raw']);
 			elseif (!isset($filters['escape']))
 				$filters['escape'] = array();
 		}
+
+		if (isset($filters['raw']))
+			unset($filters['raw']);
 
 		foreach ($filters as $name => $args) {
 			if (isset($this->tplFilters[$name]))
