@@ -70,15 +70,16 @@ class Cache extends Object implements ArrayAccess
 	/**
 	 * Reads cached data by key
 	 * @param string $key key name
+	 * @param array $conds condition sfor cache validation
 	 * @return mixed|null
 	 */
-	public function get($key)
+	public function get($key, $conds = array())
 	{
 		if (!$this->enabled)
 			return null;
 
 		if (!isset($this->meta[$key]))
-			$this->isCached($key);
+			$this->isCached($key, $conds);
 
 		if (!$this->meta[$key]['cached'])
 			return null;
@@ -90,9 +91,10 @@ class Cache extends Object implements ArrayAccess
 	/**
 	 * Checks if is key cached
 	 * @param string $key key file name
+	 * @param array $conds condition sfor cache validation
 	 * @return bool
 	 */
-	public function isCached($key)
+	public function isCached($key, $conds = array())
 	{
 		if (!$this->enabled) return false;
 		if (isset($this->meta[$key]['cached']))
@@ -104,7 +106,7 @@ class Cache extends Object implements ArrayAccess
 			return false;
 
 		$header = $this->readHeader($file);
-		if (!$this->isValid(array(), $header, $file))
+		if (!$this->isValid($conds, $header, $file))
 			return false;
 
 		$this->meta[$key]['header'] = $header;
