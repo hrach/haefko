@@ -22,23 +22,21 @@ require_once dirname(__FILE__) . '/form-renderer.php';
 class FormDivRenderer extends FormRenderer
 {
 
-
 	/** @var array - Wrappers */
 	public $wrappers = array(
 		'part' => 'div',
 		'pair' => 'div',
-		'label' => '',
-		'control' => '',
+		'label' => null,
+		'control' => null,
 		'button-separator' => null,
-		'list-separator' => 'br',
 	);
 
 
 	/**
 	 * Prepares part
-	 * @param   Html   wrapper
-	 * @param   Html   heading
-	 * @return  Html
+	 * @param Html $wrapper
+	 * @param Html $heading
+	 * @return Html
 	 */
 	protected function preparePart($wrapper, $heading)
 	{
@@ -52,9 +50,9 @@ class FormDivRenderer extends FormRenderer
 
 	/**
 	 * Prepares pair
-	 * @param   Html          wrapper
-	 * @param   FormControl
-	 * @return  Html
+	 * @param Html $wrapper
+	 * @param FormControl $control
+	 * @return Html
 	 */
 	protected function preparePair($wrapper, $control)
 	{

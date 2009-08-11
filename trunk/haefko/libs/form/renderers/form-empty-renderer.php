@@ -16,15 +16,15 @@
 require_once dirname(__FILE__) . '/form-renderer.php';
 
 
-class FormDlRenderer extends FormRenderer
+class FormEmptyRenderer extends FormRenderer
 {
 
 	/** @var array - Wrappers */
 	public $wrappers = array(
-		'part' => 'dl',
+		'part' => null,
 		'pair' => null,
-		'label' => 'dt',
-		'control' => 'dd',
+		'label' => null,
+		'control' => null,
 		'button-separator' => null,
 	);
 
@@ -42,39 +42,6 @@ class FormDlRenderer extends FormRenderer
 
 		$heading = Html::el('h3', $heading);
 		return $wrapper->prepend($heading->render(0));
-	}
-
-
-	/**
-	 * Prepares control
-	 * @param Html $wrapper
-	 * @param FormControl $control
-	 * @return Html
-	 */
-	protected function prepareControl($wrapper, $control)
-	{
-		static $i = 0;
-		if ($i++ % 2)
-			$wrapper->class('odd');
-		if ($control->htmlRequired)
-			$wrapper->class('required');
-
-		return $wrapper;
-	}
-
-
-	/**
-	 * Prepares label
-	 * @param Html $wrapper
-	 * @param FormControl $control
-	 * @return Html
-	 */
-	protected function prepareLabel($wrapper, $control)
-	{
-		if ($control->htmlRequired)
-			$wrapper->class('required');
-
-		return $wrapper;
 	}
 
 
