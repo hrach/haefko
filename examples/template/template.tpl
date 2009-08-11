@@ -1,3 +1,4 @@
+{extends 'layout.tpl'}
 {assign $title 'Titulek'}
 
 <h1>{$title}</h1>

@@ -46,7 +46,7 @@ class Cache extends Object implements ArrayAccess
 	 * @param string $key key name
 	 * @param mixed $data
 	 * @param array $options
-	 * @return void
+	 * @return bool
 	 */
 	public function set($key, $data, $options = array())
 	{
@@ -63,7 +63,7 @@ class Cache extends Object implements ArrayAccess
 				$options['files'][$file] = filemtime($file);
 		}
 
-		$this->write($key, $data, $options);
+		return $this->write($key, $data, $options);
 	}
 
 
@@ -204,7 +204,7 @@ class Cache extends Object implements ArrayAccess
 	 * @param string $key key name
 	 * @param string $data serialized data
 	 * @param array $header header meta information
-	 * @return void
+	 * @return bool
 	 */
 	protected function write($key, $data, $header)
 	{
@@ -216,12 +216,21 @@ class Cache extends Object implements ArrayAccess
 		$data = '<?php ## ' . str_pad((string) strlen($header), 6, '0', STR_PAD_LEFT)
 		      . $header . " ?>\n" . $data;
 
-		if ($fp = @fopen($file, 'w+b')) {
-			if (flock($fp, LOCK_EX))
-				fwrite($fp, $data);
 
-			fclose($fp);
-		}
+		$fp = @fopen($file, 'w+b');
+		if ($fp === false)
+			return false;
+
+		if (!flock($fp, LOCK_EX))
+			return false;
+
+		if (fwrite($fp, $data) === false)
+			return false;
+
+		if (!fclose($fp))
+			return false;
+
+		return true;
 	}
 
 

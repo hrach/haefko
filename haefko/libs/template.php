@@ -404,10 +404,6 @@ class Template extends Object implements ITemplate
 		if (!file_exists($this->file))
 			throw new Exception("Template file '{$this->file}' was not found.");
 
-		$cacheFile = 'template_' . md5($this->file);
-		if (!$this->cache->isCached($cacheFile))
-			$this->createTemplateTemp($cacheFile);
-
 		extract($this->vars);
 		extract($this->helpers);
 
@@ -418,9 +414,22 @@ class Template extends Object implements ITemplate
 		}
 
 		$___pre = ob_get_contents();
-		ob_clean();
+		$___cacheFile = 'template_' . md5($this->file);
 
-		include $this->cache->getFilename($cacheFile);
+		if (!$this->cache->isCached($___cacheFile)) {
+			$___result = $this->createTemplateTemp($___cacheFile);
+			ob_clean();
+
+			if ($___result === true) {
+				include $this->cache->getFilename($___cacheFile);
+			} else {
+				eval('?>' . $___result);
+			}
+		} else {
+			ob_clean();
+			include $this->cache->getFilename($___cacheFile);
+		}
+
 		$return = ob_get_contents();
 		ob_clean();
 
@@ -438,10 +447,13 @@ class Template extends Object implements ITemplate
 	/**
 	 * Creates php template file from pseudo template style
 	 * @param string $cacheFileName
+	 * @return bool
 	 */
 	protected function createTemplateTemp($cacheFile)
 	{
 		$file = file_get_contents($this->file);
+		if ($file === false)
+			throw new RuntimeException('File templates cant be read.');
 
 		# comments
 		$file = preg_replace('#\{\*.+\*\}#s', '', $file);
@@ -487,9 +499,14 @@ class Template extends Object implements ITemplate
 			}
 		}
 
-		$this->cache->set($cacheFile, $file, array(
+		$result = $this->cache->set($cacheFile, $file, array(
 			'files' => array($this->file)
 		));
+
+		if (!$result)
+			return $file;
+		else
+			return true;
 	}
 
 
@@ -562,7 +579,7 @@ class Template extends Object implements ITemplate
 	protected function cbExtendsTrigger($expression)
 	{
 		$this->__hasExtends = true;
-		return "<?php \$template->setExtendsFile($expression) ?>";
+		return "<?php \$template->setExtendsFile($expression) //--EXLUDE--//?>";
 	}
 
 
