@@ -45,17 +45,17 @@ class Db
 	/** @var string */
 	private static $active;
 
-	/** @var DbConnection[] */
+	/** @var array[string]DbConnection */
 	private static $connections = array();
 
 
 	/**
 	 * Connects to database
 	 * If you don't provide $config, its load from config directive Db.connection
-	 * @link    http://haefko.skrasek.com/database
-	 * @param   array   connection config
-	 * @param   array   connection name
-	 * @return  bool
+	 * @link http://haefko.skrasek.com/database
+	 * @param array $config connection config
+	 * @param string $name connection name
+	 * @return bool
 	 */
 	public static function connect($config = array(), $name = 'default')
 	{
@@ -73,8 +73,7 @@ class Db
 
 	/**
 	 * Actives the connection $name
-	 * @param   string  connection name
-	 * @return  void
+	 * @param string $name connection name
 	 */
 	public static function active($name)
 	{
@@ -87,9 +86,9 @@ class Db
 
 	/**
 	 * Wrapper for active connection
-	 * @see     DbConnection::rawPrepare()
-	 * @param   string    sql query
-	 * @return  DbResult
+	 * @see DbConnection::rawPrepare()
+	 * @param string $sql sql query
+	 * @return DbResult
 	 */
 	public static function execute($sql)
 	{
@@ -100,9 +99,9 @@ class Db
 
 	/**
 	 * Wrapper for active connection
-	 * @see     DbConnection::prepare()
-	 * @param   string    sql query
-	 * @return  DbPreparedResult
+	 * @see DbConnection::prepare()
+	 * @param string $sql sql query
+	 * @return DbPreparedResult
 	 */
 	public static function prepare($sql)
 	{
@@ -113,9 +112,9 @@ class Db
 
 	/**
 	 * Wrapper for active connection
-	 * @see     DbConnection::query()
-	 * @param   string    sql query
-	 * @return  DbResult
+	 * @see DbConnection::query()
+	 * @param string $sql sql query
+	 * @return DbResult
 	 */
 	public static function query($sql)
 	{
@@ -126,9 +125,9 @@ class Db
 
 	/**
 	 * Wrapper for active connection
-	 * @see     DbConnection::fetchField()
-	 * @param   string    sql query
-	 * @return  mixed
+	 * @see DbConnection::fetchField()
+	 * @param string $sql sql query
+	 * @return mixed
 	 */
 	public static function fetchField($sql)
 	{
@@ -139,9 +138,9 @@ class Db
 
 	/**
 	 * Wrapper for active connection
-	 * @see     DbConnection::fetch()
-	 * @param   string    sql query
-	 * @return  mixed
+	 * @see DbConnection::fetch()
+	 * @param string $sql sql query
+	 * @return mixed
 	 */
 	public static function fetch($sql)
 	{
@@ -152,9 +151,9 @@ class Db
 
 	/**
 	 * Wrapper for active connection
-	 * @see     DbConnection::fetchAll()
-	 * @param   string    sql query
-	 * @return  mixed
+	 * @see DbConnection::fetchAll()
+	 * @param string $sql sql query
+	 * @return mixed
 	 */
 	public static function fetchAll($sql)
 	{
@@ -165,9 +164,9 @@ class Db
 
 	/**
 	 * Wrapper for active connection
-	 * @see     DbConnection::fetchPairs()
-	 * @param   string    sql query
-	 * @return  mixed
+	 * @see DbConnection::fetchPairs()
+	 * @param string $sql sql query
+	 * @return mixed
 	 */
 	public static function fetchPairs($sql)
 	{
@@ -178,8 +177,8 @@ class Db
 
 	/**
 	 * Wrapper for active connection
-	 * @see     DbConnection::affectedRows()
-	 * @return  int
+	 * @see DbConnection::affectedRows()
+	 * @return int
 	 */
 	public static function affectedRows()
 	{
@@ -189,16 +188,15 @@ class Db
 
 	/**
 	 * Logs sql query to debugger. Works only when Db.debug is active
-	 * @param   string    sql query
-	 * @param   int       microtime timestamp
-	 * @return  void
+	 * @param string $sql sql query
+	 * @param int $time microtime timestamp
 	 */
 	public static function debug($sql, $time)
 	{
 		if (!class_exists('Config', false) || !class_exists('Debug', false))
 			return;
 
-		if (Config::read('core.debug') < 3 || Config::read('db.debug', 1) == 0)
+		if (Config::read('db.debug', 1) == 0)
 			return;
 
 		$abbr = 'time: ' . Debug::getTime($time) . 'ms; affected: ' . self::affectedRows();
@@ -209,8 +207,8 @@ class Db
 
 	/**
 	 * Returns active connection
-	 * @throws  Exception
-	 * @return  DbConnection
+	 * @throws Exception
+	 * @return DbConnection
 	 */
 	public static function getConnection()
 	{
@@ -223,7 +221,7 @@ class Db
 	
 	/**
 	 * Returns db driver
-	 * @return  DbDriver
+	 * @return DbDriver
 	 */
 	public static function getDriver()
 	{

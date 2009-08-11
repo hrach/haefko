@@ -65,13 +65,13 @@ class DbPreparedResult extends DbResult
 	/**
 	 * Sets association
 	 * @param string $main main table name
-	 * @param array $hasMany other tables in relation hasMany
+	 * @param string $hasMany table which is in relation hasMany
 	 * @return DbPreparedResult
 	 */
-	public function setAssociation($main, $hasMany = array())
+	public function setAssociation($main, $hasMany)
 	{
 		$this->association[0] = $main;
-		$this->association[1] = (array) $hasMany;
+		$this->association[1] = (string) $hasMany;
 		return $this;
 	}
 

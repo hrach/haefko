@@ -35,7 +35,7 @@ class DbResultNode implements ArrayAccess, IteratorAggregate
 	 */
 	public function __get($name)
 	{
-		throw new Exception("Undefined field '$name'.");
+		throw new Exception("Undefined resultset field '$name'.");
 	}
 
 
