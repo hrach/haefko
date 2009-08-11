@@ -284,24 +284,13 @@ class DbResult extends Object implements Countable, IteratorAggregate
 		if ($this->tables) {
 			$row = $this->combineColumns($row);
 
-			# association
+			# hasMany association
 			if (!empty($this->association)) {
-				# prepare hasMany
-				foreach ($row as $table => $data) {
-					if (in_array($table, $this->association[1])) {
-						# filter empty result
-						if (reset($data) !== null)
-							$row[$table] = array($data);
-						else
-							$row[$table] = array();
-					}
-				}
-
-				# add empty array in hasMany relation
-				foreach ($this->association[1] as $table) {
-					if (!isset($row[$table]))
-						$row[$table] = array();
-				}
+				# initialize hasMany table
+				if (!isset($row[$this->association[1]]))
+					$row[$this->association[1]] = array();
+				else
+					$row[$this->association[1]] = array($row[$this->association[1]]);
 
 
 				# add associated rows
@@ -327,7 +316,7 @@ class DbResult extends Object implements Countable, IteratorAggregate
 
 					# copy tables
 					foreach ($newRow as $table => $data) {
-						if (!in_array($table, $this->association[1]))
+						if ($table != $this->association[1])
 						# hasOne
 							$row[$table] = $data;
 						else
