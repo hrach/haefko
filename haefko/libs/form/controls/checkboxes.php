@@ -117,7 +117,7 @@ class FormMultiCheckboxControl extends FormInputControl
 		$label = Html::el('label');
 		$control = parent::getControl();
 		if ($key === null)
-			$container = Html::el('div')->id($radio->id)->class('multi-inputs');
+			$container = Html::el('div')->id($control->id)->class('multi-inputs');
 		elseif (!isset($this->options[$key]))
 			return null;
 

@@ -16,12 +16,8 @@
 require_once dirname(__FILE__) . '/form-renderer.php';
 
 
-/**
- * Form renderer which wraps into table
- */
 class FormTableRenderer extends FormRenderer
 {
-
 
 	/** @var array - Wrappers */
 	public $wrappers = array(
@@ -30,15 +26,14 @@ class FormTableRenderer extends FormRenderer
 		'label' => 'th',
 		'control' => 'td',
 		'button-separator' => null,
-		'list-separator' => 'br',
 	);
 
 
 	/**
 	 * Prepares part
-	 * @param   Html   wrapper
-	 * @param   Html   heading
-	 * @return  Html
+	 * @param Html $wrapper
+	 * @param Html $heading
+	 * @return Html
 	 */
 	protected function preparePart($wrapper, $heading)
 	{
@@ -52,9 +47,9 @@ class FormTableRenderer extends FormRenderer
 
 	/**
 	 * Prepares pair
-	 * @param   Html          wrapper
-	 * @param   FormControl
-	 * @return  Html
+	 * @param Html $wrapper
+	 * @param FormControl $control
+	 * @return Html
 	 */
 	protected function preparePair($wrapper, $control)
 	{
@@ -70,9 +65,9 @@ class FormTableRenderer extends FormRenderer
 
 	/**
 	 * Prepares label
-	 * @param   Html          wrapper
-	 * @param   FormControl
-	 * @return  Html
+	 * @param Html $wrapper
+	 * @param FormControl $contrl
+	 * @return Html
 	 */
 	protected function prepareLabel($wrapper, $control)
 	{

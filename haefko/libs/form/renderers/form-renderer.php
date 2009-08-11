@@ -19,7 +19,6 @@ require_once dirname(__FILE__) . '/iform-renderer.php';
 abstract class FormRenderer extends Object implements IFormRenderer
 {
 
-
 	/** @var IFormJsValidator */
 	public $javascript = null;
 
@@ -38,7 +37,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 	/**
 	 * Constructor
-	 * @return  FormRenderer
+	 * @return FormRenderer
 	 */
 	public function __construct()
 	{
@@ -52,8 +51,8 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 	/**
 	 * Sets Form object
-	 * @param   Form $form
-	 * @return  FormRenderer
+	 * @param Form $form
+	 * @return FormRenderer
 	 */
 	public function setForm(Form $form)
 	{
@@ -64,7 +63,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 	/**
 	 * Sets javascript validator
-	 * @param   string|IFormJsValidator    name (just type of renderer - jquery) or object
+	 * @param string|IFormJsValidator $validator name (just type of renderer - jquery) or object
 	 * @return  
 	 */
 	public function setJsValidator($validator)
@@ -87,9 +86,9 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 	/**
 	 * Renders form $part
-	 * @param   string  part of form
-	 * @param   mixed   attributes and setting
-	 * @return  string
+	 * @param string $part part of form
+	 * @param mixed attributes and setting
+	 * @return string
 	 */
 	public function render($part = null)
 	{
@@ -110,7 +109,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 	/**
 	 * Renders form
-	 * @return  string
+	 * @return string
 	 */
 	protected function renderForm()
 	{
@@ -122,8 +121,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 	/**
 	 * Renders form start tag
-	 * @param   array   html attributes
-	 * @return  string
+	 * @return string
 	 */
 	protected function renderStart()
 	{
@@ -133,8 +131,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 	/**
 	 * Renders form end tag
-	 * @param   array  params and attributes
-	 * @return  string
+	 * @return string
 	 */
 	protected function renderEnd()
 	{
@@ -144,8 +141,10 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 	/**
 	 * Renders body
-	 * @param   array  params and attributes
-	 * @return  string
+	 * @param array $controls controls for rendering
+	 * @param string $heading
+	 * @param array $attrs
+	 * @return string
 	 */
 	protected function renderPart($controls = array(), $heading = '', $attrs = array())
 	{
@@ -201,8 +200,8 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 	/**
 	 * Renders block of control and label
-	 * @param   array  params and attributes
-	 * @return  string
+	 * @param string $name control name
+	 * @return string
 	 */
 	protected function renderPair($name)
 	{
@@ -219,8 +218,8 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 	/**
 	 * Renders control
-	 * @param   string  control name
-	 * @return  string
+	 * @param string $name control name
+	 * @return string
 	 */
 	protected function renderControl($name)
 	{
@@ -235,8 +234,8 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 	/**
 	 * Renders label
-	 * @param   string  control name
-	 * @return  string
+	 * @param string $name control name
+	 * @return string
 	 */
 	protected function renderLabel($name)
 	{
@@ -252,7 +251,7 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 	/**
 	 * Renders javascript
-	 * @return  string
+	 * @return string
 	 */
 	protected function renderJavascript()
 	{
@@ -273,8 +272,8 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 	/**
 	 * Returns wrapper object
-	 * @param   string  wrapper type
-	 * @return  Html
+	 * @param string $type wrapper type
+	 * @return Html
 	 */
 	protected function getWrapper($type)
 	{
@@ -287,9 +286,9 @@ abstract class FormRenderer extends Object implements IFormRenderer
 
 	/**#@+
 	 * Prepares wrapperes
-	 * @param   Html          wrapper
-	 * @param   FormControl
-	 * @return  Html
+	 * @param Html $wrapper
+	 * @param FormControl $control
+	 * @return Html
 	 */
 	protected function preparePart($wrapper, $control) { return $wrapper; }
 	protected function preparePair($wrapper, $control) { return $wrapper; }
