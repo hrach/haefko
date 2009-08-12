@@ -518,7 +518,7 @@ class Template extends Object implements ITemplate
 	protected function __cbVariables($matches)
 	{
 		$escape = preg_match('#^\$(\w+)#', @$matches[2], $m) && isset($this->helpers[$m[1]]);
-		return '<?php echo ' . $this->parseFilters($matches[1] . @$matches[2], @$matches[3], $escape) . ' ?>';
+		return '<?php echo ' . $this->parseFilters($matches[1] . @$matches[2], @$matches[3], !$escape) . ' ?>';
 	}
 
 
