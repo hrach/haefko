@@ -456,7 +456,7 @@ class Template extends Object implements ITemplate
 			throw new RuntimeException('File templates cant be read.');
 
 		# comments
-		$file = preg_replace('#\{\*.+\*\}#s', '', $file);
+		$file = preg_replace('#\{\*.+\*\}(\r?\n)?#s', '', $file);
 
 		# keywords
 		$keywords_k = $keywords_v = array();

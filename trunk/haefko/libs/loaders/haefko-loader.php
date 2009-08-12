@@ -29,6 +29,7 @@ class HaefkoLoader extends Loader
 		'cache'         => 'libs/cache.php',
 		'config'        => 'libs/config.php',
 		'control'       => 'libs/control.php',
+		'cookie'        => 'libs/cookie.php',
 		'datagrid'      => 'libs/data-grid.php',
 		'debug'         => 'libs/debug.php',
 		'object'        => 'libs/object.php',

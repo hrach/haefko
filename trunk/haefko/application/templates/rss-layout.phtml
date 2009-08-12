@@ -10,7 +10,7 @@
  * @subpackage  Templates
  *}
 {mimetype 'application/rss+xml'}
-{php echo '<' . '?xml version="1.0" encoding="utf-8"?>'}
+{php echo '<' . '?xml version="1.0" encoding="utf-8"?>' . "\n"}
 <rss version="2.0">
 <channel>
 	<generator>haefko framework - http://haefko.skrasek.com</generator>
@@ -19,8 +19,7 @@
 	<title>{$title}</title>
 	<description>{$description}</description>
 	<lastBuildDate>{$rss->date()}</lastBuildDate>
-	<link>{link $link, null, true}</link>
-
+	{if isset($link)}<link>{$link}</link>{/if}
 	{if isset($image['title']) && isset($image['src']) && isset($image['link'])}
 	<image>
 		<title>{$image['title']}</title>
