@@ -155,7 +155,7 @@ class Router
 
 
 		$routing = array_merge(
-			array('controller' => '', 'action' => 'index', 'module' => array(), 'service' => ''),
+			array('controller' => '', 'action' => 'index', 'module' => array()),
 			(array) $defaults,
 			$this->defaults,
 			$routing

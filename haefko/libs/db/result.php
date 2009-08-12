@@ -287,10 +287,15 @@ class DbResult extends Object implements Countable, IteratorAggregate
 			# hasMany association
 			if (!empty($this->association)) {
 				# initialize hasMany table
-				if (!isset($row[$this->association[1]]))
+				if (!isset($row[$this->association[1]])) {
 					$row[$this->association[1]] = array();
-				else
-					$row[$this->association[1]] = array($row[$this->association[1]]);
+				} else {
+					$data = $row[$this->association[1]];
+					if (reset($data) !== null)
+						$row[$this->association[1]] = array($data);
+					else
+						$row[$this->association[1]] = array();
+				}
 
 
 				# add associated rows
