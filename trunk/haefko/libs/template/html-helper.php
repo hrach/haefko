@@ -40,17 +40,16 @@ class HtmlHelper extends Object
 	/**
 	 * Returns HTML link
 	 * If text is null, then as the title is used link url
-	 * @param   string    url
-	 * @param   string    link text
-	 * @param   array     html attributes
-	 * @param   bool      escape link content
-	 * @return  string
+	 * @param string $url url
+	 * @param string $text link text
+	 * @param array $attrs html attributes
+	 * @param bool $escape escape link content
+	 * @return string
 	 */
 	public function link($url, $text = null, $attrs = array(), $escape = true)
 	{
 		$url = $this->factoryUrl($url);
-		$el = Html::el('a')->setAttrs($attrs)
-		                   ->href($url);
+		$el = Html::el('a')->setAttrs($attrs)->href($url);
 
 		if ($escape)
 			$el->setText($text === null ? $url : $text);
@@ -62,30 +61,20 @@ class HtmlHelper extends Object
 
 
 	/**
-	 * Returns HTML button
+	 * Returns HTML form button
 	 * If text is null, then as the title is used link url
-	 * @param   string    url
-	 * @param   string    hidden value for post
-	 * @param   string    link text
-	 * @param   string    javascript confirm question
-	 * @param   array     html attributes
-	 * @param   bool      escape link content
-	 * @return  string
+	 * @param string $url url
+	 * @param string $text link text
+	 * @param array $attrs html attributes
+	 * @param bool $escape escape link content
+	 * @return string
 	 */
-	public function button($url, $value, $text, $confirm = false, $attrs = array(), $escape = false)
+	public function button($url, $text, $attrs = array(), $escape = false)
 	{
 		$form = Html::el('form', null, array(
 			'action' => $this->factoryUrl($url),
-			'method' => 'post',
-			'class' => 'button'
+			'class' => 'button',
 		));
-
-		$form->setAttrs($attrs)
-		     ->addHtml('<input type="hidden" name="entry" value="' . $value . '" />');
-
-
-		if (!empty($confirm))
-			$form->onclick("if (confirm('$confirm')) { return true; } else { return false; }");
 
 		$button = Html::el('button');
 		$button->type('submit');
@@ -94,33 +83,29 @@ class HtmlHelper extends Object
 		else
 			$button->addHtml($text);
 
-		$form->addHtml($button);
-		return $form->render(false);
+		return $form->setAttrs($attrs)->addHtml($button)->render(false);
 	}
 
 
 	/**
 	 * Returns HTML image
-	 * @param   string    url
-	 * @param   array     html attributes
-	 * @return  string
+	 * @param string $url
+	 * @param array $attrs html attributes
+	 * @return string
 	 */
 	public function img($url, $attrs = array())
 	{
 		$url = $this->factoryUrl($url);
-		$el = Html::el('img')->setAttrs($attrs)
-		                     ->src($url);
-
-		return $el->render();
+		return Html::el('img')->setAttrs($attrs)->src($url)->render();
 	}
 
 
 	/**
 	 * Returns HTML css-external tag
-	 * @param   string    url
-	 * @param   string    media type
-	 * @param   bool      append timestamp?
-	 * @return  string
+	 * @param string $file url
+	 * @param string $media media type
+	 * @param bool $timestamp append timestamp?
+	 * @return string
 	 */
 	public function css($file, $media = 'screen', $timestamp = true)
 	{
@@ -142,9 +127,9 @@ class HtmlHelper extends Object
 
 	/**
 	 * Returns HTML js-external tag
-	 * @param   string    url
-	 * @param   bool      append timestamp?
-	 * @return  string
+	 * @param string $file url
+	 * @param bool $timestamp append timestamp?
+	 * @return string
 	 */
 	public function js($file, $timestamp = true)
 	{
@@ -164,9 +149,9 @@ class HtmlHelper extends Object
 
 	/**
 	 * Returns HTML rss link tag
-	 * @param   string    url
-	 * @param   string    rss title
-	 * @return  string
+	 * @param string $url
+	 * @param string $title rss title
+	 * @return string
 	 */
 	public function rss($url, $title = 'RSS')
 	{
