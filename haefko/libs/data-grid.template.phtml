@@ -1,6 +1,4 @@
-<?php
-
-/**
+{**
  * Haefko - your php5 framework
  *
  * @author      Jan Skrasek
@@ -9,72 +7,73 @@
  * @license     http://www.opensource.org/licenses/mit-license.html
  * @version     0.9 - $Id$
  * @package     Haefko
- */
- 
-?>
+ *}
+{noEscape $grid}
 <table class="datagrid">
 <thead>
 	<tr>
-		<?php foreach ($grid->columns as $column): ?>
+	{foreach $grid->columns as $column}
 		<th>
-			<?php if (in_array($column, $grid->orderable) || empty($grid->orderable)): ?>
-				<?= $html->link($grid->paramUrl('order', $grid->getOrderState($column)),
-				                $grid->columnLabel($column) . $grid->columnStateNum($column),
-				                $grid->columnStateClass($column), false) ?>
-			<?php else: ?>
-				<?= $grid->columnLabel($column) ?>
-			<?php endif; ?>
+			{if in_array($column, $grid->orderable) || empty($grid->orderable)}
+				{$html->link($grid->paramUrl('order', $grid->getOrderState($column)),
+				 				$grid->columnLabel($column) . $grid->columnStateNum($column),
+				                $grid->columnStateClass($column), false)}
+			{else}
+				{$grid->columnLabel($column)}
+			{/if}
 		</th>
-		<?php endforeach; ?>
-		<?php if ($grid->showActions): ?>
+	{/foreach}
+	{if $grid->showActions}
 		<th>Actions</th>
-		<?php endif; ?>
+	{/if}
 	</tr>
 </thead>
 <tbody>
-	<?php foreach ($rows as $i => $row): ?>
-	<tr<?php echo ($i % 2) ? ' class="odd"' : '' ?>>
-	<?php foreach ($row as $field): ?>
-	<td><?= $field ?></td>
-	<?php endforeach; ?>
-	<?php if ($grid->showActions): ?>
-	<td><?= $grid->invokeActionsCallback($this, $row) ?></td>
-	<?php endif; ?>
+	{foreach $rows as $i => $row}
+	<tr{php echo ($i % 2) ? ' class="odd"' : ''}>
+	{foreach $row as $name => $field}
+		{if (!empty($grid->columns) && !in_array($name, $grid->columns))}
+			{continue}
+		{/if}
+		<td>{$field}</td>
+	{/foreach}
+	{if $grid->showActions}
+		<td>{$grid->invokeActionsCallback($this, $row)}</td>
+	{/if}
 	</tr>
-	<?php endforeach; ?>
+	{/foreach}
 </tbody>
 <tfoot>
 	<tr>
-	<td colspan="<?= count($grid->columns) + ($grid->showActions ? 1 : 0) ?>">
+	<td colspan="{=count($grid->columns) + ($grid->showActions ? 1 : 0)}">
 		<div class="datagrid-pagination">
-		<?php
-			$paginator = $grid->query->paginator;
+			{php $paginator = $grid->query->paginator}
 
-			if (!$paginator->isFirst()) {
-				echo '<a href="' . $grid->paramUrl('page', 1) . '"><span class="first">First</span></a> ';
-				echo '<a href="' . $grid->paramUrl('page', $paginator->page - 1) . '"><span class="prev">Previous</span></a> ';
-			} else {
-				echo '<span class="first-off">First</span> ';
-				echo '<span class="prev-off">Previous</span> ';
-			}
+			{if !$paginator->isFirst()}
+				<a href="{$grid->paramUrl('page', 1)}"><span class="first">First</span></a>
+				<a href="{$grid->paramUrl('page', $paginator->page - 1)}"><span class="prev">Previous</span></a>
+			{else}
+				<span class="first-off">First</span>
+				<span class="prev-off">Previous</span>
+			{/if}
 
-			echo '<form style="display: inline">';
-			if ($grid->getVar('order') != null)
-				echo '<input type="hidden" name="' . $grid->name . '-order" value="' . $grid->getVar('order') . '" />';
+			<form style="display: inline">
+			{if $grid->getVar('order') != null}
+				<input type="hidden" name="{$grid->name}-order" value="{$grid->getVar('order')}" />
+			{/if}
 
-			$page = $grid->getVar('page');
-			$page = empty($page) ? 1 : $page;
-			echo 'Page <input type="text" name="' . $grid->name . '-page" value="' . $page . '" class="text" /> of ' . $paginator->pages;
-			echo '</form> ';
+			{php $page = $grid->getVar('page')}
+			{php $page = empty($page) ? 1 : $page}
+			Page <input type="text" name="{$grid->name}-page" value="{$page}" class="text" /> of {$paginator->pages}
+			</form>
 
-			if (!$paginator->isLast()) {
-				echo '<a href="' . $grid->paramUrl('page', $paginator->page + 1) . '"><span class="next">Next</span></a> ';
-				echo '<a href="' . $grid->paramUrl('page', $paginator->pages) . '"><span class="last">Last</span></a> ';
-			} else {
-				echo '<span class="next-off">Next</span> ';
-				echo '<span class="last-off">Last</span> ';
-			}
-		?>
+			{if !$paginator->isLast()}
+				<a href="{$grid->paramUrl('page', $paginator->page + 1)}"><span class="next">Next</span></a>
+				<a href="{$grid->paramUrl('page', $paginator->pages)}"><span class="last">Last</span></a>
+			{else}
+				<span class="next-off">Next</span>
+				<span class="last-off">Last</span>
+			{/if}
 		</div>
 	</td>
 	</tr>

@@ -40,6 +40,8 @@ class Template extends Object implements ITemplate
 		'{/foreach}' => '<?php endforeach; ?>',
 		'{/while}' => '<?php endwhile; ?>',
 		'{else}' => '<?php ; else: ?>',
+		'{continue}' => '<?php continue; ?>',
+		'{break}' => '<?php break; ?>',
 	);
 
 	/** @var array */
@@ -47,6 +49,7 @@ class Template extends Object implements ITemplate
 		'php' => array('Template', 'cbPhpTrigger'),
 		'extends' => array('Template', 'cbExtendsTrigger'),
 		'assign' => array('Template', 'cbAssignTrigger'),
+		'noescape' => array('Template', 'cbNoEscapeTrigger'),
 	);
 
 	/** @var array */
@@ -89,6 +92,9 @@ class Template extends Object implements ITemplate
 
 	/** @var array */
 	protected $registeredBlocks = array();
+
+	/** @var array */
+	protected $dontEscape = array();
 
 	/** @var bool */
 	private $__hasExtends = false;
@@ -318,6 +324,7 @@ class Template extends Object implements ITemplate
 			$class = ucfirst(strtolower($name)) . 'Helper';
 			$pairs[$name] = $var;
 			$this->helpers[$var] = new $class($this, $var);
+			$this->dontEscape[$var] = true;
 		}
 
 		return $this->helpers[$var];
@@ -341,7 +348,7 @@ class Template extends Object implements ITemplate
 	 * Sends mimetype header
 	 * @param string $mimetype
 	 */
-	protected function setMimetype($mimetype = 'text/html')
+	public function setMimetype($mimetype = 'text/html')
 	{
 		header("Content-type: $mimetype");
 	}
@@ -467,6 +474,12 @@ class Template extends Object implements ITemplate
 		}
 		$file = preg_replace($keywords_k, $keywords_v, $file);
 
+		# triggers
+		$triggers = implode('|', array_keys($this->tplTriggers));
+		$file = preg_replace_callback('#\{(' . $triggers .')\s+(.+)?\}#Ui',
+			array($this, '__cbTriggers'), $file);
+
+
 		# variables
 		$file = preg_replace_callback('#\{(?:(?:=([^|\}]+?))|(\$[^|\}]+?))(?:\|([^\}]+?))?\}#U',
 			array($this, '__cbVariables'), $file);
@@ -474,11 +487,6 @@ class Template extends Object implements ITemplate
 		# extending
 		$file = preg_replace_callback('#\{block(?: (append|prepend))? (?:\#([^}]+))\}(.*)\{/block\}#Us',
 			array($this, '__cbBlock'), $file);
-
-		# triggers
-		$triggers = implode('|', array_keys($this->tplTriggers));
-		$file = preg_replace_callback('#\{(' . $triggers .')\s+([^|]+)?\}#U',
-			array($this, '__cbTriggers'), $file);
 
 		# functions
 		$functions = implode('|', array_keys($this->tplFunctions));
@@ -517,7 +525,7 @@ class Template extends Object implements ITemplate
 	 */
 	protected function __cbVariables($matches)
 	{
-		$escape = preg_match('#^\$(\w+)#', @$matches[2], $m) && isset($this->helpers[$m[1]]);
+		$escape = preg_match('#^\$(\w+)#', @$matches[2], $m) && isset($this->dontEscape[$m[1]]);
 		return '<?php echo ' . $this->parseFilters($matches[1] . @$matches[2], @$matches[3], !$escape) . ' ?>';
 	}
 
@@ -551,7 +559,7 @@ class Template extends Object implements ITemplate
 	 */
 	protected function __cbTriggers($matches)
 	{
-		$cb = $this->tplTriggers[$matches[1]];
+		$cb = $this->tplTriggers[strtolower($matches[1])];
 		return call_user_func($cb, $matches[2]);
 	}
 
@@ -605,6 +613,17 @@ class Template extends Object implements ITemplate
 		$var = substr($expression, 1, $space - 1);
 		$val = substr($expression, $space);
 		return "<?php \$template->setVar('$var', $val) //--EXLUDE--//?>";
+	}
+
+
+
+	/**
+	 * Callback for turns off variable escaping
+	 * @param string $name variable name
+	 */
+	protected function cbNoEscapeTrigger($expression)
+	{
+		$this->dontEscape[substr($expression, 1)] = true;
 	}
 
 
