@@ -30,19 +30,13 @@ class Debug
 
 	/**
 	 * Constructor
-	 * @throws Exception
-	 * @return void
 	 */
-	public function __construct()
-	{
-		throw new Exception('Class Debug cannot be instance.');
-	}
+	private function __construct() {}
 
 
 	/**
 	 * Initializes debuging, registers handlers
-	 * @param   bool   active debuggin
-	 * @return  void
+	 * @param bool $active active debuging
 	 */
 	public static function init($active = false)
 	{
@@ -61,6 +55,7 @@ class Debug
 				ini_set('log_errors', false);
 				ini_set('display_errors', false);
 			}
+
 			$init = true;
 		}
 	}
@@ -69,8 +64,7 @@ class Debug
 	/**
 	 * Exception handler
 	 * Catchs exception and show detail informations
-	 * @param   Exception
-	 * @return  void
+	 * @param Exception $exception
 	 */
 	public static function exceptionHandler(Exception $exception)
 	{
@@ -104,7 +98,7 @@ class Debug
 
 	/**
 	 * Returns time in miliseconds
-	 * @return  float
+	 * @return float
 	 */
 	public static function getTime($startTime = null)
 	{
@@ -118,8 +112,7 @@ class Debug
 	/**
 	 * Exception handler
 	 * Catchs exception and show detail informations
-	 * @param   Exception
-	 * @return  void
+	 * @param Exception
 	 */
 	public static function renderToolbar()
 	{
@@ -133,12 +126,11 @@ class Debug
 	/**
 	 * Error handler
 	 * Catchs errors and show detail informations
-	 * @param   int     error code
-	 * @param   string  error message
-	 * @param   string  error file
-	 * @param   int     error line
-	 * @param   array   var content
-	 * @return  void
+	 * @param int $id error code
+	 * @param string $message error message
+	 * @param string $file error file
+	 * @param int $line error line
+	 * @param array $vars var content
 	 */
 	public static function errorHandler($id, $message, $file, $line, $vars)
 	{
@@ -156,7 +148,6 @@ class Debug
 	/**
 	 * Shutdown handler
 	 * Catchs fatal errors during shuting down the script
-	 * @return  void
 	 */
 	public static function shutdownHandler()
 	{
@@ -188,8 +179,8 @@ class Debug
 
 	/**
 	 * Returns error name by error code
-	 * @param   int     error code
-	 * @return  string
+	 * @param int $id error code
+	 * @return string
 	 */
 	public static function getErrorLabel($id)
 	{
@@ -217,8 +208,8 @@ class Debug
 
 	/**
 	 * Dumps contents and structure of variable
-	 * @param   mixed
-	 * @return  mixed
+	 * @param mixed $var
+	 * @return mixed
 	 */
 	public static function dump($var)
 	{
@@ -229,7 +220,8 @@ class Debug
 
 	/**
 	 * Debugs to debug toolbar / firebug
-	 * @param   string  message
+	 * @param string $message message
+	 * @param string $group group name
 	 */
 	public static function toolbar($message, $group = '')
 	{
@@ -237,8 +229,8 @@ class Debug
 			return false;
 
 		# redirect content to firebug
-		if (Config::read('Debug.logto') == 'firebug' && self::$isFirebug)
-			return self::fireSend($message, $group);
+		if ((Config::read('debug.logto') == 'firebug' || Http::$request->isAjax) && self::$isFirebug)
+			return self::fireSend(is_string($message) ? strip_tags($message) : $message);
 
 		self::$toolbar[$group][] = $message;
 		return true;
@@ -247,8 +239,7 @@ class Debug
 
 	/**
 	 * Logs to the errorlog
-	 * @param   string  message
-	 * @return  void
+	 * @param string $message message
 	 */
 	public static function log($message)
 	{
@@ -264,11 +255,11 @@ class Debug
 
 	/**
 	 * Sends headers to firebug
-	 * @param   array     content
-	 * @param   string    message type (log|error)
-	 * @param   string    label
-	 * @throws  Exception
-	 * @return  bool
+	 * @param array $content content
+	 * @param string $type message type (log|error)
+	 * @param string $label label
+	 * @throws Exception
+	 * @return bool
 	 */
 	private static function fireSend($content, $type = 'log', $label = null)
 	{
@@ -329,10 +320,10 @@ Debug::init();
  * Wrapper for Debug::dump()
  * @see Debug::dump();
  */
-function dump()
+function dump($var)
 {
 	$args = func_get_args();
-	return call_user_func_array(array('Debug', 'dump'), $args);
+	return Debug::dump($var);
 }
 
 
@@ -346,8 +337,8 @@ class FatalErrorException extends Exception
 
 	/**
 	 * Contructor
-	 * @param   array
-	 * @return  FatalErrorException
+	 * @param array
+	 * @return FatalErrorException
 	 */
 	public function __construct($error)
 	{
@@ -358,11 +349,10 @@ class FatalErrorException extends Exception
 
 	/**
 	 * Returns trace array for fatal error
-	 * @return  array
+	 * @return array
 	 */
 	public function getFatalTrace()
 	{
-		//return debug_backtrace();
 		return array(array(
 			'line' => $this->error['line'],
 			'file' => $this->error['file'],
@@ -372,7 +362,7 @@ class FatalErrorException extends Exception
 
 	/**
 	 * Returns error tile
-	 * @param  string
+	 * @param string
 	 */
 	public function getErrorTitle()
 	{

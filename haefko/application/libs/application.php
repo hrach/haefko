@@ -171,8 +171,8 @@ class Application extends Object
 	public function autoload($dirs = array())
 	{
 		$autoload = new AutoLoader($this->cache);
-		$autoload->exts = Config::read('Autoload.exts', $autoload->exts);
-		$autoload->autoRebuild = Config::read('Core.debug') > 1;
+		$autoload->exts = Config::read('autoloader.exts', $autoload->exts);
+		$autoload->autoRebuild = Config::read('core.debug') > 1;
 
 		$dirs = (array) $dirs;
 		array_unshift($dirs, "{$this->path}/extends/");

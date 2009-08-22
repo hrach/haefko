@@ -119,6 +119,7 @@ class CrudController extends AppController
 
 	/**
 	 * Delete action
+	 * @param mixed $entry primary key value
 	 */
 	public function deleteAction($entry)
 	{
