@@ -15,11 +15,13 @@
 <channel>
 	<generator>haefko framework - http://haefko.skrasek.com</generator>
 	<docs>http://blogs.law.harvard.edu/tech/rss</docs>
+	<lastBuildDate>{$rss->date()}</lastBuildDate>
 
 	<title>{$title}</title>
+	<link>{$link}</link>
 	<description>{$description}</description>
-	<lastBuildDate>{$rss->date()}</lastBuildDate>
-	{if isset($link)}<link>{$link}</link>{/if}
+
+	{if isset($copyright)}{$rss->description($copyright)}{/if}
 	{if isset($image['title']) && isset($image['src']) && isset($image['link'])}
 	<image>
 		<title>{$image['title']}</title>
