@@ -11,7 +11,7 @@
  * @package     Haefko
  */
 
- 
+
 require_once dirname(__FILE__) . '/object.php';
 require_once dirname(__FILE__) . '/cache.php';
 require_once dirname(__FILE__) . '/template.php';
@@ -397,7 +397,7 @@ class DataGrid extends Object
 		foreach ($order as $key => $val)
 			$res[] = $val['state'] . $key;
 
-		if(empty($res))
+		if (empty($res))
 			return null;
 		else
 			return implode('|', $res);
@@ -429,16 +429,15 @@ class DataGrid extends Object
 
 
 	/**
-	 * Returns sql order
+	 * Returns sql order expression
 	 * @return string
 	 */
 	protected function getSqlOrder()
 	{
 		$sql = array();
-		foreach ($this->order as $column => $val) {
+		foreach ($this->order as $column => $val)
 			$sql[] = $column . ($val['state'] == 'd' ? ' DESC' : ' ASC');
-		}	
-		
+
 		return implode(', ', $sql);
 	}
 

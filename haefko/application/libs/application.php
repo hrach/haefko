@@ -7,7 +7,7 @@
  * @copyright   Copyright (c) 2007 - 2009, Jan Skrasek
  * @link        http://haefko.skrasek.com
  * @license     http://www.opensource.org/licenses/mit-license.html
- * @version     0.9 - $Id: application.php 143 2009-07-18 16:24:50Z skrasek.jan $
+ * @version     0.9 - $Id$
  * @package     Haefko
  */
 
@@ -231,8 +231,10 @@ class Application extends Object
 		self::$error = true;
 		$class = $this->errorController;
 		$this->loadAppControllerClass();
+		/** @var $class Controller */
 		$this->controller = new $class();
 		$this->controller->init();
+		$this->controller->setupLayout();
 		$this->controller->loadLayoutTemplate();
 
 		if ($exception instanceof ApplicationException) {

@@ -118,7 +118,9 @@ class Debug
 	{
 		if (Config::read('core.debug') > 2 || self::$active) {
 			self::toolbar('Rendering time: ' . self::getTime() . 'ms');
-			require_once dirname(__FILE__) . '/debug.toolbar.phtml';
+
+			if (!empty(self::$toolbar))
+				require_once dirname(__FILE__) . '/debug.toolbar.phtml';
 		}
 	}
 
