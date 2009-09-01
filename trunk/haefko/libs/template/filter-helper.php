@@ -119,6 +119,9 @@ class FilterHelper extends Object
 	 */
 	public function date($var, $format = 'd.m.Y')
 	{
+		if (!is_int($var))
+			$var = strtotime($var);
+
 		return date($format, $var);
 	}
 

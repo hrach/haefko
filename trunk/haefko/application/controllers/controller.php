@@ -71,28 +71,13 @@ abstract class Controller extends Control
 		$this->application = Application::get();
 		$this->routing = (object) $this->router->getRouting(false);
 		$this->routing->template = '';
+		$this->routing->layout = '';
 		$this->routing->ajax = Http::$request->isAjax;
 		$this->routing->ext = 'phtml';
 
-		# TEMPLATE
 		$this->template = $this->getTemplateInstace();
 		if (!($this->template instanceof ITemplate))
 			throw new LogicException('You have to return template class which implements ITemplate interface.');
-
-		# SERVICES & LAYOUT
-		$layout = 'layout';
-		if (isset($this->services[$this->routing->service])) {
-			$service = $this->services[$this->routing->service];
-			if (isset($service['layout']))
-				$layout = $service['layout'];
-			
-			if (isset($service['helpers'])) {
-				foreach ((array) $service['helpers'] as $helper)
-					$this->template->getHelper($helper);
-			}
-		}
-
-		$this->routing->layout = $layout;
 	}
 
 
@@ -228,6 +213,8 @@ abstract class Controller extends Control
 			call_user_func(array($this, 'init'));
 			if ($this->routing->template !== false)
 				$this->routing->template = Tools::dash($this->routing->action);
+			if (empty($this->routing->layout))
+				$this->setupLayout();
 
 			# METHOD
 			$method = Tools::camelize($this->routing->action);
@@ -253,6 +240,8 @@ abstract class Controller extends Control
 				$template = $exception->errorFile;
 
 			$this->template->setFile($this->getErrorTemplateFile($template));
+			if (empty($this->routing->layout))
+				$this->setupLayout();
 		}
 
 		$this->loadLayoutTemplate();
@@ -428,6 +417,27 @@ abstract class Controller extends Control
 		}
 
 		return $core . '/templates/layout.phtml';
+	}
+
+
+	/**
+	 * Setups layout for services
+	 */
+	public function setupLayout()
+	{
+		$layout = 'layout';
+		if (isset($this->services[$this->routing->service])) {
+			$service = $this->services[$this->routing->service];
+			if (isset($service['layout']))
+				$layout = $service['layout'];
+			
+			if (isset($service['helpers'])) {
+				foreach ((array) $service['helpers'] as $helper)
+					$this->template->getHelper($helper);
+			}
+		}
+
+		$this->routing->layout = $layout;
 	}
 
 

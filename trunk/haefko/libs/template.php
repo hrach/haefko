@@ -102,14 +102,18 @@ class Template extends Object implements ITemplate
 	/** @var bool */
 	private $__hasBlocks = false;
 
+	/** @var bool */
+	private $isIncluded = false;
+
 
 	/**
 	 * Constructor
 	 * @param string $file template filename
 	 * @param string $temp path for cache templates
+	 * @param bool $isIncluded is template child of another template?
 	 * @return Template
 	 */
-	public function __construct($file = null, Cache $cache = null)
+	public function __construct($file = null, Cache $cache = null, $isIncluded = false)
 	{
 		$this->tplKeywords = self::$defaultTplKeywords;
 		$this->tplTriggers = self::$defaultTplTriggers;
@@ -124,6 +128,7 @@ class Template extends Object implements ITemplate
 
 		$this->cache = $cache;
 		$this->getHelper('filter');
+		$this->isIncluded = $isIncluded;
 	}
 
 
@@ -297,6 +302,22 @@ class Template extends Object implements ITemplate
 
 
 	/**
+	 * Returns true if template has extending template or is included
+	 * @param null|bool $set
+	 * @return Template|bool
+	 */
+	public function isInRelation($set = null)
+	{
+		if ($set !== null) {
+			$this->isIncluded = true;
+			return $this;
+		}
+
+		return $this->hasExtendsFile() || $this->isIncluded;
+	}
+
+
+	/**
 	 * Returns clone of template
 	 * @return Template
 	 */
@@ -333,12 +354,13 @@ class Template extends Object implements ITemplate
 
 	/**
 	 * Includes sub-template file
-	 * @param string template filename
+	 * @param string $file template filename
 	 * @return string
 	 */
 	public function subTemplate($file)
 	{
 		$template = $this->getClone();
+		$template->isInRelation(true);
 		$template->setFile($file);
 		return $template->render();
 	}
@@ -367,7 +389,7 @@ class Template extends Object implements ITemplate
 			$this->registeredBlocks[$id] = array(
 				'prepend' => array(),
 				'append' => array(),
-				'' => array()
+				'' => array(),
 			);
 		}
 
@@ -406,8 +428,8 @@ class Template extends Object implements ITemplate
 	 * Renders template a return content
 	 * @return string
 	 */
-    public function render()
-    {
+	public function render()
+	{
 		if (!file_exists($this->file))
 			throw new Exception("Template file '{$this->file}' was not found.");
 
@@ -547,8 +569,8 @@ class Template extends Object implements ITemplate
 		return "<?php if (!function_exists('$name')) { "
 		     . "\$template->registerBlock('$id', '$name', '$matches[1]');"
 		     . "function $name() { extract(func_get_arg(0)); ?>$matches[3]<?php }} "
-			 . "if (!\$template->hasExtendsFile()) "
-			 . "echo \$template->getFilterBlock('$id', get_defined_vars()); ?>";
+		     . "if (!\$template->isInRelation()) "
+		     . "echo \$template->getFilterBlock('$id', get_defined_vars()); ?>";
 	}
 
 
@@ -614,7 +636,6 @@ class Template extends Object implements ITemplate
 		$val = substr($expression, $space);
 		return "<?php \$template->setVar('$var', $val) //--EXLUDE--//?>";
 	}
-
 
 
 	/**
