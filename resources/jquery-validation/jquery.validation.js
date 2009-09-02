@@ -22,15 +22,16 @@ $.fn.validate = function(rules, conditions) {
 			case 'float': return /^\d+(\.\d+)?$/.test(val);
 			case 'length':
 				val = val.length;
-				if (typeof(arg) == 'number' && parseInt(arg) == arg)
-					return val == arg;
 
 				if (arg[0] == '>') {
-					if (arg[1] == '=') return val >= arg.substr(2);
-					else return val > arg.substr(1);
+					return val > arg.substr(1);
+				} else if (arg[0] == '<') {
+					return val < arg.substr(1);
 				} else {
-					if (arg[1] == '=') return val <= arg.substr(2);
-					else return val < arg.substr(1);
+					if (!(typeof(arg) == 'number' && parseInt(arg) == arg))
+						arg = arg.substr(1);
+
+					return val == arg;
 				}
 			case 'range':
 				if (val == "")
