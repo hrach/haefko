@@ -33,11 +33,14 @@ class FilterHelper extends Object
 				$varName = 'filter';
 
 			static $filters = array('bytes', 'escape', 'lower', 'upper',
-				'strip', 'stripTags', 'date', 'format', 'shuffle',
+				'strip', 'stripTags', 'date', 'ldate', 'format', 'shuffle',
 				'explode', 'implode', 'truncate');
 
 			foreach ($filters as $f)
 				$template->tplFilters[$f] = "\${$varName}->$f";
+
+			$template->tplFunctions['translate'] = "\${$varName}->translate";
+			$template->tplFunctions['__'] = "\${$varName}->translate";
 		}
 	}
 
@@ -113,7 +116,7 @@ class FilterHelper extends Object
 
 	/**
 	 * Date filter
-	 * @param string $var
+	 * @param int|string $var
 	 * @param string $format
 	 * @return string
 	 */
@@ -123,6 +126,21 @@ class FilterHelper extends Object
 			$var = strtotime($var);
 
 		return date($format, $var);
+	}
+
+
+	/**
+	 * Date filter with localization
+	 * @param int|string $var
+	 * @param string $format
+	 * @return string
+	 */
+	public function ldate($var, $format = '%d. %B %Y')
+	{
+		if (!is_int($var))
+			$var = strtotime($var);
+
+		return strftime($format, $var);
 	}
 
 
@@ -208,6 +226,23 @@ class FilterHelper extends Object
 			$string .= ' ' . $append;
 
 		return $string;
+	}
+
+
+	/**
+	 * Translates expression, optionally in plural form
+	 * @param string $string translation key
+	 * @param string $domain
+	 * @return string
+	 */
+	public function translate()
+	{
+		$args = func_get_args();
+		$nargs = func_num_args();
+		if ($nargs <= 2)
+			return call_user_func_array(array('L10n', '__'), $args);
+		else
+			return call_user_func_array(array('L10n', '__n'), $args);
 	}
 
 
