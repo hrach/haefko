@@ -238,8 +238,10 @@ class DbConnection extends Object
 		switch ($type) {
 			case Db::RAW: return $value;
 			case Db::NULL: return 'NULL';
-			case Db::INTEGER: return (int) $value;
-			case Db::FLOAT: return (float) $value;
+
+			case Db::INTEGER:
+			case Db::FLOAT:
+				return rtrim(rtrim(number_format($value, 5, '.', ''), '0'), '.');
 
 			case Db::COLUMN:
 			case Db::TEXT:
