@@ -664,7 +664,7 @@ class Template extends Object implements ITemplate
 			$expression = explode('|', $expression);
 
 		foreach ($expression as $filter) {
-			if (preg_match('#([^:]+)(?:\:("[^"]+"|[^\:]+))+#', $filter, $match)) {
+			if (preg_match('#([^:]+)(?:\:("[^"]+"|\'[^\']+\'|[^\:]+))+#', $filter, $match)) {
 				array_shift($match);
 				$filters[array_shift($match)] = $match;
 			} else {
