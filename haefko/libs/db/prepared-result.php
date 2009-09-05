@@ -47,10 +47,16 @@ class DbPreparedResult extends DbResult
 	public function setPagination($page, $limit = 10, $count = null)
 	{
 		if ($this->executed)
-			throw new Exception("You can't paginate excecuted query.");
+			throw new Exception('You can not paginate excecuted query.');
 
-		if (empty($count))
-			$count = db::fetchField(preg_replace('#select (.+) from#si', 'SELECT COUNT(*) FROM', $this->query));
+		if (empty($count)) {
+			$query = preg_replace('#select(.+)from#si', 'SELECT COUNT(*) FROM', $this->query, -1, $c);
+			if ($c < 1)
+				throw new Exception('Unsuccessful sql replacement for pagination. Provide your count of entries.');
+
+			$count = db::fetchField($query);
+		}
+
 		if ($page < 1)
 			$page = 1;
 
