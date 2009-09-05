@@ -175,7 +175,7 @@ class DbConnection extends Object
 			if (is_string($frag))
 				$frag = preg_replace("#\[(.+)\]#Ue", '$this->driver->escape(Db::COLUMN, "\\1")', $frag);
 
-			if (is_string($frag) && preg_match_all('#(?:(!)?%(r|c|s|i|f|b|d|t|dt|set|l|v|kv|a|if|end))(?!\w)#', $frag, $matches, PREG_OFFSET_CAPTURE + PREG_SET_ORDER)) {
+			if (is_string($frag) && preg_match_all('#(?:(!)?%(r|c|s|i|f|b|bin|d|t|dt|set|l|a|v|m|if|end))(?!\w)#', $frag, $matches, PREG_OFFSET_CAPTURE + PREG_SET_ORDER)) {
 				$temp = '';
 				$start = 0;
 				foreach ($matches as $match) {
@@ -267,6 +267,15 @@ class DbConnection extends Object
 			case Db::A_VALUES:
 				$array = $this->escapeArray($value);
 				return '(' . implode(', ', array_keys($array)) . ') VALUES (' . implode(', ', $array) . ')';
+
+			case Db::A_MULTI_VALUES:
+				$first = array_shift($value);
+				$first = $this->escapeArray($first);
+				$return = '(' . implode(', ', array_keys($first)) . ') VALUES (' . implode(', ', $first) . ')';
+				foreach ($value as $array)
+					$return .= ', (' . implode(', ', $this->escapeArray($array)) . ')';
+
+				return $return;
 
 			default:
 				throw new InvalidArgumentException('Unknown column modificator.');

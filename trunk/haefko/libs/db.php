@@ -37,6 +37,7 @@ class Db
 	const A_LIST = 'l';
 	const A_ASSOC = 'a';
 	const A_VALUES = 'v';
+	const A_MULTI_VALUES = 'm';
 	/**#@-*/
 
 	/** @var array */
