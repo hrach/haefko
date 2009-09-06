@@ -24,6 +24,9 @@ class CrudController extends AppController
 	/** @var string - Url for actions of the crud controller instance */
 	protected $link;
 
+	/** @var string - Column name from which will be showed title of entry */
+	protected $readableColumn;
+
 	/** @var int - Limit for pagination */
 	protected $limit = 20;
 
@@ -40,6 +43,9 @@ class CrudController extends AppController
 
 	/** @var string - Referer */
 	protected $referer;
+
+	/** @var DbTable */
+	protected $dbTable;
 
 
 	/**
@@ -78,15 +84,14 @@ class CrudController extends AppController
 	 */
 	public function createAction()
 	{
-		$table = $this->getTable();
-		$form = $this->getForm($table);
-		if ($form->isSubmit()) {
-			$data = $form->data;
-			unset($form->data[self::$CRUD_REFERER]);
-			$table->import($this->processData($form->data, false))
-			      ->save();
+		$this->initTable();
+		$form = $this->getForm();
 
-			$this->refererRedirect($data);
+		if ($form->isSubmit()) {
+			$data = $this->processData($form->data, true);
+			unset($data[self::$CRUD_REFERER]);
+			$this->saveData($data);
+			$this->refererRedirect($form->data);
 		}
 	}
 
@@ -97,22 +102,15 @@ class CrudController extends AppController
 	 */
 	public function updateAction($entry)
 	{
-		$table = $this->getTable($entry);
-		$form = $this->getForm($table);
+		$this->initTable($entry);
+		$form = $this->getForm();
+		        $this->fillFormWithDefaults($form);
 
-		$row = $table->get();
-		if (empty($entry) || empty($row))
-			$this->error();
-
-
-		$form->setDefaults($row);
 		if ($form->isSubmit()) {
-			$data = $form->data;
-			unset($form->data[self::$CRUD_REFERER]);
-			$table->import($this->processData($form->data, true))
-			      ->save();
-
-			$this->refererRedirect($data);
+			$data = $this->processData($form->data);
+			unset($data[self::$CRUD_REFERER]);
+			$this->saveData($data);
+			$this->refererRedirect($form->data);
 		}
 	}
 
@@ -123,17 +121,20 @@ class CrudController extends AppController
 	 */
 	public function deleteAction($entry)
 	{
+		$this->template->entry = $entry;
 		$form = $this->getDeleteForm($entry);
+
 		if ($form->isSubmit()) {
-			$data = $form->data;
-			unset($form->data[self::$CRUD_REFERER]);
-			if ($form->isSubmit('yes'))
-				$this->getTable($form->data['entry'])->remove();
+			if ($form->isSubmit('yes')) {
+				$this->initTable($form->data['entry']);
+				$this->deleteData();
+			}
 
 			$this->refererRedirect($data);
+		} else {
+			$this->initTable($entry);
+			$this->findReadableColumn();
 		}
-
-		$this->template->entry = $entry;
 	}
 
 
@@ -157,9 +158,10 @@ class CrudController extends AppController
 	/**
 	 * Processes saving form data
 	 * @param array $data
+	 * @param bool $isInsert
 	 * @return array
 	 */
-	protected function processData($data)
+	protected function processData($data, $isInsert = false)
 	{
 		return $data;
 	}
@@ -167,22 +169,23 @@ class CrudController extends AppController
 
 	/**
 	 * Returns table form
-	 * @param DbTable $table
 	 * @return Form
 	 */
-	protected function getForm(DbTable $table)
+	protected function getForm()
 	{
-		$form = $this->template->crudEditForm = $table->getForm($this->editColumns,
-			$this->labels, null, 'crudEditForm');
+		$form = $this->template->crudEditForm = 
+			$this->dbTable->getForm($this->editColumns, $this->labels, null, 'crudEditForm');
 
 		# referer
 		if (Http::$request->getReferer() == Http::$request->getFullRequest())
 			$referer = $this->crudUrl('index');
 		else
 			$referer = Http::$request->getReferer();
+
 		$form->addHidden(self::$CRUD_REFERER)->setDefaults(array(
 			self::$CRUD_REFERER => $referer,
 		));
+
 
 		return $form;
 	}
@@ -191,6 +194,7 @@ class CrudController extends AppController
 	/**
 	 * Returns delete form
 	 * @param mixed $entry
+	 * @return Form
 	 */
 	protected function getDeleteForm($entry)
 	{
@@ -230,17 +234,64 @@ class CrudController extends AppController
 
 
 	/**
-	 * Returns DbTable
-	 * @param mixed $pk primary key value
-	 * @return DbTable
+	 * Inits DbTable
 	 */
-	protected function getTable($pk = null)
+	protected function initTable($pk = null)
 	{
 		$class = DbTable::init($this->table);
 		if (empty($pk))
-			return new $class();
+			$this->dbTable = new $class;
 		else
-			return new $class($pk);
+			$this->dbTable = new $class($pk);
+	}
+
+
+	/**
+	 * Saves data to db
+	 * @param array $data
+	 */
+	protected function saveData($data)
+	{
+		return $this->dbTable->import($data)->save();
+	}
+
+
+	/**
+	 * Deletes data form db
+	 */
+	protected function deleteData()
+	{
+		return $this->dbTable->remove();
+	}
+
+
+	/**
+	 * Sets defaults for edit form
+	 * @param Form $form
+	 * @return Form
+	 */
+	protected function fillFormWithDefaults($form)
+	{
+		$row = $this->dbTable->get();
+		if (empty($row))
+			$this->error();
+
+		return $form->setDefaults($row);
+	}
+
+
+	/**
+	 * Finds entry representating value in readableColumn
+	 * @throws Exception
+	 */
+	protected function findReadableColumn()
+	{
+		if (empty($this->readableColumn))
+			return;
+
+		$row = $this->dbTable->get($this->readableColumn);
+		if (!empty($row))
+			$this->template->entry = $row[$this->readableColumn];
 	}
 
 
