@@ -210,7 +210,7 @@ abstract class DbTable extends Object
 				$form->addText($name, $label);
 				if (!$data['null'])
 					$form[$name]->addRule(Rule::FILLED);
-				$form[$name]->addRule(Rule::LENGTH, '<=' . $data['length']);
+				$form[$name]->addRule(Rule::LENGTH, '<' . ($data['length'] + 1));
 
 				break;
 			}
