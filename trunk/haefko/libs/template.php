@@ -468,7 +468,9 @@ class Template extends Object implements ITemplate
 			$return = $clone->render() . $return;
 		}
 
-		echo $___pre;
+		if (!preg_match('#^\s+$#', $___pre))
+			echo $___pre;
+
 		return $return;
 	}
 

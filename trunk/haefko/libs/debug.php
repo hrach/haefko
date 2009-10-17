@@ -139,7 +139,17 @@ class Debug
 		if (!($id & error_reporting()))
 			return;
 
-		if ((class_exists('Config', false) && Config::read('core.debug') > 0) || self::$active)
+		$render = false;
+		foreach (headers_list() as $header) {
+			if (stripos($header, 'content-type:') === 0) {
+				if (substr($header, 14, 9) === 'text/html') {
+					$render = true;
+					break;
+				}
+			}
+		}
+
+		if ($render === true && ((class_exists('Config', false) && Config::read('core.debug') > 0) || self::$active))
 			echo '<div class="error"><strong>' . self::getErrorLabel($id) . ":</strong> $message<br/>"
 			    ."<strong>$file</strong> on line $line</div><br />";
 		else
@@ -331,7 +341,6 @@ function dump($var)
 
 class FatalErrorException extends Exception
 {
-
 
 	/** @var array */
 	protected $error;
