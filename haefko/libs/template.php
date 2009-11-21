@@ -61,6 +61,10 @@ class Template extends Object implements ITemplate
 	/** @var array */
 	public static $defaultTplFilters = array();
 
+	/** @var array */
+	protected static $registeredBlocks = array();
+
+
 
 
 	/** @var array */
@@ -89,9 +93,6 @@ class Template extends Object implements ITemplate
 
 	/** @var array */
 	protected $helpers = array();
-
-	/** @var array */
-	protected $registeredBlocks = array();
 
 	/** @var array */
 	protected $dontEscape = array();
@@ -385,15 +386,15 @@ class Template extends Object implements ITemplate
 	 */
 	public function registerBlock($id, $function, $mode = '')
 	{
-		if (!isset($this->registeredBlocks[$id])) {
-			$this->registeredBlocks[$id] = array(
+		if (!isset(self::$registeredBlocks[$id])) {
+			self::$registeredBlocks[$id] = array(
 				'prepend' => array(),
 				'append' => array(),
 				'' => array(),
 			);
 		}
 
-		$this->registeredBlocks[$id][$mode][] = $function;
+		self::$registeredBlocks[$id][$mode][] = $function;
 		return $this;
 	}
 
@@ -406,16 +407,20 @@ class Template extends Object implements ITemplate
 	 */
 	public function getFilterBlock($id, $vars)
 	{
-		if (!isset($this->registeredBlocks[$id]))
+		if (!isset(self::$registeredBlocks[$id]))
 			return;
 
 		$render = '';
-		$blocks = $this->registeredBlocks[$id];
+		$blocks = self::$registeredBlocks[$id];
 		foreach (array_reverse($blocks['prepend']) as $func)
 			$render .= call_user_func($func, $vars);
 
-		if (isset($blocks[''][0]))
-			$render .= call_user_func($blocks[''][0], $vars);
+		$function = array_pop($blocks['']);
+		
+		if (count($blocks['']) > 0 && $function == '_filter_block_' . $id . '_' . substr(md5($this->file), 0, 10))
+			$function = array_pop($blocks['']);
+
+		$render .= call_user_func($function, $vars);
 
 		foreach (array_reverse($blocks['append']) as $func)
 			$render .= call_user_func($func, $vars);
@@ -563,10 +568,7 @@ class Template extends Object implements ITemplate
 	{
 		$this->__hasBlocks = true;
 		$id = substr(md5($matches[2]), 0, 10);
-		if (!empty($matches[1]))
-			$name = '_filter_block_' . $id . '_' . substr(md5($this->file), 0, 10);
-		else
-			$name = '_filter_block_' . $id;
+		$name = '_filter_block_' . $id . '_' . substr(md5($this->file), 0, 10);
 
 		return "<?php if (!function_exists('$name')) { "
 		     . "\$template->registerBlock('$id', '$name', '$matches[1]');"

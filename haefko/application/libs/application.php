@@ -251,6 +251,7 @@ class Application extends Object
 			$this->controller->setErrorTemplate('404');
 		}
 
+		ob_clean();
 		echo $this->controller->template->render();
 	}
 
