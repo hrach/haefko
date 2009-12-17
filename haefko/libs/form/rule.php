@@ -132,7 +132,7 @@ class Rule extends Object
 		case Rule::INTEGER: return preg_match('#^\d+$#', $value);
 		case Rule::FLOAT: return preg_match('#^\d+(\.\d+)?$#', $value);
 		case Rule::LENGTH:
-			$value = strlen($value);
+			$value = mb_strlen($value, 'UTF-8');
 			if ($arg[0] == '>') {
 				return $value > substr($arg, 1);
 			} elseif ($arg[0] == '<') {
