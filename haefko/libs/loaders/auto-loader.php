@@ -114,7 +114,7 @@ class AutoLoader extends Loader
 	 */
 	public function register()
 	{
-		parent::register(array($this, 'load'));
+		parent::registerCb(array($this, 'load'));
 		$this->classes = $this->cache->get('autoloader');
 		if ($this->classes === null)
 			$this->rebuild();
