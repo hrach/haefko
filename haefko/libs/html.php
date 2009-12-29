@@ -88,7 +88,7 @@ class Html extends Object
 	public function __call($name, $args)
 	{
 		# unset attribut
-		if (empty($args[0]) && $args[0] !== 0) {
+		if (empty($args[0]) && $args[0] !== '0') {
 			$this->attrs[$name] = null;
 		# add to array attribut
 		} elseif (isset($this->attrs[$name]) && is_array($this->attrs[$name])) {
