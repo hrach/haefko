@@ -86,7 +86,7 @@ class HaefkoLoader extends Loader
 	 */
 	public function register()
 	{
-		parent::register(array($this, 'load'));
+		parent::registerCb(array($this, 'load'));
 		return $this;
 	}
 

@@ -24,23 +24,6 @@ abstract class Loader extends Object
 
 
 	/**
-	 * Register callback for loader hanledr
-	 * @param mixed $callback
-	 * @return Loader
-	 */
-	public function register($callback)
-	{
-		if (!is_callable($callback))
-			throw new Exception('Loader callback is not callable');
-
-		if (empty($this->callbacks))
-			spl_autoload_register(array($this, 'autoloadHandler'));
-
-		$this->callbacks[] = $callback;
-	}
-
-
-	/**
 	 * Autoload handler
 	 * @param  string $class class name
 	 */
@@ -51,6 +34,22 @@ abstract class Loader extends Object
 			if (class_exists($class, false))
 				break;
 		}
+	}
+
+
+	/**
+	 * Register callback for loader hanledr
+	 * @param mixed $callback
+	 */
+	protected function registerCb($callback)
+	{
+		if (!is_callable($callback))
+			throw new Exception('Loader callback is not callable');
+
+		if (empty($this->callbacks))
+			spl_autoload_register(array($this, 'autoloadHandler'));
+
+		$this->callbacks[] = $callback;
 	}
 
 
