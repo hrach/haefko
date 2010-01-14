@@ -12,7 +12,10 @@ $label_age = Html::el('label', 'Věk')->append(Html::el('small', ' (nepovinné)'
 $form->addText('name', 'Jméno')
 	 ->addTextarea('aboutMe', 'O mně')
 	 ->addText('age', $label_age)
-	 ->addRadio('sex', aa('male', 'Muž', 'female', 'Žena'), 'Pohlaví')
+	 ->addRadio('sex', array(
+	 	'male' => Html::el('img')->src('male.png'),
+	 	'female' => Html::el('img')->src('female.png'),
+	 ), 'Pohlaví')
 	 ->addSelect('city', aa('brno', 'Brno', 'ostrava', 'Ostrava', 'praha', 'Praha'))
 	 ->addPassword('password', 'Heslo')
 	 ->addPassword('password2', 'Heslo znovu')
