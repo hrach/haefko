@@ -152,8 +152,7 @@ class FilterHelper extends Object
 	 */
 	public function format($var, $format)
 	{
-		$args = func_get_args();
-		return call_user_func_array('sprintf', $args);
+		return sprintf($format, $var);
 	}
 
 
