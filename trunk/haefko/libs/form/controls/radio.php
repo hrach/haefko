@@ -79,7 +79,11 @@ class FormRadioControl extends FormInputControl
 				return $radio;
 
 			$label->for = $id . $name;
-			$label->setText($val);
+			if ($val instanceof Html)
+				$label->setHtml($val);
+			else
+				$label->setText($val);
+
 			$container->addHtml($radio->render() . $label->render() . $this->listSeparator);
 		}
 
