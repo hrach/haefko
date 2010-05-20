@@ -266,7 +266,7 @@ class User extends Object
 		if ($identity === User::INVALID_CREDENTIALS
 		 || $identity === User::INVALID_USERNAME
 		 || $identity === User::INVALID_PASSWORD
-		 || $indetity === User::UNAUTHORIZED_USER
+		 || $identity === User::UNAUTHORIZED_USER
 		)
 			return $identity;
 		elseif (!($identity instanceof IIdentity))
